@@ -1,9 +1,7 @@
 "use client";
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { notFound } from "next/navigation";
-import { courts } from "@/lib/data/courts";
-import { bookingsStore, addBooking } from "@/lib/data/bookings";
-import { players } from "@/lib/data/players";
+import { Court, Booking, Player } from "@/lib/types";
 import BookingCalendar from "@/components/bookings/BookingCalendar";
 import BookingForm from "@/components/bookings/BookingForm";
 import Modal from "@/components/ui/Modal";
@@ -13,42 +11,71 @@ import { Zap, Sun, CheckCircle } from "lucide-react";
 
 export default function CourtBookingPage({ params }: { params: Promise<{ courtId: string }> }) {
   const { courtId } = use(params);
-  const court = courts.find((c) => c.id === courtId);
-  if (!court) return notFound();
-
-  const [bookings, setBookings] = useState(bookingsStore);
+  const [court, setCourt] = useState<Court | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; startTime: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`/api/courts`).then((r) => r.json()),
+      fetch(`/api/bookings?courtId=${courtId}`).then((r) => r.json()),
+      fetch(`/api/players`).then((r) => r.json()),
+    ]).then(([courts, bookingsData, playersData]) => {
+      const found = courts.find((c: Court) => c.id === courtId);
+      if (!found) { setLoading(false); return; }
+      setCourt(found);
+      setBookings(bookingsData);
+      setPlayers(playersData.map((entry: { player: Player }) => entry.player));
+      setLoading(false);
+    });
+  }, [courtId]);
+
+  const refreshBookings = () => {
+    fetch(`/api/bookings?courtId=${courtId}`)
+      .then((r) => r.json())
+      .then(setBookings);
+  };
 
   const handleSlotSelect = (date: string, startTime: string) => {
     setSelectedSlot({ date, startTime });
     setShowModal(true);
   };
 
-  const handleConfirm = (playerIds: string[], notes: string) => {
-    if (!selectedSlot) return;
-    const endHour = parseInt(selectedSlot.startTime.split(":")[0]) + 1;
-    const endTime = `${endHour.toString().padStart(2, "0")}:00`;
-    const newBooking = {
-      id: `b${Date.now()}`,
-      courtId: court.id,
-      playerIds,
-      date: selectedSlot.date,
-      startTime: selectedSlot.startTime,
-      endTime,
-      durationMinutes: 60,
-      status: "confirmed" as const,
-      createdAt: new Date().toISOString(),
-      notes,
-      totalPrice: court.pricePerHour,
-    };
-    addBooking(newBooking);
-    setBookings([...bookingsStore]);
-    setShowModal(false);
-    setConfirmed(true);
-    setTimeout(() => setConfirmed(false), 4000);
+  const handleConfirm = async (playerIds: string[], notes: string) => {
+    if (!selectedSlot || !court) return;
+    const res = await fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        courtId: court.id,
+        playerIds,
+        date: selectedSlot.date,
+        startTime: selectedSlot.startTime,
+        durationMinutes: 60,
+        notes,
+      }),
+    });
+    if (res.ok) {
+      setShowModal(false);
+      setConfirmed(true);
+      refreshBookings();
+      setTimeout(() => setConfirmed(false), 4000);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center min-h-[60vh]">
+        <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!court) return notFound();
 
   const surfaceLabel = { crystal: "Crystal Glass", "artificial-grass": "Artificial Grass", concrete: "Concrete" }[court.surface];
 
@@ -61,7 +88,6 @@ export default function CourtBookingPage({ params }: { params: Promise<{ courtId
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Court info sidebar */}
         <div className="space-y-4">
           <div>
             <h1 className="text-2xl font-black text-gray-900">{court.name}</h1>
@@ -107,7 +133,6 @@ export default function CourtBookingPage({ params }: { params: Promise<{ courtId
           </Card>
         </div>
 
-        {/* Calendar */}
         <div className="lg:col-span-2">
           <Card className="p-5">
             <h2 className="font-semibold text-gray-900 text-lg mb-4">Select a Time Slot</h2>
@@ -116,12 +141,7 @@ export default function CourtBookingPage({ params }: { params: Promise<{ courtId
         </div>
       </div>
 
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Confirm Booking"
-        size="md"
-      >
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Confirm Booking" size="md">
         {selectedSlot && (
           <BookingForm
             court={court}

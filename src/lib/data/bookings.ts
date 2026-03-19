@@ -1,100 +1,64 @@
-import type { Booking } from "@/lib/types";
+import { supabase } from '@/lib/supabase'
+import type { Booking } from '@/lib/types'
 
-const today = new Date();
-const fmt = (d: Date) => d.toISOString().split("T")[0];
-const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+function toModel(row: Record<string, unknown>): Booking {
+  return {
+    id: row.id as string,
+    courtId: row.court_id as string,
+    playerIds: (row.player_ids as string[]) ?? [],
+    date: row.date as string,
+    startTime: row.start_time as string,
+    endTime: row.end_time as string,
+    durationMinutes: row.duration_minutes as number,
+    status: row.status as Booking['status'],
+    createdAt: row.created_at as string,
+    totalPrice: row.total_price as number,
+    notes: row.notes as string | undefined,
+  }
+}
 
-export let bookingsStore: Booking[] = [
-  {
-    id: "b1",
-    courtId: "c1",
-    playerIds: ["p1", "p3", "p5", "p9"],
-    date: fmt(today),
-    startTime: "09:00",
-    endTime: "10:00",
-    durationMinutes: 60,
-    status: "confirmed",
-    createdAt: addDays(today, -2).toISOString(),
-    totalPrice: 6000,
-  },
-  {
-    id: "b2",
-    courtId: "c2",
-    playerIds: ["p2", "p4"],
-    date: fmt(today),
-    startTime: "11:00",
-    endTime: "12:00",
-    durationMinutes: 60,
-    status: "confirmed",
-    createdAt: addDays(today, -1).toISOString(),
-    totalPrice: 6000,
-  },
-  {
-    id: "b3",
-    courtId: "c3",
-    playerIds: ["p6", "p7", "p8", "p12"],
-    date: fmt(addDays(today, 1)),
-    startTime: "16:00",
-    endTime: "17:30",
-    durationMinutes: 90,
-    status: "confirmed",
-    createdAt: today.toISOString(),
-    totalPrice: 6000,
-  },
-  {
-    id: "b4",
-    courtId: "c1",
-    playerIds: ["p1", "p2", "p3", "p4"],
-    date: fmt(addDays(today, 2)),
-    startTime: "10:00",
-    endTime: "11:30",
-    durationMinutes: 90,
-    status: "confirmed",
-    createdAt: today.toISOString(),
-    totalPrice: 9000,
-  },
-  {
-    id: "b5",
-    courtId: "c5",
-    playerIds: ["p1", "p2", "p5", "p9"],
-    date: fmt(addDays(today, 3)),
-    startTime: "18:00",
-    endTime: "19:00",
-    durationMinutes: 60,
-    status: "confirmed",
-    createdAt: today.toISOString(),
-    totalPrice: 8000,
-    notes: "Tournament warm-up",
-  },
-  {
-    id: "b6",
-    courtId: "c4",
-    playerIds: ["p10", "p11"],
-    date: fmt(addDays(today, 1)),
-    startTime: "09:00",
-    endTime: "10:00",
-    durationMinutes: 60,
-    status: "confirmed",
-    createdAt: today.toISOString(),
-    totalPrice: 3500,
-  },
-  {
-    id: "b7",
-    courtId: "c2",
-    playerIds: ["p5", "p9", "p6", "p8"],
-    date: fmt(addDays(today, -1)),
-    startTime: "14:00",
-    endTime: "15:00",
-    durationMinutes: 60,
-    status: "confirmed",
-    createdAt: addDays(today, -3).toISOString(),
-    totalPrice: 6000,
-  },
-];
+export async function getBookings(courtId?: string, date?: string): Promise<Booking[]> {
+  let query = supabase.from('bookings').select('*').order('date').order('start_time')
+  if (courtId) query = query.eq('court_id', courtId)
+  if (date) query = query.eq('date', date)
+  const { data, error } = await query
+  if (error) throw error
+  return (data ?? []).map(toModel)
+}
 
-export const addBooking = (b: Booking) => { bookingsStore.push(b); };
+export async function checkConflict(courtId: string, date: string, startTime: string, endTime: string): Promise<boolean> {
+  const { data } = await supabase
+    .from('bookings')
+    .select('id')
+    .eq('court_id', courtId)
+    .eq('date', date)
+    .neq('status', 'cancelled')
+    .lt('start_time', endTime)
+    .gt('end_time', startTime)
+  return (data?.length ?? 0) > 0
+}
 
-export const cancelBooking = (id: string) => {
-  const idx = bookingsStore.findIndex((b) => b.id === id);
-  if (idx !== -1) bookingsStore[idx].status = "cancelled";
-};
+export async function addBooking(booking: Booking): Promise<Booking> {
+  const { data, error } = await supabase
+    .from('bookings')
+    .insert({
+      id: booking.id,
+      court_id: booking.courtId,
+      player_ids: booking.playerIds,
+      date: booking.date,
+      start_time: booking.startTime,
+      end_time: booking.endTime,
+      duration_minutes: booking.durationMinutes,
+      status: booking.status,
+      total_price: booking.totalPrice,
+      notes: booking.notes,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return toModel(data)
+}
+
+export async function cancelBooking(id: string): Promise<void> {
+  await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id)
+}

@@ -1,12 +1,16 @@
 import CourtCard from "@/components/bookings/CourtCard";
-import { courts } from "@/lib/data/courts";
-import { bookingsStore } from "@/lib/data/bookings";
+import { getCourts } from "@/lib/data/courts";
+import { getBookings } from "@/lib/data/bookings";
 import Card from "@/components/ui/Card";
 import { Calendar, CheckCircle } from "lucide-react";
 
-export default function BookingsPage() {
+export default async function BookingsPage() {
   const today = new Date().toISOString().split("T")[0];
-  const todayBookings = bookingsStore.filter((b) => b.date === today && b.status === "confirmed");
+  const [courts, todayBookings] = await Promise.all([
+    getCourts(),
+    getBookings(undefined, today),
+  ]);
+  const confirmedToday = todayBookings.filter((b) => b.status === "confirmed");
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -15,7 +19,6 @@ export default function BookingsPage() {
         <p className="text-gray-500 mt-1">Choose from our {courts.length} professional courts and book your slot.</p>
       </div>
 
-      {/* Today summary */}
       <Card className="p-5 mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-green-100">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-padel-green rounded-xl">
@@ -24,8 +27,8 @@ export default function BookingsPage() {
           <div>
             <p className="font-semibold text-gray-900">Today's Availability</p>
             <p className="text-sm text-gray-600">
-              {todayBookings.length} of {courts.length} courts booked today ·{" "}
-              {courts.length - todayBookings.length} available right now
+              {confirmedToday.length} of {courts.length} courts booked today ·{" "}
+              {courts.length - confirmedToday.length} available right now
             </p>
           </div>
           <div className="ml-auto flex items-center gap-1 text-padel-green font-semibold text-sm">

@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { players } from "@/lib/data/players";
-import { matchesStore } from "@/lib/data/matches";
-import { courts } from "@/lib/data/courts";
+import { getPlayer, getPlayers } from "@/lib/data/players";
+import { getMatches } from "@/lib/data/matches";
+import { getCourts } from "@/lib/data/courts";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
@@ -14,25 +14,24 @@ const levelVariant: Record<string, "green" | "blue" | "purple" | "gray"> = {
 
 export default async function PlayerProfilePage({ params }: { params: Promise<{ playerId: string }> }) {
   const { playerId } = await params;
-  const player = players.find((p) => p.id === playerId);
+  const [player, allPlayers, myMatches, courts] = await Promise.all([
+    getPlayer(playerId),
+    getPlayers(),
+    getMatches({ playerId }),
+    getCourts(),
+  ]);
+
   if (!player) return notFound();
 
   const s = player.stats;
   const winRate = s.matchesPlayed ? Math.round((s.matchesWon / s.matchesPlayed) * 100) : 0;
   const setsWinRate = (s.setsWon + s.setsLost) > 0 ? Math.round((s.setsWon / (s.setsWon + s.setsLost)) * 100) : 0;
+  void setsWinRate;
 
-  // Player's match history
-  const myMatches = matchesStore
-    .filter((m) =>
-      m.status === "completed" &&
-      [...m.team1.playerIds, ...m.team2.playerIds].includes(playerId)
-    )
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 8);
+  const recentMatches = myMatches.slice(0, 8);
 
-  // Most frequent partner
   const partnerCount: Record<string, number> = {};
-  myMatches.forEach((m) => {
+  recentMatches.forEach((m) => {
     const myTeam = m.team1.playerIds.includes(playerId) ? m.team1.playerIds : m.team2.playerIds;
     myTeam.filter((id) => id !== playerId).forEach((id) => {
       partnerCount[id] = (partnerCount[id] ?? 0) + 1;
@@ -41,7 +40,6 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
       <Card className="p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
           <Avatar name={player.name} size="xl" />
@@ -72,7 +70,6 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Stats */}
         <div className="space-y-4">
           <Card className="p-5">
             <h2 className="font-semibold text-gray-900 mb-4">Statistics</h2>
@@ -117,7 +114,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                   .sort((a, b) => b[1] - a[1])
                   .slice(0, 3)
                   .map(([pid, count]) => {
-                    const partner = players.find((p) => p.id === pid);
+                    const partner = allPlayers.find((p) => p.id === pid);
                     if (!partner) return null;
                     return (
                       <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg">
@@ -132,22 +129,21 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
           )}
         </div>
 
-        {/* Match history */}
         <div className="lg:col-span-2">
           <Card className="p-5">
             <h2 className="font-semibold text-gray-900 mb-4">Match History</h2>
-            {myMatches.length === 0 ? (
+            {recentMatches.length === 0 ? (
               <p className="text-gray-400 text-center py-8">No matches yet</p>
             ) : (
               <div className="space-y-2">
-                {myMatches.map((match) => {
+                {recentMatches.map((match) => {
                   const onTeam1 = match.team1.playerIds.includes(playerId);
                   const myTeam = onTeam1 ? match.team1 : match.team2;
                   const oppTeam = onTeam1 ? match.team2 : match.team1;
                   const won = (onTeam1 && match.winnerId === "team1") || (!onTeam1 && match.winnerId === "team2");
                   const court = courts.find((c) => c.id === match.courtId);
-                  const partners = myTeam.playerIds.filter((id) => id !== playerId).map((id) => players.find((p) => p.id === id)?.name.split(" ")[0]).join(" & ");
-                  const opponents = oppTeam.playerIds.map((id) => players.find((p) => p.id === id)?.name.split(" ")[0]).join(" & ");
+                  const partners = myTeam.playerIds.filter((id) => id !== playerId).map((id) => allPlayers.find((p) => p.id === id)?.name.split(" ")[0]).join(" & ");
+                  const opponents = oppTeam.playerIds.map((id) => allPlayers.find((p) => p.id === id)?.name.split(" ")[0]).join(" & ");
                   const score = match.sets.map((s) => onTeam1 ? `${s.team1Games}-${s.team2Games}` : `${s.team2Games}-${s.team1Games}`).join(", ");
                   const eloChange = match.eloChanges?.[playerId];
 

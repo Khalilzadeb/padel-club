@@ -1,54 +1,26 @@
-import type { Court } from "@/lib/types";
+import { supabase } from '@/lib/supabase'
+import type { Court } from '@/lib/types'
 
-export const courts: Court[] = [
-  {
-    id: "c1",
-    name: "Court 1 - Crystal Blue",
-    surface: "crystal",
-    type: "indoor",
-    isActive: true,
-    pricePerHour: 6000,
-    imageUrl: null,
-    features: ["lighting", "climate-control", "pro-glass-walls", "electronic-scoreboard"],
-  },
-  {
-    id: "c2",
-    name: "Court 2 - Crystal Green",
-    surface: "crystal",
-    type: "indoor",
-    isActive: true,
-    pricePerHour: 6000,
-    imageUrl: null,
-    features: ["lighting", "climate-control", "pro-glass-walls"],
-  },
-  {
-    id: "c3",
-    name: "Court 3 - Panorama",
-    surface: "artificial-grass",
-    type: "outdoor",
-    isActive: true,
-    pricePerHour: 4000,
-    imageUrl: null,
-    features: ["lighting", "panoramic-view", "covered"],
-  },
-  {
-    id: "c4",
-    name: "Court 4 - Garden",
-    surface: "artificial-grass",
-    type: "outdoor",
-    isActive: true,
-    pricePerHour: 3500,
-    imageUrl: null,
-    features: ["lighting", "garden-view"],
-  },
-  {
-    id: "c5",
-    name: "Court 5 - Competition",
-    surface: "crystal",
-    type: "indoor",
-    isActive: true,
-    pricePerHour: 8000,
-    imageUrl: null,
-    features: ["lighting", "climate-control", "pro-glass-walls", "spectator-stands", "streaming-setup", "electronic-scoreboard"],
-  },
-];
+function toModel(row: Record<string, unknown>): Court {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    surface: row.surface as Court['surface'],
+    type: row.type as Court['type'],
+    isActive: row.is_active as boolean,
+    pricePerHour: row.price_per_hour as number,
+    imageUrl: row.image_url as string | null,
+    features: (row.features as string[]) ?? [],
+  }
+}
+
+export async function getCourts(): Promise<Court[]> {
+  const { data, error } = await supabase.from('courts').select('*').order('id')
+  if (error) throw error
+  return (data ?? []).map(toModel)
+}
+
+export async function getCourt(id: string): Promise<Court | null> {
+  const { data } = await supabase.from('courts').select('*').eq('id', id).single()
+  return data ? toModel(data) : null
+}

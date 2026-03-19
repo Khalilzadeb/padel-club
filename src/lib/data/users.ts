@@ -1,92 +1,84 @@
-import bcrypt from "bcryptjs";
+import { supabase } from '@/lib/supabase'
+import bcrypt from 'bcryptjs'
 
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  passwordHash: string;
-  createdAt: string;
-  playerId?: string;
-  googleId?: string;
-  avatarUrl?: string;
+  id: string
+  email: string
+  name: string
+  passwordHash: string
+  createdAt: string
+  playerId?: string
+  googleId?: string
+  avatarUrl?: string
 }
 
-// Seed users (password: "password123" for all demo accounts)
-const HASH = bcrypt.hashSync("password123", 10);
-
-export let usersStore: User[] = [
-  {
-    id: "u1",
-    email: "alex.garcia@padel.club",
-    name: "Alejandro García",
-    passwordHash: HASH,
-    createdAt: "2021-03-10T00:00:00Z",
-    playerId: "p1",
-  },
-  {
-    id: "u2",
-    email: "sofia.m@padel.club",
-    name: "Sofia Martínez",
-    passwordHash: HASH,
-    createdAt: "2021-05-22T00:00:00Z",
-    playerId: "p2",
-  },
-  {
-    id: "u3",
-    email: "demo@padel.club",
-    name: "Demo User",
-    passwordHash: HASH,
-    createdAt: new Date().toISOString(),
-  },
-];
-
-export function findUserByEmail(email: string): User | undefined {
-  return usersStore.find((u) => u.email.toLowerCase() === email.toLowerCase());
+function toModel(row: Record<string, unknown>): User {
+  return {
+    id: row.id as string,
+    email: row.email as string,
+    name: row.name as string,
+    passwordHash: (row.password_hash as string) ?? '',
+    createdAt: row.created_at as string,
+    playerId: row.player_id as string | undefined,
+    googleId: row.google_id as string | undefined,
+    avatarUrl: row.avatar_url as string | undefined,
+  }
 }
 
-export function findUserById(id: string): User | undefined {
-  return usersStore.find((u) => u.id === id);
+export async function findUserByEmail(email: string): Promise<User | undefined> {
+  const { data } = await supabase.from('users').select('*').ilike('email', email).maybeSingle()
+  return data ? toModel(data) : undefined
+}
+
+export async function findUserById(id: string): Promise<User | undefined> {
+  const { data } = await supabase.from('users').select('*').eq('id', id).maybeSingle()
+  return data ? toModel(data) : undefined
+}
+
+export async function findUserByGoogleId(googleId: string): Promise<User | undefined> {
+  const { data } = await supabase.from('users').select('*').eq('google_id', googleId).maybeSingle()
+  return data ? toModel(data) : undefined
 }
 
 export async function createUser(email: string, name: string, password: string): Promise<User> {
-  const passwordHash = await bcrypt.hash(password, 10);
-  const user: User = {
-    id: `u${Date.now()}`,
-    email,
-    name,
-    passwordHash,
-    createdAt: new Date().toISOString(),
-  };
-  usersStore.push(user);
-  return user;
+  const passwordHash = await bcrypt.hash(password, 10)
+  const { data, error } = await supabase
+    .from('users')
+    .insert({
+      id: `u${Date.now()}`,
+      email,
+      name,
+      password_hash: passwordHash,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return toModel(data)
 }
 
 export async function verifyPassword(user: User, password: string): Promise<boolean> {
-  return bcrypt.compare(password, user.passwordHash);
+  return bcrypt.compare(password, user.passwordHash)
 }
 
-export function findUserByGoogleId(googleId: string): User | undefined {
-  return usersStore.find((u) => u.googleId === googleId);
+export async function createGoogleUser(email: string, name: string, googleId: string, avatarUrl?: string): Promise<User> {
+  const { data, error } = await supabase
+    .from('users')
+    .insert({
+      id: `u${Date.now()}`,
+      email,
+      name,
+      password_hash: '',
+      google_id: googleId,
+      avatar_url: avatarUrl,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return toModel(data)
 }
 
-export function createGoogleUser(email: string, name: string, googleId: string, avatarUrl?: string): User {
-  const user: User = {
-    id: `u${Date.now()}`,
-    email,
-    name,
-    passwordHash: "",
-    createdAt: new Date().toISOString(),
-    googleId,
-    avatarUrl,
-  };
-  usersStore.push(user);
-  return user;
-}
-
-export function linkGoogleId(userId: string, googleId: string, avatarUrl?: string): void {
-  const user = usersStore.find((u) => u.id === userId);
-  if (user) {
-    user.googleId = googleId;
-    if (avatarUrl) user.avatarUrl = avatarUrl;
-  }
+export async function linkGoogleId(userId: string, googleId: string, avatarUrl?: string): Promise<void> {
+  const update: Record<string, string> = { google_id: googleId }
+  if (avatarUrl) update.avatar_url = avatarUrl
+  await supabase.from('users').update(update).eq('id', userId)
 }

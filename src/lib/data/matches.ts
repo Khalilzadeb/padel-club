@@ -1,198 +1,76 @@
-import type { Match } from "@/lib/types";
+import { supabase } from '@/lib/supabase'
+import type { Match } from '@/lib/types'
 
-const today = new Date();
-const fmt = (d: Date) => d.toISOString().split("T")[0];
-const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+function toModel(row: Record<string, unknown>): Match {
+  return {
+    id: row.id as string,
+    courtId: row.court_id as string,
+    type: row.type as Match['type'],
+    format: row.format as Match['format'],
+    status: row.status as Match['status'],
+    team1: { playerIds: row.team1_player_ids as [string, string] },
+    team2: { playerIds: row.team2_player_ids as [string, string] },
+    sets: (row.sets as Match['sets']) ?? [],
+    winnerId: row.winner_id as string | undefined,
+    date: row.date as string,
+    startTime: row.start_time as string,
+    durationMinutes: row.duration_minutes as number | undefined,
+    tournamentId: row.tournament_id as string | undefined,
+    tournamentRound: row.tournament_round as string | undefined,
+    eloChanges: row.elo_changes as Match['eloChanges'],
+  }
+}
 
-export let matchesStore: Match[] = [
-  {
-    id: "m1",
-    courtId: "c1",
-    type: "ranked",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p1", "p3"] },
-    team2: { playerIds: ["p5", "p9"] },
-    sets: [
-      { setNumber: 1, team1Games: 6, team2Games: 3 },
-      { setNumber: 2, team1Games: 6, team2Games: 4 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -1)),
-    startTime: "10:00",
-    durationMinutes: 75,
-    eloChanges: { p1: 18, p3: 18, p5: -18, p9: -18 },
-  },
-  {
-    id: "m2",
-    courtId: "c2",
-    type: "ranked",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p2", "p4"] },
-    team2: { playerIds: ["p6", "p8"] },
-    sets: [
-      { setNumber: 1, team1Games: 6, team2Games: 2 },
-      { setNumber: 2, team1Games: 4, team2Games: 6 },
-      { setNumber: 3, team1Games: 7, team2Games: 5 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -1)),
-    startTime: "12:00",
-    durationMinutes: 105,
-    eloChanges: { p2: 22, p4: 22, p6: -22, p8: -22 },
-  },
-  {
-    id: "m3",
-    courtId: "c3",
-    type: "casual",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p7", "p12"] },
-    team2: { playerIds: ["p10", "p11"] },
-    sets: [
-      { setNumber: 1, team1Games: 6, team2Games: 4 },
-      { setNumber: 2, team1Games: 6, team2Games: 1 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -2)),
-    startTime: "16:00",
-    durationMinutes: 70,
-  },
-  {
-    id: "m4",
-    courtId: "c1",
-    type: "ranked",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p1", "p2"] },
-    team2: { playerIds: ["p3", "p5"] },
-    sets: [
-      { setNumber: 1, team1Games: 7, team2Games: 5 },
-      { setNumber: 2, team1Games: 5, team2Games: 7 },
-      { setNumber: 3, team1Games: 6, team2Games: 3 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -3)),
-    startTime: "09:00",
-    durationMinutes: 110,
-    eloChanges: { p1: 14, p2: 14, p3: -14, p5: -14 },
-  },
-  {
-    id: "m5",
-    courtId: "c5",
-    type: "tournament",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p1", "p2"] },
-    team2: { playerIds: ["p9", "p4"] },
-    sets: [
-      { setNumber: 1, team1Games: 6, team2Games: 1 },
-      { setNumber: 2, team1Games: 6, team2Games: 3 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -7)),
-    startTime: "15:00",
-    durationMinutes: 65,
-    tournamentId: "t1",
-    tournamentRound: "Final",
-    eloChanges: { p1: 28, p2: 28, p9: -28, p4: -28 },
-  },
-  {
-    id: "m6",
-    courtId: "c5",
-    type: "tournament",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p1", "p2"] },
-    team2: { playerIds: ["p3", "p5"] },
-    sets: [
-      { setNumber: 1, team1Games: 6, team2Games: 4 },
-      { setNumber: 2, team1Games: 7, team2Games: 6, tiebreak: { team1Points: 7, team2Points: 5 } },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -8)),
-    startTime: "13:00",
-    durationMinutes: 85,
-    tournamentId: "t1",
-    tournamentRound: "Semi-final",
-    eloChanges: { p1: 20, p2: 20, p3: -20, p5: -20 },
-  },
-  {
-    id: "m7",
-    courtId: "c5",
-    type: "tournament",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p9", "p4"] },
-    team2: { playerIds: ["p6", "p8"] },
-    sets: [
-      { setNumber: 1, team1Games: 6, team2Games: 3 },
-      { setNumber: 2, team1Games: 3, team2Games: 6 },
-      { setNumber: 3, team1Games: 6, team2Games: 4 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -8)),
-    startTime: "15:30",
-    durationMinutes: 95,
-    tournamentId: "t1",
-    tournamentRound: "Semi-final",
-  },
-  {
-    id: "m8",
-    courtId: "c2",
-    type: "ranked",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p3", "p9"] },
-    team2: { playerIds: ["p7", "p12"] },
-    sets: [
-      { setNumber: 1, team1Games: 6, team2Games: 2 },
-      { setNumber: 2, team1Games: 6, team2Games: 4 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -4)),
-    startTime: "11:00",
-    durationMinutes: 65,
-    eloChanges: { p3: 16, p9: 16, p7: -16, p12: -16 },
-  },
-  {
-    id: "m9",
-    courtId: "c4",
-    type: "casual",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p6", "p7"] },
-    team2: { playerIds: ["p8", "p10"] },
-    sets: [
-      { setNumber: 1, team1Games: 4, team2Games: 6 },
-      { setNumber: 2, team1Games: 6, team2Games: 3 },
-      { setNumber: 3, team1Games: 6, team2Games: 4 },
-    ],
-    winnerId: "team1",
-    date: fmt(addDays(today, -5)),
-    startTime: "17:00",
-    durationMinutes: 90,
-  },
-  {
-    id: "m10",
-    courtId: "c1",
-    type: "ranked",
-    format: "best-of-3",
-    status: "completed",
-    team1: { playerIds: ["p5", "p3"] },
-    team2: { playerIds: ["p4", "p9"] },
-    sets: [
-      { setNumber: 1, team1Games: 3, team2Games: 6 },
-      { setNumber: 2, team1Games: 6, team2Games: 2 },
-      { setNumber: 3, team1Games: 4, team2Games: 6 },
-    ],
-    winnerId: "team2",
-    date: fmt(addDays(today, -6)),
-    startTime: "10:00",
-    durationMinutes: 100,
-    eloChanges: { p5: -12, p3: -12, p4: 12, p9: 12 },
-  },
-];
+export async function getMatches(filters?: {
+  playerId?: string
+  type?: string
+  from?: string
+  to?: string
+  tournamentId?: string
+}): Promise<Match[]> {
+  let query = supabase.from('matches').select('*').eq('status', 'completed').order('date', { ascending: false })
+  if (filters?.type) query = query.eq('type', filters.type)
+  if (filters?.from) query = query.gte('date', filters.from)
+  if (filters?.to) query = query.lte('date', filters.to)
+  if (filters?.tournamentId) query = query.eq('tournament_id', filters.tournamentId)
+  const { data, error } = await query
+  if (error) throw error
+  let result = (data ?? []).map(toModel)
+  if (filters?.playerId) {
+    result = result.filter((m) =>
+      [...m.team1.playerIds, ...m.team2.playerIds].includes(filters.playerId!)
+    )
+  }
+  return result
+}
 
-export const addMatch = (m: Match) => { matchesStore.push(m); };
+export async function getMatch(id: string): Promise<Match | null> {
+  const { data } = await supabase.from('matches').select('*').eq('id', id).single()
+  return data ? toModel(data) : null
+}
+
+export async function addMatch(match: Match): Promise<Match> {
+  const { data, error } = await supabase
+    .from('matches')
+    .insert({
+      id: match.id,
+      court_id: match.courtId,
+      type: match.type,
+      format: match.format,
+      status: match.status,
+      team1_player_ids: match.team1.playerIds,
+      team2_player_ids: match.team2.playerIds,
+      sets: match.sets,
+      winner_id: match.winnerId,
+      date: match.date,
+      start_time: match.startTime,
+      duration_minutes: match.durationMinutes,
+      tournament_id: match.tournamentId,
+      tournament_round: match.tournamentRound,
+      elo_changes: match.eloChanges,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return toModel(data)
+}

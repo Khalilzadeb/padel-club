@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { matchesStore, addMatch } from "@/lib/data/matches";
+import { getMatches, addMatch } from "@/lib/data/matches";
 import { Match } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const playerId = searchParams.get("playerId");
-  const type = searchParams.get("type");
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
+  const playerId = searchParams.get("playerId") ?? undefined;
+  const type = searchParams.get("type") ?? undefined;
+  const from = searchParams.get("from") ?? undefined;
+  const to = searchParams.get("to") ?? undefined;
+  const tournamentId = searchParams.get("tournamentId") ?? undefined;
 
-  let result = matchesStore.filter((m) => m.status === "completed");
-  if (playerId) result = result.filter((m) => [...m.team1.playerIds, ...m.team2.playerIds].includes(playerId));
-  if (type) result = result.filter((m) => m.type === type);
-  if (from) result = result.filter((m) => m.date >= from);
-  if (to) result = result.filter((m) => m.date <= to);
-
-  result.sort((a, b) => b.date.localeCompare(a.date));
+  const result = await getMatches({ playerId, type, from, to, tournamentId });
   return NextResponse.json(result);
 }
 
@@ -45,6 +40,6 @@ export async function POST(req: NextRequest) {
     durationMinutes: 75,
   };
 
-  addMatch(match);
-  return NextResponse.json(match, { status: 201 });
+  const saved = await addMatch(match);
+  return NextResponse.json(saved, { status: 201 });
 }

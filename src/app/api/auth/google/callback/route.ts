@@ -28,7 +28,6 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  // User denied access
   if (error) {
     return NextResponse.redirect(new URL("/login?error=google_denied", req.url));
   }
@@ -37,13 +36,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=invalid_callback", req.url));
   }
 
-  // Validate state cookie to prevent CSRF
   const storedState = req.cookies.get("oauth_state")?.value;
   if (!storedState || storedState !== state) {
     return NextResponse.redirect(new URL("/login?error=state_mismatch", req.url));
   }
 
-  // Parse the 'from' redirect path from state
   let from = "/";
   try {
     const parsed = JSON.parse(Buffer.from(state, "base64url").toString());
@@ -56,7 +53,6 @@ export async function GET(req: NextRequest) {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
   const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/api/auth/google/callback`;
 
-  // Exchange authorization code for tokens
   let tokenData: GoogleTokenResponse;
   try {
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
@@ -79,7 +75,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=token_exchange_failed", req.url));
   }
 
-  // Fetch user profile from Google
   let googleUser: GoogleUserInfo;
   try {
     const userRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -94,27 +89,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=email_not_verified", req.url));
   }
 
-  // Find or create user
-  let user = findUserByGoogleId(googleUser.sub);
+  let user = await findUserByGoogleId(googleUser.sub);
 
   if (!user) {
-    // Check if email already exists (password user) — link their accounts
-    const existing = findUserByEmail(googleUser.email);
+    const existing = await findUserByEmail(googleUser.email);
     if (existing) {
-      linkGoogleId(existing.id, googleUser.sub, googleUser.picture);
+      await linkGoogleId(existing.id, googleUser.sub, googleUser.picture);
       user = existing;
     } else {
-      user = createGoogleUser(googleUser.email, googleUser.name, googleUser.sub, googleUser.picture);
+      user = await createGoogleUser(googleUser.email, googleUser.name, googleUser.sub, googleUser.picture);
     }
   }
 
-  // Issue our JWT session
   const token = await signToken({ userId: user.id, email: user.email, name: user.name });
 
   const redirectUrl = new URL(from.startsWith("/") ? from : "/", req.url);
   const res = NextResponse.redirect(redirectUrl);
   res.cookies.set({ ...getSessionCookieOptions(), value: token });
-  // Clear the OAuth state cookie
   res.cookies.set("oauth_state", "", { maxAge: 0, path: "/" });
   return res;
 }

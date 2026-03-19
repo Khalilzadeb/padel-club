@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { players } from "@/lib/data/players";
+import { getPlayers } from "@/lib/data/players";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const level = searchParams.get("level");
   const sort = searchParams.get("sort") ?? "elo";
 
-  let result = [...players];
+  let result = await getPlayers();
   if (level) result = result.filter((p) => p.level === level);
 
   result.sort((a, b) => {

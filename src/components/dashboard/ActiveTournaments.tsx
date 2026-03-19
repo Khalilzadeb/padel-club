@@ -1,17 +1,15 @@
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import { tournaments } from "@/lib/data/tournaments";
+import { getTournaments } from "@/lib/data/tournaments";
 import { Trophy, ArrowRight } from "lucide-react";
 
 const statusVariant: Record<string, "green" | "yellow" | "blue" | "gray"> = {
-  active: "green",
-  registration: "yellow",
-  upcoming: "blue",
-  completed: "gray",
+  active: "green", registration: "yellow", upcoming: "blue", completed: "gray",
 };
 
-export default function ActiveTournaments() {
+export default async function ActiveTournaments() {
+  const tournaments = await getTournaments();
   const active = tournaments.filter((t) => t.status !== "completed").slice(0, 3);
 
   return (
@@ -31,9 +29,7 @@ export default function ActiveTournaments() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate">{t.name}</p>
-                <p className="text-xs text-gray-500">
-                  {t.registeredTeams.length}/{t.maxTeams} teams · {t.startDate}
-                </p>
+                <p className="text-xs text-gray-500">{t.registeredTeams.length}/{t.maxTeams} teams · {t.startDate}</p>
               </div>
               <Badge variant={statusVariant[t.status]}>{t.status}</Badge>
             </div>

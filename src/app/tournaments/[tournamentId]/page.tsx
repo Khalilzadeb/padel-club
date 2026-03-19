@@ -1,17 +1,14 @@
 "use client";
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { tournaments } from "@/lib/data/tournaments";
-import { players } from "@/lib/data/players";
-import { matchesStore } from "@/lib/data/matches";
+import { Tournament, Player, Match, Court } from "@/lib/types";
 import BracketView from "@/components/tournaments/BracketView";
 import GroupStandings from "@/components/tournaments/GroupStandings";
 import MatchCard from "@/components/matches/MatchCard";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
-import { courts } from "@/lib/data/courts";
 import { Calendar, Users, Trophy, Gift } from "lucide-react";
 
 const statusVariant: Record<string, "green" | "yellow" | "blue" | "gray"> = {
@@ -22,14 +19,45 @@ type Tab = "bracket" | "groups" | "schedule" | "prizes";
 
 export default function TournamentDetailPage({ params }: { params: Promise<{ tournamentId: string }> }) {
   const { tournamentId } = use(params);
-  const tournament = tournaments.find((t) => t.id === tournamentId);
-  if (!tournament) return notFound();
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [courts, setCourts] = useState<Court[]>([]);
+  const [tab, setTab] = useState<Tab>("bracket");
+  const [loading, setLoading] = useState(true);
+  const [notFound404, setNotFound404] = useState(false);
 
-  const [tab, setTab] = useState<Tab>(tournament.groups ? "groups" : "bracket");
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/tournaments").then((r) => r.json()),
+      fetch("/api/players").then((r) => r.json()),
+      fetch(`/api/matches?tournamentId=${tournamentId}`).then((r) => r.json()),
+      fetch("/api/courts").then((r) => r.json()),
+    ]).then(([tournamentsData, playersData, matchesData, courtsData]) => {
+      const found: Tournament | undefined = tournamentsData.find((t: Tournament) => t.id === tournamentId);
+      if (!found) {
+        setNotFound404(true);
+        setLoading(false);
+        return;
+      }
+      setTournament(found);
+      setTab(found.groups ? "groups" : "bracket");
+      setPlayers(playersData.map((d: { player: Player }) => d.player));
+      setMatches(matchesData);
+      setCourts(courtsData);
+      setLoading(false);
+    });
+  }, [tournamentId]);
 
-  const tournamentMatches = matchesStore.filter((m) =>
-    m.tournamentId === tournament.id && m.status === "completed"
-  );
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center min-h-[60vh]">
+        <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (notFound404 || !tournament) return notFound();
 
   const winner = tournament.winnerId
     ? tournament.winnerId.map((id) => players.find((p) => p.id === id)).filter(Boolean)
@@ -123,13 +151,13 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ tou
 
       {tab === "schedule" && (
         <div>
-          {tournamentMatches.length === 0 ? (
+          {matches.length === 0 ? (
             <Card className="p-8 text-center">
               <p className="text-gray-400">No matches played yet</p>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {tournamentMatches.map((m) => (
+              {matches.map((m) => (
                 <MatchCard key={m.id} match={m} players={players} courts={courts} />
               ))}
             </div>

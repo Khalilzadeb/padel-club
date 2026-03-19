@@ -1,5 +1,5 @@
 import TournamentCard from "@/components/tournaments/TournamentCard";
-import { tournaments } from "@/lib/data/tournaments";
+import { getTournaments } from "@/lib/data/tournaments";
 import { Tournament } from "@/lib/types";
 
 const sections: { label: string; statuses: Tournament["status"][] }[] = [
@@ -8,7 +8,9 @@ const sections: { label: string; statuses: Tournament["status"][] }[] = [
   { label: "Past Tournaments", statuses: ["completed"] },
 ];
 
-export default function TournamentsPage() {
+export default async function TournamentsPage() {
+  const tournaments = await getTournaments();
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">

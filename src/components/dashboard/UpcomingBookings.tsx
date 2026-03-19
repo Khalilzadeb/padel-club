@@ -1,16 +1,19 @@
 import Link from "next/link";
 import Card from "@/components/ui/Card";
-import { bookingsStore } from "@/lib/data/bookings";
-import { courts } from "@/lib/data/courts";
-import { players } from "@/lib/data/players";
+import { getBookings } from "@/lib/data/bookings";
+import { getCourts } from "@/lib/data/courts";
+import { getPlayers } from "@/lib/data/players";
 import { Calendar, ArrowRight } from "lucide-react";
 
-function getCourt(id: string) { return courts.find((c) => c.id === id); }
-function getPlayer(id: string) { return players.find((p) => p.id === id); }
-
-export default function UpcomingBookings() {
+export default async function UpcomingBookings() {
   const today = new Date().toISOString().split("T")[0];
-  const upcoming = bookingsStore
+  const [bookings, courts, players] = await Promise.all([
+    getBookings(),
+    getCourts(),
+    getPlayers(),
+  ]);
+
+  const upcoming = bookings
     .filter((b) => b.date >= today && b.status === "confirmed")
     .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
     .slice(0, 4);
@@ -28,9 +31,9 @@ export default function UpcomingBookings() {
       ) : (
         <div className="space-y-3">
           {upcoming.map((b) => {
-            const court = getCourt(b.courtId);
+            const court = courts.find((c) => c.id === b.courtId);
             const playerNames = b.playerIds
-              .map((id) => getPlayer(id)?.name.split(" ")[0])
+              .map((id) => players.find((p) => p.id === id)?.name.split(" ")[0])
               .filter(Boolean)
               .join(", ");
             return (
@@ -40,14 +43,10 @@ export default function UpcomingBookings() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900">{court?.name}</p>
-                  <p className="text-xs text-gray-600 mt-0.5">
-                    {b.date} · {b.startTime}–{b.endTime}
-                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">{b.date} · {b.startTime}–{b.endTime}</p>
                   <p className="text-xs text-gray-500 truncate">{playerNames}</p>
                 </div>
-                <span className="text-xs font-semibold text-padel-green">
-                  ${(b.totalPrice / 100).toFixed(0)}
-                </span>
+                <span className="text-xs font-semibold text-padel-green">${(b.totalPrice / 100).toFixed(0)}</span>
               </div>
             );
           })}

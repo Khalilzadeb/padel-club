@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { matchesStore } from "@/lib/data/matches";
-import { players } from "@/lib/data/players";
-import { courts } from "@/lib/data/courts";
-import { tournaments } from "@/lib/data/tournaments";
+import { getMatch } from "@/lib/data/matches";
+import { getPlayers } from "@/lib/data/players";
+import { getCourts } from "@/lib/data/courts";
+import { getTournament } from "@/lib/data/tournaments";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
@@ -11,13 +11,18 @@ import { MapPin, Clock, TrendingUp, TrendingDown, Trophy } from "lucide-react";
 
 export default async function MatchDetailPage({ params }: { params: Promise<{ matchId: string }> }) {
   const { matchId } = await params;
-  const match = matchesStore.find((m) => m.id === matchId);
+  const [match, players, courts] = await Promise.all([
+    getMatch(matchId),
+    getPlayers(),
+    getCourts(),
+  ]);
+
   if (!match) return notFound();
 
   const court = courts.find((c) => c.id === match.courtId);
   const t1 = match.team1.playerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean);
   const t2 = match.team2.playerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean);
-  const tournament = match.tournamentId ? tournaments.find((t) => t.id === match.tournamentId) : null;
+  const tournament = match.tournamentId ? await getTournament(match.tournamentId) : null;
 
   const typeVariant: Record<string, "purple" | "blue" | "gray"> = {
     tournament: "purple", ranked: "blue", casual: "gray",
@@ -25,7 +30,6 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Match header */}
       <Card className="p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Badge variant={typeVariant[match.type]}>{match.type}</Badge>
@@ -37,9 +41,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
           )}
         </div>
 
-        {/* Score display */}
         <div className="flex items-center justify-between gap-4 my-6">
-          {/* Team 1 */}
           <div className={`flex-1 text-center ${match.winnerId === "team1" ? "" : "opacity-50"}`}>
             <div className="flex justify-center -space-x-3 mb-2">
               {t1.map((p) => p && <Avatar key={p.id} name={p.name} size="lg" />)}
@@ -64,26 +66,20 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
             )}
           </div>
 
-          {/* Sets */}
           <div className="flex-shrink-0 text-center">
             <div className="flex gap-3 justify-center">
               {match.sets.map((s, i) => (
                 <div key={i} className="text-center">
                   <p className="text-3xl font-black text-gray-900">{s.team1Games}</p>
-                  {s.tiebreak && (
-                    <p className="text-xs text-gray-400">{s.tiebreak.team1Points}</p>
-                  )}
+                  {s.tiebreak && <p className="text-xs text-gray-400">{s.tiebreak.team1Points}</p>}
                   <p className="text-xs text-gray-400 my-0.5">Set {s.setNumber}</p>
                   <p className="text-3xl font-black text-gray-900">{s.team2Games}</p>
-                  {s.tiebreak && (
-                    <p className="text-xs text-gray-400">{s.tiebreak.team2Points}</p>
-                  )}
+                  {s.tiebreak && <p className="text-xs text-gray-400">{s.tiebreak.team2Points}</p>}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Team 2 */}
           <div className={`flex-1 text-center ${match.winnerId === "team2" ? "" : "opacity-50"}`}>
             <div className="flex justify-center -space-x-3 mb-2">
               {t2.map((p) => p && <Avatar key={p.id} name={p.name} size="lg" />)}
@@ -109,33 +105,16 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
           </div>
         </div>
 
-        {/* Match details */}
         <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-50 text-sm text-gray-500">
-          <span className="flex items-center gap-1.5">
-            <MapPin className="w-4 h-4" /> {court?.name}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4" /> {match.date} at {match.startTime}
-          </span>
-          {match.durationMinutes && (
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4" /> {match.durationMinutes} min
-            </span>
-          )}
-          {match.format && (
-            <span className="flex items-center gap-1.5">
-              Format: {match.format}
-            </span>
-          )}
+          <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {court?.name}</span>
+          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {match.date} at {match.startTime}</span>
+          {match.durationMinutes && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {match.durationMinutes} min</span>}
+          {match.format && <span className="flex items-center gap-1.5">Format: {match.format}</span>}
         </div>
       </Card>
 
-      {/* Players detail */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {[
-          { team: t1, label: "Team 1", id: "team1" },
-          { team: t2, label: "Team 2", id: "team2" },
-        ].map(({ team, label, id }) => (
+        {[{ team: t1, label: "Team 1", id: "team1" }, { team: t2, label: "Team 2", id: "team2" }].map(({ team, label, id }) => (
           <Card key={id} className="p-4">
             <p className="text-xs font-semibold text-gray-500 uppercase mb-3">{label}</p>
             <div className="space-y-3">

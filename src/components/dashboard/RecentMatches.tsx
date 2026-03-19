@@ -2,24 +2,18 @@ import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
-import { matchesStore } from "@/lib/data/matches";
-import { players } from "@/lib/data/players";
-import { courts } from "@/lib/data/courts";
+import { getMatches } from "@/lib/data/matches";
+import { getPlayers } from "@/lib/data/players";
+import { getCourts } from "@/lib/data/courts";
 import { ArrowRight } from "lucide-react";
 
-function getPlayer(id: string) {
-  return players.find((p) => p.id === id);
-}
-
-function getCourt(id: string) {
-  return courts.find((c) => c.id === id);
-}
-
-export default function RecentMatches() {
-  const recent = [...matchesStore]
-    .filter((m) => m.status === "completed")
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 5);
+export default async function RecentMatches() {
+  const [recent, players, courts] = await Promise.all([
+    getMatches(),
+    getPlayers(),
+    getCourts(),
+  ]);
+  const top5 = recent.slice(0, 5);
 
   return (
     <Card className="p-5">
@@ -30,13 +24,11 @@ export default function RecentMatches() {
         </Link>
       </div>
       <div className="space-y-3">
-        {recent.map((match) => {
-          const t1 = match.team1.playerIds.map(getPlayer);
-          const t2 = match.team2.playerIds.map(getPlayer);
-          const court = getCourt(match.courtId);
-          const score = match.sets
-            .map((s) => `${s.team1Games}-${s.team2Games}`)
-            .join(", ");
+        {top5.map((match) => {
+          const t1 = match.team1.playerIds.map((id) => players.find((p) => p.id === id));
+          const t2 = match.team2.playerIds.map((id) => players.find((p) => p.id === id));
+          const court = courts.find((c) => c.id === match.courtId);
+          const score = match.sets.map((s) => `${s.team1Games}-${s.team2Games}`).join(", ");
 
           return (
             <Link key={match.id} href={`/matches/${match.id}`}>
@@ -54,9 +46,7 @@ export default function RecentMatches() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-mono font-medium text-gray-900">{score}</p>
-                  <Badge variant={match.type === "tournament" ? "purple" : match.type === "ranked" ? "blue" : "gray"}>
-                    {match.type}
-                  </Badge>
+                  <Badge variant={match.type === "tournament" ? "purple" : match.type === "ranked" ? "blue" : "gray"}>{match.type}</Badge>
                 </div>
               </div>
             </Link>
