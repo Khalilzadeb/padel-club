@@ -11,7 +11,7 @@ function toModel(row: Record<string, unknown>): Match {
     team1: { playerIds: row.team1_player_ids as [string, string] },
     team2: { playerIds: row.team2_player_ids as [string, string] },
     sets: (row.sets as Match['sets']) ?? [],
-    winnerId: row.winner_id as string | undefined,
+    winnerId: row.winner_id as 'team1' | 'team2' | undefined,
     date: row.date as string,
     startTime: row.start_time as string,
     durationMinutes: row.duration_minutes as number | undefined,
