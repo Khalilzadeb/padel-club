@@ -3,27 +3,32 @@ import { findUserByEmail, createUser } from "@/lib/data/users";
 import { signToken, getSessionCookieOptions } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const { email, name, password } = await req.json();
+  try {
+    const { email, name, password } = await req.json();
 
-  if (!email || !name || !password) {
-    return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    if (!email || !name || !password) {
+      return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    }
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+    }
+
+    const existing = await findUserByEmail(email);
+    if (existing) {
+      return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
+    }
+
+    const user = await createUser(email, name, password);
+    const token = await signToken({ userId: user.id, email: user.email, name: user.name });
+
+    const res = NextResponse.json(
+      { user: { id: user.id, email: user.email, name: user.name } },
+      { status: 201 }
+    );
+    res.cookies.set({ ...getSessionCookieOptions(), value: token });
+    return res;
+  } catch (err) {
+    console.error("Signup error:", err);
+    return NextResponse.json({ error: "Failed to create account. Please try again." }, { status: 500 });
   }
-  if (password.length < 6) {
-    return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
-  }
-
-  const existing = await findUserByEmail(email);
-  if (existing) {
-    return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
-  }
-
-  const user = await createUser(email, name, password);
-  const token = await signToken({ userId: user.id, email: user.email, name: user.name });
-
-  const res = NextResponse.json(
-    { user: { id: user.id, email: user.email, name: user.name } },
-    { status: 201 }
-  );
-  res.cookies.set({ ...getSessionCookieOptions(), value: token });
-  return res;
 }

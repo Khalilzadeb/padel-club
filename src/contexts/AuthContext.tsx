@@ -41,27 +41,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => { fetchMe(); }, [fetchMe]);
 
   const login = async (email: string, password: string) => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) return { error: data.error };
-    setUser(data.user);
-    return {};
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error ?? "Login failed" };
+      setUser(data.user);
+      return {};
+    } catch {
+      return { error: "Something went wrong. Please try again." };
+    }
   };
 
   const signup = async (email: string, name: string, password: string) => {
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) return { error: data.error };
-    setUser(data.user);
-    return {};
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error ?? "Signup failed" };
+      setUser(data.user);
+      return {};
+    } catch {
+      return { error: "Something went wrong. Please try again." };
+    }
   };
 
   const logout = async () => {
