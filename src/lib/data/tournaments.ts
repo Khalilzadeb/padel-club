@@ -1,0 +1,120 @@
+import type { Tournament } from "@/lib/types";
+
+const today = new Date();
+const fmt = (d: Date) => d.toISOString().split("T")[0];
+const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+
+export const tournaments: Tournament[] = [
+  {
+    id: "t1",
+    name: "Spring Open Championship",
+    description: "Annual club championship with knockout format. 8 teams compete for the prestigious Spring Open trophy.",
+    status: "completed",
+    format: "knockout",
+    startDate: fmt(addDays(today, -10)),
+    endDate: fmt(addDays(today, -7)),
+    registrationDeadline: fmt(addDays(today, -15)),
+    maxTeams: 8,
+    registeredTeams: [
+      ["p1", "p2"],
+      ["p3", "p5"],
+      ["p9", "p4"],
+      ["p6", "p8"],
+      ["p7", "p12"],
+      ["p10", "p11"],
+      ["p1", "p3"],
+      ["p2", "p5"],
+    ],
+    courtIds: ["c5", "c1"],
+    prizes: [
+      { place: 1, description: "Gold Trophy + 500 ranking points", value: 50000 },
+      { place: 2, description: "Silver Trophy + 300 ranking points", value: 25000 },
+      { place: 3, description: "Bronze Trophy + 150 ranking points", value: 10000 },
+    ],
+    bracket: [
+      { round: 4, position: 0, matchId: "m_qf1", team1PlayerIds: ["p1", "p2"], team2PlayerIds: ["p7", "p12"], winnerId: "team1" },
+      { round: 4, position: 1, matchId: "m_qf2", team1PlayerIds: ["p3", "p5"], team2PlayerIds: ["p10", "p11"], winnerId: "team1" },
+      { round: 4, position: 2, matchId: "m_qf3", team1PlayerIds: ["p9", "p4"], team2PlayerIds: ["p1", "p3"], winnerId: "team1" },
+      { round: 4, position: 3, matchId: "m_qf4", team1PlayerIds: ["p6", "p8"], team2PlayerIds: ["p2", "p5"], winnerId: "team1" },
+      { round: 2, position: 0, matchId: "m6", team1PlayerIds: ["p1", "p2"], team2PlayerIds: ["p3", "p5"], winnerId: "team1" },
+      { round: 2, position: 1, matchId: "m7", team1PlayerIds: ["p9", "p4"], team2PlayerIds: ["p6", "p8"], winnerId: "team1" },
+      { round: 1, position: 0, matchId: "m5", team1PlayerIds: ["p1", "p2"], team2PlayerIds: ["p9", "p4"], winnerId: "team1" },
+    ],
+    matchIds: ["m_qf1", "m_qf2", "m_qf3", "m_qf4", "m6", "m7", "m5"],
+    winnerId: ["p1", "p2"],
+  },
+  {
+    id: "t2",
+    name: "Summer Slam Tournament",
+    description: "Fast-paced group stage followed by a knockout. 16 teams battle through two groups and a knockout bracket.",
+    status: "active",
+    format: "group-then-knockout",
+    startDate: fmt(addDays(today, -3)),
+    endDate: fmt(addDays(today, 5)),
+    registrationDeadline: fmt(addDays(today, -7)),
+    maxTeams: 16,
+    registeredTeams: [
+      ["p1", "p5"],
+      ["p2", "p3"],
+      ["p4", "p9"],
+      ["p6", "p7"],
+      ["p8", "p12"],
+      ["p10", "p11"],
+      ["p1", "p2"],
+      ["p3", "p4"],
+    ],
+    courtIds: ["c5", "c1", "c2"],
+    prizes: [
+      { place: 1, description: "Gold Trophy + 800 ranking points", value: 100000 },
+      { place: 2, description: "Silver Trophy + 500 ranking points", value: 50000 },
+      { place: 3, description: "Bronze Trophy + 250 ranking points", value: 20000 },
+    ],
+    groups: [
+      {
+        groupName: "Group A",
+        teamIds: [["p1", "p5"], ["p2", "p3"], ["p4", "p9"], ["p6", "p7"]],
+        matches: ["mg_a1", "mg_a2", "mg_a3", "mg_a4", "mg_a5", "mg_a6"],
+        standings: [
+          { teamPlayerIds: ["p1", "p5"], matchesPlayed: 2, won: 2, lost: 0, setsWon: 4, setsLost: 1, points: 6 },
+          { teamPlayerIds: ["p2", "p3"], matchesPlayed: 2, won: 1, lost: 1, setsWon: 3, setsLost: 3, points: 3 },
+          { teamPlayerIds: ["p4", "p9"], matchesPlayed: 2, won: 1, lost: 1, setsWon: 2, setsLost: 3, points: 3 },
+          { teamPlayerIds: ["p6", "p7"], matchesPlayed: 2, won: 0, lost: 2, setsWon: 1, setsLost: 3, points: 0 },
+        ],
+      },
+      {
+        groupName: "Group B",
+        teamIds: [["p8", "p12"], ["p10", "p11"], ["p1", "p2"], ["p3", "p4"]],
+        matches: ["mg_b1", "mg_b2", "mg_b3"],
+        standings: [
+          { teamPlayerIds: ["p1", "p2"], matchesPlayed: 1, won: 1, lost: 0, setsWon: 2, setsLost: 0, points: 3 },
+          { teamPlayerIds: ["p3", "p4"], matchesPlayed: 1, won: 1, lost: 0, setsWon: 2, setsLost: 1, points: 3 },
+          { teamPlayerIds: ["p8", "p12"], matchesPlayed: 1, won: 0, lost: 1, setsWon: 1, setsLost: 2, points: 0 },
+          { teamPlayerIds: ["p10", "p11"], matchesPlayed: 1, won: 0, lost: 1, setsWon: 0, setsLost: 2, points: 0 },
+        ],
+      },
+    ],
+    matchIds: ["mg_a1", "mg_a2", "mg_b1"],
+  },
+  {
+    id: "t3",
+    name: "Autumn Masters Cup",
+    description: "Exclusive invitational tournament for advanced and pro players. Limited to 8 elite teams.",
+    status: "registration",
+    format: "knockout",
+    startDate: fmt(addDays(today, 14)),
+    endDate: fmt(addDays(today, 17)),
+    registrationDeadline: fmt(addDays(today, 10)),
+    maxTeams: 8,
+    registeredTeams: [
+      ["p1", "p2"],
+      ["p3", "p5"],
+      ["p9", "p4"],
+    ],
+    courtIds: ["c5"],
+    prizes: [
+      { place: 1, description: "Masters Trophy + 1200 ranking points", value: 150000 },
+      { place: 2, description: "Runner-up Shield + 700 ranking points", value: 75000 },
+    ],
+    matchIds: [],
+  },
+];

@@ -1,0 +1,172 @@
+// ─── Player ───────────────────────────────────────────────────────────────────
+
+export type PlayerLevel = "beginner" | "intermediate" | "advanced" | "pro";
+export type PlayerHand = "right" | "left";
+export type PlayerPosition = "drive" | "revés" | "flexible";
+
+export interface PlayerStats {
+  matchesPlayed: number;
+  matchesWon: number;
+  matchesLost: number;
+  setsWon: number;
+  setsLost: number;
+  gamesWon: number;
+  gamesLost: number;
+  eloRating: number;
+  rankingPoints: number;
+  currentStreak: number;
+  tournamentsWon: number;
+}
+
+export interface Player {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  level: PlayerLevel;
+  hand: PlayerHand;
+  position: PlayerPosition;
+  memberSince: string;
+  stats: PlayerStats;
+  contact: { email: string; phone?: string };
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  player: Player;
+  winRate: number;
+  trend: "up" | "down" | "stable";
+}
+
+// ─── Court ────────────────────────────────────────────────────────────────────
+
+export type CourtSurface = "crystal" | "artificial-grass" | "concrete";
+export type CourtType = "indoor" | "outdoor";
+
+export interface Court {
+  id: string;
+  name: string;
+  surface: CourtSurface;
+  type: CourtType;
+  isActive: boolean;
+  pricePerHour: number;
+  imageUrl: string | null;
+  features: string[];
+}
+
+// ─── Booking ──────────────────────────────────────────────────────────────────
+
+export type BookingStatus = "confirmed" | "pending" | "cancelled";
+
+export interface Booking {
+  id: string;
+  courtId: string;
+  playerIds: string[];
+  date: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  status: BookingStatus;
+  createdAt: string;
+  notes?: string;
+  totalPrice: number;
+}
+
+export interface TimeSlot {
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  bookingId?: string;
+}
+
+// ─── Match & Scoring ──────────────────────────────────────────────────────────
+
+export type MatchFormat = "best-of-3" | "single-set" | "pro-set";
+export type MatchStatus = "scheduled" | "in-progress" | "completed" | "abandoned";
+export type MatchType = "casual" | "ranked" | "tournament";
+
+export interface SetScore {
+  setNumber: number;
+  team1Games: number;
+  team2Games: number;
+  tiebreak?: { team1Points: number; team2Points: number };
+}
+
+export interface MatchTeam {
+  playerIds: [string, string];
+}
+
+export interface Match {
+  id: string;
+  courtId: string;
+  bookingId?: string;
+  type: MatchType;
+  format: MatchFormat;
+  status: MatchStatus;
+  team1: MatchTeam;
+  team2: MatchTeam;
+  sets: SetScore[];
+  winnerId?: "team1" | "team2";
+  date: string;
+  startTime: string;
+  durationMinutes?: number;
+  tournamentId?: string;
+  tournamentRound?: string;
+  eloChanges?: { [playerId: string]: number };
+}
+
+// ─── Tournament ───────────────────────────────────────────────────────────────
+
+export type TournamentStatus = "upcoming" | "registration" | "active" | "completed";
+export type TournamentFormat = "knockout" | "round-robin" | "group-then-knockout";
+
+export interface TournamentPrize {
+  place: number;
+  description: string;
+  value?: number;
+}
+
+export interface GroupStanding {
+  teamPlayerIds: [string, string];
+  matchesPlayed: number;
+  won: number;
+  lost: number;
+  setsWon: number;
+  setsLost: number;
+  points: number;
+}
+
+export interface TournamentGroup {
+  groupName: string;
+  teamIds: string[][];
+  matches: string[];
+  standings: GroupStanding[];
+}
+
+export interface TournamentBracketSlot {
+  round: number;
+  position: number;
+  matchId?: string;
+  team1PlayerIds?: [string, string];
+  team2PlayerIds?: [string, string];
+  winnerId?: "team1" | "team2";
+}
+
+export interface Tournament {
+  id: string;
+  name: string;
+  description: string;
+  status: TournamentStatus;
+  format: TournamentFormat;
+  startDate: string;
+  endDate: string;
+  registrationDeadline: string;
+  maxTeams: number;
+  registeredTeams: string[][];
+  courtIds: string[];
+  prizes: TournamentPrize[];
+  groups?: TournamentGroup[];
+  bracket?: TournamentBracketSlot[];
+  matchIds: string[];
+  winnerId?: [string, string];
+  imageUrl?: string;
+}
