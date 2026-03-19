@@ -40,3 +40,25 @@ export async function getPlayer(id: string): Promise<Player | null> {
   const { data } = await supabase.from('players').select('*').eq('id', id).single()
   return data ? toModel(data) : null
 }
+
+export async function updatePlayerElo(id: string, eloDelta: number, won: boolean): Promise<void> {
+  const { data } = await supabase
+    .from('players')
+    .select('elo_rating, matches_played, matches_won, matches_lost, current_streak')
+    .eq('id', id)
+    .single()
+  if (!data) return
+
+  const currentStreak = data.current_streak as number
+  const newStreak = won
+    ? (currentStreak >= 0 ? currentStreak + 1 : 1)
+    : (currentStreak <= 0 ? currentStreak - 1 : -1)
+
+  await supabase.from('players').update({
+    elo_rating: Math.max(100, (data.elo_rating as number) + eloDelta),
+    matches_played: (data.matches_played as number) + 1,
+    matches_won: (data.matches_won as number) + (won ? 1 : 0),
+    matches_lost: (data.matches_lost as number) + (won ? 0 : 1),
+    current_streak: newStreak,
+  }).eq('id', id)
+}
