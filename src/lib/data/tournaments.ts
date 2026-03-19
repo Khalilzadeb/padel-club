@@ -5,12 +5,12 @@ function toModel(row: Record<string, unknown>): Tournament {
   return {
     id: row.id as string,
     name: row.name as string,
-    description: row.description as string | undefined,
+    description: (row.description as string) ?? '',
     status: row.status as Tournament['status'],
     format: row.format as Tournament['format'],
     startDate: row.start_date as string,
     endDate: row.end_date as string,
-    registrationDeadline: row.registration_deadline as string | undefined,
+    registrationDeadline: (row.registration_deadline as string) ?? '',
     maxTeams: row.max_teams as number,
     registeredTeams: (row.registered_teams as string[][]) ?? [],
     courtIds: (row.court_ids as string[]) ?? [],
@@ -18,7 +18,7 @@ function toModel(row: Record<string, unknown>): Tournament {
     bracket: row.bracket as Tournament['bracket'],
     groups: row.groups as Tournament['groups'],
     matchIds: (row.match_ids as string[]) ?? [],
-    winnerId: row.winner_id as string[] | undefined,
+    winnerId: row.winner_id as [string, string] | undefined,
     imageUrl: row.image_url as string | undefined,
   }
 }
