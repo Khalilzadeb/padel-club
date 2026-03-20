@@ -22,7 +22,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
     <Link href={`/players/${player.id}`}>
       <Card hover className="p-5">
         <div className="flex items-start gap-4">
-          <Avatar name={player.name} size="lg" />
+          <Avatar name={player.name} imageUrl={player.avatarUrl} size="lg" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-gray-900 truncate">{player.name}</h3>

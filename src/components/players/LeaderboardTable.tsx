@@ -56,7 +56,7 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
                 </td>
                 <td className="py-3 px-4">
                   <Link href={`/players/${player.id}`} className="flex items-center gap-3 hover:text-padel-green">
-                    <Avatar name={player.name} size="sm" />
+                    <Avatar name={player.name} imageUrl={player.avatarUrl} size="sm" />
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{player.name}</p>
                       <p className="text-xs text-gray-400">{player.stats.matchesPlayed} matches</p>

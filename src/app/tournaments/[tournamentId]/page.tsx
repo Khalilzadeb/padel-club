@@ -110,7 +110,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ tou
             <div className="flex items-center gap-2 ml-2">
               {winner.map((p) => p && (
                 <Link key={p.id} href={`/players/${p.id}`} className="flex items-center gap-1.5 hover:underline">
-                  <Avatar name={p.name} size="sm" />
+                  <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
                   <span className="text-sm font-medium">{p.name.split(" ")[0]}</span>
                 </Link>
               ))}

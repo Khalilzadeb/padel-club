@@ -44,7 +44,7 @@ export default function MatchCard({ match, players, courts }: MatchCardProps) {
           <div className={`flex-1 ${match.winnerId === "team1" ? "opacity-100" : "opacity-60"}`}>
             <div className="flex items-center gap-2 mb-1">
               <div className="flex -space-x-2">
-                {t1.map((p) => <Avatar key={p.id} name={p.name} size="sm" />)}
+                {t1.map((p) => <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />)}
               </div>
               {match.winnerId === "team1" && (
                 <span className="text-xs font-bold text-padel-green">W</span>
@@ -79,7 +79,7 @@ export default function MatchCard({ match, players, courts }: MatchCardProps) {
                 <span className="text-xs font-bold text-padel-green">W</span>
               )}
               <div className="flex -space-x-2">
-                {t2.map((p) => <Avatar key={p.id} name={p.name} size="sm" />)}
+                {t2.map((p) => <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />)}
               </div>
             </div>
             <p className="text-sm font-medium text-gray-900 truncate">

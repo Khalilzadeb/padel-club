@@ -74,7 +74,7 @@ export default function Navbar() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors"
                 >
-                  <Avatar name={user.name} size="sm" />
+                  <Avatar name={user.name} imageUrl={user.avatarUrl} size="sm" />
                   <span className="text-sm font-medium text-gray-700 max-w-[120px] truncate">{user.name}</span>
                   <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform", userMenuOpen && "rotate-180")} />
                 </button>
@@ -152,7 +152,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <div className="flex items-center gap-3 px-3 py-2.5">
-                  <Avatar name={user.name} size="sm" />
+                  <Avatar name={user.name} imageUrl={user.avatarUrl} size="sm" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">{user.name}</p>
                     <p className="text-xs text-gray-400">{user.email}</p>

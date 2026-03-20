@@ -60,7 +60,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
         <div className="flex items-center gap-1.5 flex-wrap">
           {joinedPlayers.map((p) => (
             <div key={p.id} className="flex items-center gap-1">
-              <Avatar name={p.name} size="sm" />
+              <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
               <span className="text-xs text-gray-700">{p.name.split(" ")[0]}</span>
               {p.id === game.createdBy && (
                 <span className="text-[10px] text-padel-green font-medium">(host)</span>

@@ -103,7 +103,7 @@ export default function ChatPage() {
         </Link>
         {otherPlayer && (
           <Link href={`/players/${otherPlayerId}`} className="flex items-center gap-2 hover:opacity-80">
-            <Avatar name={otherPlayer.name} size="sm" />
+            <Avatar name={otherPlayer.name} imageUrl={otherPlayer.avatarUrl} size="sm" />
             <div>
               <p className="text-sm font-semibold text-gray-900">{otherPlayer.name}</p>
               <p className="text-xs text-gray-400 capitalize">{otherPlayer.level}</p>

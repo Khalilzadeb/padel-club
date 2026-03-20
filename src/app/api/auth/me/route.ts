@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { findUserById } from "@/lib/data/users";
+import { getPlayer } from "@/lib/data/players";
 
 export async function GET() {
   const session = await getSession();
@@ -11,7 +12,14 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ user: null }, { status: 401 });
   }
+
+  let avatarUrl: string | null = null;
+  if (user.playerId) {
+    const player = await getPlayer(user.playerId);
+    avatarUrl = player?.avatarUrl ?? null;
+  }
+
   return NextResponse.json({
-    user: { id: user.id, email: user.email, name: user.name, playerId: user.playerId },
+    user: { id: user.id, email: user.email, name: user.name, playerId: user.playerId, avatarUrl },
   });
 }

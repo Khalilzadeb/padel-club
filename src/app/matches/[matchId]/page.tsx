@@ -123,7 +123,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
                 const eloChange = match.eloChanges?.[p.id];
                 return (
                   <Link key={p.id} href={`/players/${p.id}`} className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg">
-                    <Avatar name={p.name} size="md" />
+                    <Avatar name={p.name} imageUrl={p.avatarUrl} size="md" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{p.name}</p>
                       <p className="text-xs text-gray-400">ELO: {p.stats.eloRating}</p>

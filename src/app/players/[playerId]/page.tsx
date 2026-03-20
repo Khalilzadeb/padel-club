@@ -59,7 +59,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Card className="p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start gap-6">
-          <Avatar name={player.name} size="xl" />
+          <Avatar name={player.name} imageUrl={player.avatarUrl} size="xl" />
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-3xl font-black text-gray-900">{player.name}</h1>
@@ -144,7 +144,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                     if (!partner) return null;
                     return (
                       <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg">
-                        <Avatar name={partner.name} size="sm" />
+                        <Avatar name={partner.name} imageUrl={partner.avatarUrl} size="sm" />
                         <span className="text-sm text-gray-700 flex-1">{partner.name}</span>
                         <span className="text-xs text-gray-400">{count} matches</span>
                       </Link>
@@ -163,7 +163,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                   const winPct = Math.round((wins / total) * 100);
                   return (
                     <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-                      <Avatar name={opp.name} size="sm" />
+                      <Avatar name={opp.name} imageUrl={opp.avatarUrl} size="sm" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{opp.name}</p>
                         <div className="flex items-center gap-1 mt-0.5">
