@@ -118,7 +118,13 @@ export interface Match {
 
 // ─── Open Game ────────────────────────────────────────────────────────────────
 
-export type OpenGameStatus = "open" | "full" | "cancelled";
+export type OpenGameStatus = "open" | "full" | "pending_result" | "completed" | "cancelled";
+
+export interface PendingScore {
+  team1PlayerIds: [string, string];
+  team2PlayerIds: [string, string];
+  sets: SetScore[];
+}
 
 export interface OpenGame {
   id: string;
@@ -127,13 +133,16 @@ export interface OpenGame {
   startTime: string;
   endTime: string;
   durationMinutes: number;
-  createdBy: string; // playerId
+  createdBy: string;
   eloMin?: number;
   eloMax?: number;
   playerIds: string[];
   maxPlayers: number;
   notes?: string;
   status: OpenGameStatus;
+  pendingScore?: PendingScore;
+  submittedBy?: string;
+  matchId?: string;
   createdAt: string;
 }
 

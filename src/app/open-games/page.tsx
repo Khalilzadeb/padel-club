@@ -65,13 +65,13 @@ export default function OpenGamesPage() {
     }
   };
 
-  const handleAction = async (id: string, action: "join" | "leave" | "cancel") => {
+  const handleAction = async (id: string, action: string, extra?: object) => {
     setActionLoading(true);
     try {
       const res = await fetch(`/api/open-games/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, ...extra }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -84,7 +84,7 @@ export default function OpenGamesPage() {
   };
 
   const filtered = statusFilter === "open"
-    ? games.filter((g) => g.status === "open" || g.status === "full")
+    ? games.filter((g) => g.status === "open" || g.status === "full" || g.status === "pending_result")
     : games;
 
   return (
@@ -148,6 +148,9 @@ export default function OpenGamesPage() {
               onJoin={(id) => handleAction(id, "join")}
               onLeave={(id) => handleAction(id, "leave")}
               onCancel={(id) => handleAction(id, "cancel")}
+              onSubmitScore={(id, data) => handleAction(id, "submit_score", data)}
+              onConfirmScore={(id) => handleAction(id, "confirm_score")}
+              onDisputeScore={(id) => handleAction(id, "dispute_score")}
               loading={actionLoading}
             />
           ))}

@@ -4,6 +4,11 @@ import { verifyToken } from "@/lib/auth";
 import { findUserById } from "@/lib/data/users";
 import { createNotification } from "@/lib/data/notifications";
 import { getPlayer } from "@/lib/data/players";
+import { supabase } from "@/lib/supabase";
+import { calculateEloChanges } from "@/lib/elo";
+import { updatePlayerElo } from "@/lib/data/players";
+import { addMatch } from "@/lib/data/matches";
+import type { Match, SetScore } from "@/lib/types";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,70 +21,46 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const token = req.cookies.get("padel_session")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const payload = await verifyToken(token);
   if (!payload?.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const user = await findUserById(payload.userId);
   if (!user?.playerId) return NextResponse.json({ error: "No player profile" }, { status: 400 });
 
   const body = await req.json();
   const { action } = body;
 
+  // ── JOIN ─────────────────────────────────────────────────────────────────
   if (action === "join") {
     const { game, error } = await joinOpenGame(id, user.playerId);
     if (!game) return NextResponse.json({ error: error ?? "Cannot join this game" }, { status: 400 });
-
     const joiner = await getPlayer(user.playerId);
-    const joinerName = joiner?.name ?? "Someone";
-
-    // Notify creator
     if (game.createdBy !== user.playerId) {
       await createNotification({
         playerId: game.createdBy,
         type: "game_join",
-        title: `${joinerName} joined your game`,
+        title: `${joiner?.name ?? "Someone"} joined your game`,
         body: `${game.date} at ${game.startTime}`,
         link: `/open-games`,
       });
     }
-
-    // If game is now full, notify all players
     if (game.status === "full") {
       await Promise.all(
-        game.playerIds
-          .filter((pid) => pid !== user.playerId)
-          .map((pid) =>
-            createNotification({
-              playerId: pid,
-              type: "game_full",
-              title: "Your game is full!",
-              body: `${game.date} at ${game.startTime} — all 4 players are in`,
-              link: `/open-games`,
-            })
-          )
+        game.playerIds.filter((pid) => pid !== user.playerId).map((pid) =>
+          createNotification({ playerId: pid, type: "game_full", title: "Your game is full!", body: `${game.date} at ${game.startTime} — all 4 players are in`, link: `/open-games` })
+        )
       );
     }
-
     return NextResponse.json(game);
   }
 
+  // ── LEAVE / CANCEL ───────────────────────────────────────────────────────
   if (action === "leave") {
     const game = await getOpenGame(id);
     if (game?.createdBy === user.playerId) {
-      // Notify all joined players that the game is cancelled
       await Promise.all(
-        game.playerIds
-          .filter((pid) => pid !== user.playerId)
-          .map((pid) =>
-            createNotification({
-              playerId: pid,
-              type: "game_cancel",
-              title: "A game you joined was cancelled",
-              body: `${game.date} at ${game.startTime} was cancelled by the host`,
-              link: `/open-games`,
-            })
-          )
+        (game.playerIds ?? []).filter((pid) => pid !== user.playerId).map((pid) =>
+          createNotification({ playerId: pid, type: "game_cancel", title: "A game you joined was cancelled", body: `${game.date} at ${game.startTime} was cancelled by the host`, link: `/open-games` })
+        )
       );
       await cancelOpenGame(id);
       return NextResponse.json({ status: "cancelled" });
@@ -90,25 +71,147 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   if (action === "cancel") {
     const game = await getOpenGame(id);
-    if (game?.createdBy !== user.playerId) {
-      return NextResponse.json({ error: "Only the creator can cancel" }, { status: 403 });
-    }
-    // Notify all joined players
+    if (game?.createdBy !== user.playerId) return NextResponse.json({ error: "Only the creator can cancel" }, { status: 403 });
     await Promise.all(
-      game.playerIds
-        .filter((pid) => pid !== user.playerId)
-        .map((pid) =>
-          createNotification({
-            playerId: pid,
-            type: "game_cancel",
-            title: "A game you joined was cancelled",
-            body: `${game.date} at ${game.startTime} was cancelled by the host`,
-            link: `/open-games`,
-          })
-        )
+      (game.playerIds ?? []).filter((pid) => pid !== user.playerId).map((pid) =>
+        createNotification({ playerId: pid, type: "game_cancel", title: "A game you joined was cancelled", body: `${game.date} at ${game.startTime} was cancelled by the host`, link: `/open-games` })
+      )
     );
     await cancelOpenGame(id);
     return NextResponse.json({ status: "cancelled" });
+  }
+
+  // ── SUBMIT SCORE ─────────────────────────────────────────────────────────
+  if (action === "submit_score") {
+    const game = await getOpenGame(id);
+    if (!game) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!game.playerIds.includes(user.playerId)) return NextResponse.json({ error: "You are not in this game" }, { status: 403 });
+    if (game.matchId) return NextResponse.json({ error: "Score already confirmed" }, { status: 400 });
+
+    const { team1PlayerIds, team2PlayerIds, sets } = body;
+    if (!team1PlayerIds || !team2PlayerIds || !sets?.length) return NextResponse.json({ error: "Missing score data" }, { status: 400 });
+
+    await supabase.from("open_games").update({
+      pending_score: { team1PlayerIds, team2PlayerIds, sets },
+      submitted_by: user.playerId,
+      status: "pending_result",
+    }).eq("id", id);
+
+    // Notify the other team
+    const otherTeamIds = game.playerIds.filter((pid) => pid !== user.playerId && !team1PlayerIds.includes(pid) || (team1PlayerIds.includes(pid) && pid !== user.playerId));
+    const submitter = await getPlayer(user.playerId);
+    await Promise.all(
+      game.playerIds.filter((pid) => pid !== user.playerId).map((pid) =>
+        createNotification({
+          playerId: pid,
+          type: "score_pending",
+          title: `${submitter?.name ?? "A player"} submitted the result`,
+          body: `Please confirm or dispute the result for your game on ${game.date}`,
+          link: `/open-games`,
+        })
+      )
+    );
+    void otherTeamIds;
+
+    return NextResponse.json({ ok: true });
+  }
+
+  // ── CONFIRM SCORE ────────────────────────────────────────────────────────
+  if (action === "confirm_score") {
+    const game = await getOpenGame(id);
+    if (!game?.pendingScore) return NextResponse.json({ error: "No pending score" }, { status: 400 });
+    if (!game.playerIds.includes(user.playerId)) return NextResponse.json({ error: "You are not in this game" }, { status: 403 });
+    if (game.submittedBy === user.playerId) return NextResponse.json({ error: "You cannot confirm your own submission" }, { status: 403 });
+
+    const { team1PlayerIds, team2PlayerIds, sets } = game.pendingScore;
+
+    // Determine winner
+    const t1Sets = sets.filter((s: SetScore) => s.team1Games > s.team2Games).length;
+    const t2Sets = sets.filter((s: SetScore) => s.team2Games > s.team1Games).length;
+    const winnerId: "team1" | "team2" = t1Sets > t2Sets ? "team1" : "team2";
+
+    // Calculate ELO
+    const [p1, p2, p3, p4] = await Promise.all([
+      getPlayer(team1PlayerIds[0]), getPlayer(team1PlayerIds[1]),
+      getPlayer(team2PlayerIds[0]), getPlayer(team2PlayerIds[1]),
+    ]);
+    const team1Elos: [number, number] = [p1?.stats.eloRating ?? 1000, p2?.stats.eloRating ?? 1000];
+    const team2Elos: [number, number] = [p3?.stats.eloRating ?? 1000, p4?.stats.eloRating ?? 1000];
+    const { team1Change, team2Change } = calculateEloChanges(team1Elos, team2Elos, winnerId);
+
+    const eloChanges: Record<string, number> = {
+      [team1PlayerIds[0]]: team1Change, [team1PlayerIds[1]]: team1Change,
+      [team2PlayerIds[0]]: team2Change, [team2PlayerIds[1]]: team2Change,
+    };
+
+    // Create match
+    const match: Match = {
+      id: `m${crypto.randomUUID().slice(0, 8)}`,
+      courtId: game.courtId,
+      type: "casual",
+      format: "best-of-3",
+      status: "completed",
+      team1: { playerIds: team1PlayerIds },
+      team2: { playerIds: team2PlayerIds },
+      sets,
+      winnerId,
+      date: game.date,
+      startTime: game.startTime,
+      durationMinutes: game.durationMinutes,
+      eloChanges,
+    };
+    const saved = await addMatch(match);
+
+    // Update ELO for all 4 players
+    await Promise.all([
+      updatePlayerElo(team1PlayerIds[0], team1Change, winnerId === "team1"),
+      updatePlayerElo(team1PlayerIds[1], team1Change, winnerId === "team1"),
+      updatePlayerElo(team2PlayerIds[0], team2Change, winnerId === "team2"),
+      updatePlayerElo(team2PlayerIds[1], team2Change, winnerId === "team2"),
+    ]);
+
+    // Mark open game as completed
+    await supabase.from("open_games").update({ status: "completed", match_id: saved.id }).eq("id", id);
+
+    // Notify all players
+    await Promise.all(
+      game.playerIds.map((pid) => {
+        const change = eloChanges[pid];
+        return createNotification({
+          playerId: pid,
+          type: "score_confirmed",
+          title: "Match result confirmed!",
+          body: `ELO change: ${change > 0 ? "+" : ""}${change}`,
+          link: `/matches/${saved.id}`,
+        });
+      })
+    );
+
+    return NextResponse.json({ matchId: saved.id });
+  }
+
+  // ── DISPUTE SCORE ────────────────────────────────────────────────────────
+  if (action === "dispute_score") {
+    const game = await getOpenGame(id);
+    if (!game?.pendingScore) return NextResponse.json({ error: "No pending score" }, { status: 400 });
+    if (!game.playerIds.includes(user.playerId)) return NextResponse.json({ error: "You are not in this game" }, { status: 403 });
+
+    await supabase.from("open_games").update({ pending_score: null, submitted_by: null, status: "full" }).eq("id", id);
+
+    const disputer = await getPlayer(user.playerId);
+    await Promise.all(
+      game.playerIds.filter((pid) => pid !== user.playerId).map((pid) =>
+        createNotification({
+          playerId: pid,
+          type: "score_disputed",
+          title: `${disputer?.name ?? "A player"} disputed the result`,
+          body: `The submitted result was disputed. Please re-enter the correct score.`,
+          link: `/open-games`,
+        })
+      )
+    );
+
+    return NextResponse.json({ ok: true });
   }
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });

@@ -16,6 +16,9 @@ function toModel(row: Record<string, unknown>): OpenGame {
     maxPlayers: row.max_players as number,
     notes: row.notes as string | undefined,
     status: row.status as OpenGame['status'],
+    pendingScore: row.pending_score as OpenGame['pendingScore'],
+    submittedBy: row.submitted_by as string | undefined,
+    matchId: row.match_id as string | undefined,
     createdAt: row.created_at as string,
   }
 }
