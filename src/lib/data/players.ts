@@ -41,6 +41,34 @@ export async function getPlayer(id: string): Promise<Player | null> {
   return data ? toModel(data) : null
 }
 
+export async function createPlayer(id: string, name: string, email: string): Promise<void> {
+  const today = new Date().toISOString().split('T')[0]
+  await supabase.from('players').insert({
+    id,
+    name,
+    level: 'beginner',
+    hand: 'right',
+    position: 'flexible',
+    member_since: today,
+    matches_played: 0,
+    matches_won: 0,
+    matches_lost: 0,
+    sets_won: 0,
+    sets_lost: 0,
+    games_won: 0,
+    games_lost: 0,
+    elo_rating: 1000,
+    ranking_points: 0,
+    current_streak: 0,
+    tournaments_won: 0,
+    contact_email: email,
+  })
+}
+
+export async function updatePlayerProfile(id: string, updates: { elo_rating?: number; level?: string }): Promise<void> {
+  await supabase.from('players').update(updates).eq('id', id)
+}
+
 export async function updatePlayerElo(id: string, eloDelta: number, won: boolean): Promise<void> {
   const { data } = await supabase
     .from('players')

@@ -44,7 +44,7 @@ export default function SignupPage() {
     if (result.error) {
       setError(result.error);
     } else {
-      router.push("/");
+      router.push("/onboarding");
       router.refresh();
     }
   };

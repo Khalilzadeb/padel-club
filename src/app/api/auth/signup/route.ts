@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findUserByEmail, createUser } from "@/lib/data/users";
 import { signToken, getSessionCookieOptions } from "@/lib/auth";
+import { createPlayer } from "@/lib/data/players";
+import { supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,10 +21,16 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await createUser(email, name, password);
+
+    // Create player profile and link it
+    const playerId = `p${crypto.randomUUID().slice(0, 8)}`;
+    await createPlayer(playerId, name, email);
+    await supabase.from("users").update({ player_id: playerId }).eq("id", user.id);
+
     const token = await signToken({ userId: user.id, email: user.email, name: user.name });
 
     const res = NextResponse.json(
-      { user: { id: user.id, email: user.email, name: user.name } },
+      { user: { id: user.id, email: user.email, name: user.name, playerId, needsOnboarding: true } },
       { status: 201 }
     );
     res.cookies.set({ ...getSessionCookieOptions(), value: token });

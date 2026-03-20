@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) return { error: data.error ?? "Signup failed" };
-      setUser(data.user);
+      setUser({ ...data.user, playerId: data.user.playerId });
       return {};
     } catch {
       return { error: "Something went wrong. Please try again." };
