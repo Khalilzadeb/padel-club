@@ -61,7 +61,10 @@ export default function OpenGamesPage() {
       loadGames();
     } else {
       const err = await res.json();
-      alert(err.error ?? "Failed to create game");
+      const msg = err.error === "No player profile linked to your account"
+        ? "Your account is not linked to a player profile. Ask the admin to link your account."
+        : (err.error ?? "Failed to create game");
+      alert(msg);
     }
   };
 
@@ -90,7 +93,7 @@ export default function OpenGamesPage() {
           <h1 className="text-3xl font-black text-gray-900">Find a Game</h1>
           <p className="text-gray-500 mt-1">Join an open game or post your own</p>
         </div>
-        {user?.playerId && (
+        {user && (
           <Button onClick={() => setShowForm(true)}>
             <Plus className="w-4 h-4" /> Post Game
           </Button>
@@ -124,7 +127,7 @@ export default function OpenGamesPage() {
           {user?.playerId ? (
             <>
               <p className="text-gray-300 text-sm mt-1">Be the first — post a game and find players</p>
-              <Button className="mt-4" onClick={() => setShowForm(true)}>
+              <Button className="mt-4" onClick={() => setShowForm(true)} disabled={!user}>
                 <Plus className="w-4 h-4" /> Post Game
               </Button>
             </>
