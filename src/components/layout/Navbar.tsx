@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown } from "lucide-react";
+import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/bookings", label: "Book Court", icon: Calendar },
+  { href: "/open-games", label: "Find a Game", icon: Search },
   { href: "/players", label: "Players", icon: Users },
   { href: "/matches", label: "Matches", icon: Swords },
   { href: "/tournaments", label: "Tournaments", icon: Trophy },

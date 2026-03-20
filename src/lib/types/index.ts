@@ -114,6 +114,25 @@ export interface Match {
   eloChanges?: { [playerId: string]: number };
 }
 
+// ─── Open Game ────────────────────────────────────────────────────────────────
+
+export type OpenGameStatus = "open" | "full" | "cancelled";
+
+export interface OpenGame {
+  id: string;
+  courtId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  createdBy: string; // playerId
+  requiredLevel?: PlayerLevel;
+  playerIds: string[];
+  maxPlayers: number;
+  notes?: string;
+  status: OpenGameStatus;
+  createdAt: string;
+}
+
 // ─── Tournament ───────────────────────────────────────────────────────────────
 
 export type TournamentStatus = "upcoming" | "registration" | "active" | "completed";
