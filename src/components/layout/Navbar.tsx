@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils/cn";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import NotificationBell from "@/components/layout/NotificationBell";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -63,7 +64,8 @@ export default function Navbar() {
           </div>
 
           {/* Desktop right side */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
+            <NotificationBell />
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
             ) : user ? (

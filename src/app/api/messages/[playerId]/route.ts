@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { findUserById } from "@/lib/data/users";
 import { getConversation, sendMessage, markConversationRead } from "@/lib/data/messages";
+import { createNotification } from "@/lib/data/notifications";
+import { getPlayer } from "@/lib/data/players";
 
 async function getMe(req: NextRequest) {
   const token = req.cookies.get("padel_session")?.value;
@@ -28,5 +30,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pla
   const { content } = await req.json();
   if (!content?.trim()) return NextResponse.json({ error: "Empty message" }, { status: 400 });
   const msg = await sendMessage(user.playerId, toPlayerId, content.trim());
+
+  // Notify recipient
+  const sender = await getPlayer(user.playerId);
+  await createNotification({
+    playerId: toPlayerId,
+    type: "message",
+    title: `New message from ${sender?.name ?? "Someone"}`,
+    body: content.trim().slice(0, 80),
+    link: `/messages/${user.playerId}`,
+  });
+
   return NextResponse.json(msg, { status: 201 });
 }
