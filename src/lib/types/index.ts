@@ -124,8 +124,10 @@ export interface OpenGame {
   date: string;
   startTime: string;
   endTime: string;
+  durationMinutes: number;
   createdBy: string; // playerId
-  requiredLevel?: PlayerLevel;
+  eloMin?: number;
+  eloMax?: number;
   playerIds: string[];
   maxPlayers: number;
   notes?: string;

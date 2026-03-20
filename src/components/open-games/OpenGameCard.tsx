@@ -4,7 +4,7 @@ import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { OpenGame, Player, Court } from "@/lib/types";
-import { Clock, MapPin, Users, ChevronRight } from "lucide-react";
+import { Clock, MapPin, Users, ChevronRight, Timer } from "lucide-react";
 
 interface Props {
   game: OpenGame;
@@ -16,13 +16,6 @@ interface Props {
   onCancel: (id: string) => void;
   loading?: boolean;
 }
-
-const levelColors: Record<string, "green" | "blue" | "yellow" | "red"> = {
-  beginner: "green",
-  intermediate: "blue",
-  advanced: "yellow",
-  pro: "red",
-};
 
 export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, loading }: Props) {
   const court = courts.find((c) => c.id === game.courtId);
@@ -44,15 +37,19 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
             <Clock className="w-3.5 h-3.5" />
             <span>{game.date} · {game.startTime} – {game.endTime}</span>
           </div>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Timer className="w-3.5 h-3.5" />
+            <span>{game.durationMinutes} min</span>
+            {(game.eloMin || game.eloMax) && (
+              <span className="text-blue-500 font-medium">· {game.eloMin ?? "?"} – {game.eloMax ?? "?"} ELO</span>
+            )}
+          </div>
         </div>
         <div className="flex flex-col items-end gap-1">
           {isFull ? (
             <Badge variant="red">Full</Badge>
           ) : (
             <Badge variant="green">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</Badge>
-          )}
-          {game.requiredLevel && (
-            <Badge variant={levelColors[game.requiredLevel]}>{game.requiredLevel}</Badge>
           )}
         </div>
       </div>

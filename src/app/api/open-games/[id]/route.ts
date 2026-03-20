@@ -25,9 +25,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { action } = body; // "join" | "leave" | "cancel"
 
   if (action === "join") {
-    const updated = await joinOpenGame(id, user.playerId);
-    if (!updated) return NextResponse.json({ error: "Cannot join this game" }, { status: 400 });
-    return NextResponse.json(updated);
+    const { game, error } = await joinOpenGame(id, user.playerId);
+    if (!game) return NextResponse.json({ error: error ?? "Cannot join this game" }, { status: 400 });
+    return NextResponse.json(game);
   }
 
   if (action === "leave") {

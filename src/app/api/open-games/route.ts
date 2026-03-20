@@ -3,6 +3,14 @@ import { getOpenGames, createOpenGame } from "@/lib/data/open-games";
 import { verifyToken } from "@/lib/auth";
 import { getPlayer } from "@/lib/data/players";
 
+function addMinutes(time: string, minutes: number): string {
+  const [h, m] = time.split(":").map(Number);
+  const total = h * 60 + m + minutes;
+  const hh = Math.floor(total / 60) % 24;
+  const mm = total % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") ?? undefined;
@@ -19,13 +27,12 @@ export async function POST(req: NextRequest) {
   if (!payload?.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { courtId, date, startTime, endTime, requiredLevel, notes } = body;
+  const { courtId, date, startTime, durationMinutes, eloRange, notes } = body;
 
-  if (!courtId || !date || !startTime || !endTime) {
+  if (!courtId || !date || !startTime || !durationMinutes) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Find the player profile linked to this user
   const { findUserById } = await import("@/lib/data/users");
   const user = await findUserById(payload.userId);
   if (!user?.playerId) {
@@ -35,14 +42,27 @@ export async function POST(req: NextRequest) {
   const player = await getPlayer(user.playerId);
   if (!player) return NextResponse.json({ error: "Player not found" }, { status: 400 });
 
+  const endTime = addMinutes(startTime, durationMinutes);
+  const playerElo = player.stats.eloRating;
+
+  let eloMin: number | undefined;
+  let eloMax: number | undefined;
+  if (eloRange && eloRange !== "any") {
+    const delta = Number(eloRange);
+    eloMin = Math.max(100, playerElo - delta);
+    eloMax = playerElo + delta;
+  }
+
   const game = await createOpenGame({
     id: `og${crypto.randomUUID().slice(0, 8)}`,
     courtId,
     date,
     startTime,
     endTime,
+    durationMinutes,
     createdBy: user.playerId,
-    requiredLevel: requiredLevel || undefined,
+    eloMin,
+    eloMax,
     playerIds: [user.playerId],
     maxPlayers: 4,
     notes: notes || undefined,

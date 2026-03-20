@@ -5,7 +5,7 @@ import OpenGameForm from "@/components/open-games/OpenGameForm";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import { Plus, Users } from "lucide-react";
-import { OpenGame, Player, Court, PlayerLevel } from "@/lib/types";
+import { OpenGame, Player, Court } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function OpenGamesPage() {
@@ -18,10 +18,7 @@ export default function OpenGamesPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Find the current user's player profile from the loaded players list
-  const currentPlayer = players.find((p) =>
-    user?.playerId ? p.id === user.playerId : false
-  );
+  const currentPlayer = players.find((p) => user?.playerId ? p.id === user.playerId : false);
 
   useEffect(() => {
     Promise.all([
@@ -48,8 +45,8 @@ export default function OpenGamesPage() {
     courtId: string;
     date: string;
     startTime: string;
-    endTime: string;
-    requiredLevel?: PlayerLevel;
+    durationMinutes: number;
+    eloRange: string;
     notes?: string;
   }) => {
     const res = await fetch("/api/open-games", {
@@ -71,11 +68,15 @@ export default function OpenGamesPage() {
   const handleAction = async (id: string, action: "join" | "leave" | "cancel") => {
     setActionLoading(true);
     try {
-      await fetch(`/api/open-games/${id}`, {
+      const res = await fetch(`/api/open-games/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error ?? "Action failed");
+      }
       loadGames();
     } finally {
       setActionLoading(false);
@@ -124,10 +125,10 @@ export default function OpenGamesPage() {
         <div className="text-center py-16">
           <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-400 text-lg">No open games right now</p>
-          {user?.playerId ? (
+          {user ? (
             <>
               <p className="text-gray-300 text-sm mt-1">Be the first — post a game and find players</p>
-              <Button className="mt-4" onClick={() => setShowForm(true)} disabled={!user}>
+              <Button className="mt-4" onClick={() => setShowForm(true)}>
                 <Plus className="w-4 h-4" /> Post Game
               </Button>
             </>
@@ -154,7 +155,12 @@ export default function OpenGamesPage() {
       )}
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Post an Open Game" size="md">
-        <OpenGameForm courts={courts} onSubmit={handleCreate} onClose={() => setShowForm(false)} />
+        <OpenGameForm
+          courts={courts}
+          playerElo={currentPlayer?.stats.eloRating ?? 1000}
+          onSubmit={handleCreate}
+          onClose={() => setShowForm(false)}
+        />
       </Modal>
     </div>
   );
