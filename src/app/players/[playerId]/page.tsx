@@ -6,7 +6,7 @@ import { getCourts } from "@/lib/data/courts";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
-import { TrendingUp, TrendingDown, Trophy, Calendar, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, Trophy, Calendar, Target, MessageCircle } from "lucide-react";
 
 const levelVariant: Record<string, "green" | "blue" | "purple" | "gray"> = {
   pro: "purple", advanced: "blue", intermediate: "green", beginner: "gray",
@@ -66,6 +66,10 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             </div>
             <p className="text-gray-500 mt-1 capitalize">{player.position} · {player.hand}-handed</p>
             <p className="text-xs text-gray-400 mt-0.5">Member since {player.memberSince}</p>
+            <Link href={`/messages/${playerId}`}
+              className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700 font-medium transition-colors">
+              <MessageCircle className="w-4 h-4" /> Message
+            </Link>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
               {[
