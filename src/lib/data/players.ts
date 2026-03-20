@@ -9,6 +9,7 @@ function toModel(row: Record<string, unknown>): Player {
     level: row.level as Player['level'],
     hand: row.hand as Player['hand'],
     position: row.position as Player['position'],
+    gender: row.gender as Player['gender'],
     memberSince: row.member_since as string,
     stats: {
       matchesPlayed: row.matches_played as number,

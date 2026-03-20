@@ -3,6 +3,7 @@
 export type PlayerLevel = "beginner" | "intermediate" | "advanced" | "pro";
 export type PlayerHand = "right" | "left";
 export type PlayerPosition = "drive" | "revés" | "flexible";
+export type PlayerGender = "male" | "female" | "other";
 
 export interface PlayerStats {
   matchesPlayed: number;
@@ -25,6 +26,7 @@ export interface Player {
   level: PlayerLevel;
   hand: PlayerHand;
   position: PlayerPosition;
+  gender?: PlayerGender;
   memberSince: string;
   stats: PlayerStats;
   contact: { email: string; phone?: string };
