@@ -38,6 +38,22 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     });
   });
 
+  // Head-to-head stats against each opponent
+  const h2h: Record<string, { wins: number; losses: number }> = {};
+  myMatches.forEach((m) => {
+    const onTeam1 = m.team1.playerIds.includes(playerId);
+    const oppIds = onTeam1 ? m.team2.playerIds : m.team1.playerIds;
+    const won = (onTeam1 && m.winnerId === "team1") || (!onTeam1 && m.winnerId === "team2");
+    oppIds.forEach((oppId) => {
+      if (!h2h[oppId]) h2h[oppId] = { wins: 0, losses: 0 };
+      if (won) h2h[oppId].wins++;
+      else h2h[oppId].losses++;
+    });
+  });
+  const h2hEntries = Object.entries(h2h)
+    .map(([pid, stat]) => ({ pid, ...stat, total: stat.wins + stat.losses }))
+    .sort((a, b) => b.total - a.total);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Card className="p-6 mb-6">
@@ -124,6 +140,37 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                       </Link>
                     );
                   })}
+              </div>
+            </Card>
+          )}
+          {h2hEntries.length > 0 && (
+            <Card className="p-5">
+              <h2 className="font-semibold text-gray-900 mb-3">Head-to-Head</h2>
+              <div className="space-y-2">
+                {h2hEntries.map(({ pid, wins, losses, total }) => {
+                  const opp = allPlayers.find((p) => p.id === pid);
+                  if (!opp) return null;
+                  const winPct = Math.round((wins / total) * 100);
+                  return (
+                    <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                      <Avatar name={opp.name} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{opp.name}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-padel-green rounded-full" style={{ width: `${winPct}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="text-sm font-bold text-green-600">{wins}W</span>
+                        <span className="text-sm text-gray-300 mx-0.5">–</span>
+                        <span className="text-sm font-bold text-red-400">{losses}L</span>
+                        <p className="text-xs text-gray-400">{total} played</p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </Card>
           )}
