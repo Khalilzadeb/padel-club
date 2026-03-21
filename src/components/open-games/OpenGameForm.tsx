@@ -62,7 +62,7 @@ export default function OpenGameForm({ courts, playerElo, existingGames, onSubmi
 
   // Convert existing open games to booking-like objects for calendar overlay
   const gameBookings: Booking[] = existingGames
-    .filter((g) => g.courtId === courtId && g.status !== "cancelled" && g.status !== "completed")
+    .filter((g) => g.courtId === courtId && g.status !== "cancelled" && g.status !== "completed" && g.courtBookingStatus === "booked")
     .map((g) => ({
       id: g.id,
       courtId: g.courtId,
