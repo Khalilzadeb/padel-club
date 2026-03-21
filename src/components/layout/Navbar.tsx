@@ -134,7 +134,7 @@ export default function Navbar() {
             <NotificationBell />
             {!loading && user && (
               <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                onClick={() => setMobileOpen(!mobileOpen)}
                 className="flex items-center gap-1.5 px-2 py-1 rounded-xl hover:bg-gray-50"
               >
                 <Avatar name={user.name} imageUrl={user.avatarUrl} size="sm" />
