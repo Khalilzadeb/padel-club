@@ -8,6 +8,7 @@ import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { TrendingUp, TrendingDown, Trophy, Calendar, Target, MessageCircle } from "lucide-react";
 import EditProfileButton from "@/components/players/EditProfileButton";
+import EloChart from "@/components/players/EloChart";
 
 const levelVariant: Record<string, "green" | "blue" | "purple" | "gray"> = {
   pro: "purple", advanced: "blue", intermediate: "green", beginner: "gray",
@@ -30,6 +31,22 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
   void setsWinRate;
 
   const recentMatches = myMatches.slice(0, 8);
+
+  // Build ELO history from matches (oldest first)
+  const matchesWithElo = myMatches
+    .filter((m) => m.eloChanges?.[playerId] !== undefined)
+    .slice()
+    .reverse(); // oldest first
+  const totalEloChange = matchesWithElo.reduce((sum, m) => sum + (m.eloChanges?.[playerId] ?? 0), 0);
+  let runningElo = s.eloRating - totalEloChange;
+  const eloHistory = matchesWithElo.map((m) => {
+    const change = m.eloChanges![playerId]!;
+    runningElo += change;
+    return { date: m.date, elo: runningElo, change };
+  });
+  if (eloHistory.length > 0) {
+    eloHistory.unshift({ date: matchesWithElo[0].date, elo: s.eloRating - totalEloChange, change: 0 });
+  }
 
   const partnerCount: Record<string, number> = {};
   recentMatches.forEach((m) => {
@@ -130,6 +147,11 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 </div>
               </div>
             </div>
+          </Card>
+
+          <Card className="p-5">
+            <h2 className="font-semibold text-gray-900 mb-3">ELO History</h2>
+            <EloChart history={eloHistory} currentElo={s.eloRating} />
           </Card>
 
           {Object.keys(partnerCount).length > 0 && (
