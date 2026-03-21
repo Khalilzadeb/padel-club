@@ -21,6 +21,7 @@ interface Props {
   onSubmitScore: (id: string, data: { team1PlayerIds: [string, string]; team2PlayerIds: [string, string]; sets: { setNumber: number; team1Games: number; team2Games: number }[] }) => void;
   onConfirmScore: (id: string) => void;
   onDisputeScore: (id: string) => void;
+  onUpdateBookingStatus: (id: string, status: "booked" | "failed") => void;
   loading?: boolean;
 }
 
@@ -32,7 +33,7 @@ const statusBadge = (status: OpenGame["status"]) => {
   return null;
 };
 
-export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, loading }: Props) {
+export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, onUpdateBookingStatus, loading }: Props) {
   const [showScoreForm, setShowScoreForm] = useState(false);
   const [showTeamPick, setShowTeamPick] = useState(false);
   const court = courts.find((c) => c.id === game.courtId);
@@ -54,6 +55,9 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <MapPin className="w-3.5 h-3.5" />
             <span>{court?.name ?? game.courtId}</span>
+            {court?.pricePerHour ? (
+              <span className="text-padel-green font-semibold">₼{court.pricePerHour}/hr</span>
+            ) : null}
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <Clock className="w-3.5 h-3.5" />
@@ -74,6 +78,13 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
               ? <Badge variant="red">Full</Badge>
               : <Badge variant="green">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</Badge>
           }
+          {game.status !== "cancelled" && !isCompleted && (
+            game.courtBookingStatus === "booked"
+              ? <Badge variant="green">Kort book edilib ✓</Badge>
+              : game.courtBookingStatus === "failed"
+                ? <Badge variant="red">Book alınmadı</Badge>
+                : <Badge variant="yellow">Kort book edilməyib</Badge>
+          )}
         </div>
       </div>
 
@@ -185,6 +196,21 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
       {/* Actions */}
       {currentPlayerId && !isCompleted && game.status !== "cancelled" && (
         <div className="flex gap-2 pt-2 border-t border-gray-50 flex-wrap">
+          {/* Host booking status update */}
+          {isCreator && game.courtBookingStatus === "not_booked" && !isCompleted && game.status !== "cancelled" && (
+            <div className="flex gap-2 w-full pb-2 border-b border-gray-100 mb-1 flex-wrap">
+              <span className="text-xs text-yellow-600 w-full">Kortu book etdinmi?</span>
+              <Button size="sm" onClick={() => onUpdateBookingStatus(game.id, "booked")} disabled={loading}
+                className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white">
+                <CheckCircle className="w-3.5 h-3.5" /> Book edildi
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => onUpdateBookingStatus(game.id, "failed")} disabled={loading}
+                className="flex items-center gap-1 text-red-500 hover:bg-red-50">
+                <AlertTriangle className="w-3.5 h-3.5" /> Alınmadı
+              </Button>
+            </div>
+          )}
+
           {/* Confirm / Dispute */}
           {canConfirm && (
             <>

@@ -11,6 +11,7 @@ function toModel(row: Record<string, unknown>): Court {
     pricePerHour: row.price_per_hour as number,
     imageUrl: row.image_url as string | null,
     features: (row.features as string[]) ?? [],
+    location: row.location as string | undefined,
   }
 }
 

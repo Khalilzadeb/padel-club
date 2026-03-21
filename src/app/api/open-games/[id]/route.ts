@@ -215,5 +215,43 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ ok: true });
   }
 
+  // ── UPDATE BOOKING STATUS ─────────────────────────────────────────────────
+  if (action === "update_booking_status") {
+    const game = await getOpenGame(id);
+    if (!game) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (game.createdBy !== user.playerId) return NextResponse.json({ error: "Only the creator can update booking status" }, { status: 403 });
+
+    const { status: bookingStatus } = body;
+    if (bookingStatus === "failed") {
+      await supabase.from("open_games").update({ court_booking_status: "failed", status: "cancelled" }).eq("id", id);
+      const host = await getPlayer(user.playerId);
+      await Promise.all(
+        game.playerIds.filter((pid) => pid !== user.playerId).map((pid) =>
+          createNotification({
+            playerId: pid,
+            type: "game_cancel",
+            title: "Oyun ləğv olundu",
+            body: `Təəssüf ki, ${host?.name ?? "Host"} ${game.date} tarixli ${game.startTime} saatında kort book edə bilmədi. Oyun ləğv olundu.`,
+            link: "/open-games",
+          })
+        )
+      );
+    } else if (bookingStatus === "booked") {
+      await supabase.from("open_games").update({ court_booking_status: "booked" }).eq("id", id);
+      await Promise.all(
+        game.playerIds.filter((pid) => pid !== user.playerId).map((pid) =>
+          createNotification({
+            playerId: pid,
+            type: "game_join",
+            title: "Kort book edildi ✓",
+            body: `${game.date} tarixli ${game.startTime} saatında olan oyununuz üçün kort təsdiqləndi!`,
+            link: "/open-games",
+          })
+        )
+      );
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 }

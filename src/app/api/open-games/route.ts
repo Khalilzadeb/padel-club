@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   if (!payload?.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { courtId, date, startTime, durationMinutes, eloRange, notes } = body;
+  const { courtId, date, startTime, durationMinutes, eloRange, notes, courtBookingStatus } = body;
 
   if (!courtId || !date || !startTime || !durationMinutes) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
     maxPlayers: 4,
     notes: notes || undefined,
     status: "open",
+    courtBookingStatus: (courtBookingStatus as "booked" | "not_booked") ?? "not_booked",
     teams: { team1: [user.playerId], team2: [] },
   });
 

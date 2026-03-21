@@ -53,6 +53,7 @@ export interface Court {
   pricePerHour: number;
   imageUrl: string | null;
   features: string[];
+  location?: string;
 }
 
 // ─── Booking ──────────────────────────────────────────────────────────────────
@@ -119,6 +120,7 @@ export interface Match {
 // ─── Open Game ────────────────────────────────────────────────────────────────
 
 export type OpenGameStatus = "open" | "full" | "pending_result" | "completed" | "cancelled";
+export type CourtBookingStatus = "not_booked" | "booked" | "failed";
 
 export interface PendingScore {
   team1PlayerIds: [string, string];
@@ -140,6 +142,7 @@ export interface OpenGame {
   maxPlayers: number;
   notes?: string;
   status: OpenGameStatus;
+  courtBookingStatus: CourtBookingStatus;
   teams?: { team1: string[]; team2: string[] };
   pendingScore?: PendingScore;
   submittedBy?: string;

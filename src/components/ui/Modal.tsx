@@ -8,7 +8,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export default function Modal({ isOpen, onClose, title, children, size = "md" }: ModalProps) {
@@ -25,17 +25,22 @@ export default function Modal({ isOpen, onClose, title, children, size = "md" }:
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div
         className={cn(
-          "relative bg-white rounded-xl shadow-xl w-full animate-in fade-in zoom-in-95 duration-200",
-          { "max-w-sm": size === "sm", "max-w-lg": size === "md", "max-w-2xl": size === "lg" }
+          "relative bg-white rounded-xl shadow-xl w-full animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col",
+          {
+            "max-w-sm": size === "sm",
+            "max-w-lg": size === "md",
+            "max-w-2xl": size === "lg",
+            "max-w-4xl": size === "xl",
+          }
         )}
       >
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-5 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

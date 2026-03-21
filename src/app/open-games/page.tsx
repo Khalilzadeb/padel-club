@@ -47,6 +47,7 @@ export default function OpenGamesPage() {
     startTime: string;
     durationMinutes: number;
     eloRange: string;
+    courtBookingStatus: "booked" | "not_booked";
     notes?: string;
   }) => {
     const res = await fetch("/api/open-games", {
@@ -91,7 +92,7 @@ export default function OpenGamesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">Find a Game</h1>
+          <h1 className="text-3xl font-black text-gray-900">Games</h1>
           <p className="text-gray-500 mt-1">Join an open game or post your own</p>
         </div>
         {user && (
@@ -151,16 +152,18 @@ export default function OpenGamesPage() {
               onSubmitScore={(id, data) => handleAction(id, "submit_score", data)}
               onConfirmScore={(id) => handleAction(id, "confirm_score")}
               onDisputeScore={(id) => handleAction(id, "dispute_score")}
+              onUpdateBookingStatus={(id, status) => handleAction(id, "update_booking_status", { status })}
               loading={actionLoading}
             />
           ))}
         </div>
       )}
 
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Post an Open Game" size="md">
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Post a Game" size="xl">
         <OpenGameForm
           courts={courts}
           playerElo={currentPlayer?.stats.eloRating ?? 1000}
+          existingGames={games}
           onSubmit={handleCreate}
           onClose={() => setShowForm(false)}
         />
