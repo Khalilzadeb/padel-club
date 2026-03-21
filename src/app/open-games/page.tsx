@@ -145,7 +145,7 @@ export default function OpenGamesPage() {
               players={players}
               courts={courts}
               currentPlayerId={currentPlayer?.id}
-              onJoin={(id) => handleAction(id, "join")}
+              onJoin={(id, teamNumber) => handleAction(id, "join", { teamNumber })}
               onLeave={(id) => handleAction(id, "leave")}
               onCancel={(id) => handleAction(id, "cancel")}
               onSubmitScore={(id, data) => handleAction(id, "submit_score", data)}

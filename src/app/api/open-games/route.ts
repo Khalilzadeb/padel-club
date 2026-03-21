@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
     maxPlayers: 4,
     notes: notes || undefined,
     status: "open",
+    teams: { team1: [user.playerId], team2: [] },
   });
 
   return NextResponse.json(game, { status: 201 });

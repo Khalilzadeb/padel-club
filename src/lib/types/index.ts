@@ -140,6 +140,7 @@ export interface OpenGame {
   maxPlayers: number;
   notes?: string;
   status: OpenGameStatus;
+  teams?: { team1: string[]; team2: string[] };
   pendingScore?: PendingScore;
   submittedBy?: string;
   matchId?: string;

@@ -31,7 +31,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   // ── JOIN ─────────────────────────────────────────────────────────────────
   if (action === "join") {
-    const { game, error } = await joinOpenGame(id, user.playerId);
+    const teamNumber = (body.teamNumber as 1 | 2) ?? 1;
+    const { game, error } = await joinOpenGame(id, user.playerId, teamNumber);
     if (!game) return NextResponse.json({ error: error ?? "Cannot join this game" }, { status: 400 });
     const joiner = await getPlayer(user.playerId);
     if (game.createdBy !== user.playerId) {

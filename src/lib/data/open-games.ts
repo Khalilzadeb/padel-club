@@ -16,6 +16,7 @@ function toModel(row: Record<string, unknown>): OpenGame {
     maxPlayers: row.max_players as number,
     notes: row.notes as string | undefined,
     status: row.status as OpenGame['status'],
+    teams: row.teams as OpenGame['teams'] ?? undefined,
     pendingScore: row.pending_score as OpenGame['pendingScore'],
     submittedBy: row.submitted_by as string | undefined,
     matchId: row.match_id as string | undefined,
@@ -52,12 +53,13 @@ export async function createOpenGame(game: Omit<OpenGame, 'createdAt'>): Promise
     max_players: game.maxPlayers,
     notes: game.notes ?? null,
     status: game.status,
+    teams: game.teams ?? null,
   }).select().single()
   if (error) throw error
   return toModel(data)
 }
 
-export async function joinOpenGame(id: string, playerId: string): Promise<{ game: OpenGame | null; error?: string }> {
+export async function joinOpenGame(id: string, playerId: string, teamNumber: 1 | 2 = 1): Promise<{ game: OpenGame | null; error?: string }> {
   const { data: row } = await supabase.from('open_games').select('*').eq('id', id).single()
   if (!row) return { game: null, error: 'Game not found' }
 
@@ -79,12 +81,27 @@ export async function joinOpenGame(id: string, playerId: string): Promise<{ game
     if (eloMax !== null && elo > eloMax) return { game: null, error: `Your ELO (${elo}) is above the maximum allowed (${eloMax})` }
   }
 
+  // Handle team assignment
+  const existingTeams = current.teams as { team1: string[]; team2: string[] } | null
+  let newTeams: { team1: string[]; team2: string[] } | null = null
+  if (existingTeams) {
+    const targetKey = teamNumber === 1 ? 'team1' : 'team2'
+    if (existingTeams[targetKey].length >= 2) return { game: null, error: 'That team is already full' }
+    newTeams = {
+      team1: [...existingTeams.team1],
+      team2: [...existingTeams.team2],
+    }
+    newTeams[targetKey] = [...newTeams[targetKey], playerId]
+  }
+
   const newPlayerIds = [...playerIds, playerId]
   const newStatus = newPlayerIds.length >= maxPlayers ? 'full' : 'open'
+  const updateData: Record<string, unknown> = { player_ids: newPlayerIds, status: newStatus }
+  if (newTeams) updateData.teams = newTeams
 
   const { data, error } = await supabase
     .from('open_games')
-    .update({ player_ids: newPlayerIds, status: newStatus })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single()
@@ -99,9 +116,18 @@ export async function leaveOpenGame(id: string, playerId: string): Promise<OpenG
   const current = row as Record<string, unknown>
   const playerIds = (current.player_ids as string[]).filter(p => p !== playerId)
 
+  const updateData: Record<string, unknown> = { player_ids: playerIds, status: 'open' }
+  const existingTeams = current.teams as { team1: string[]; team2: string[] } | null
+  if (existingTeams) {
+    updateData.teams = {
+      team1: existingTeams.team1.filter(p => p !== playerId),
+      team2: existingTeams.team2.filter(p => p !== playerId),
+    }
+  }
+
   const { data, error } = await supabase
     .from('open_games')
-    .update({ player_ids: playerIds, status: 'open' })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single()

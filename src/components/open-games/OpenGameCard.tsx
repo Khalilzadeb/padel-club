@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import OpenGameScoreForm from "@/components/open-games/OpenGameScoreForm";
 import { OpenGame, Player, Court } from "@/lib/types";
-import { Clock, MapPin, Users, ChevronRight, Timer, CheckCircle, AlertTriangle, Trophy } from "lucide-react";
+import { Clock, MapPin, Users, ChevronRight, Timer, CheckCircle, AlertTriangle, Trophy, X } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
   players: Player[];
   courts: Court[];
   currentPlayerId?: string;
-  onJoin: (id: string) => void;
+  onJoin: (id: string, teamNumber?: 1 | 2) => void;
   onLeave: (id: string) => void;
   onCancel: (id: string) => void;
   onSubmitScore: (id: string, data: { team1PlayerIds: [string, string]; team2PlayerIds: [string, string]; sets: { setNumber: number; team1Games: number; team2Games: number }[] }) => void;
@@ -34,6 +34,7 @@ const statusBadge = (status: OpenGame["status"]) => {
 
 export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, loading }: Props) {
   const [showScoreForm, setShowScoreForm] = useState(false);
+  const [showTeamPick, setShowTeamPick] = useState(false);
   const court = courts.find((c) => c.id === game.courtId);
   const joinedPlayers = game.playerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean) as Player[];
   const spotsLeft = game.maxPlayers - game.playerIds.length;
@@ -77,23 +78,77 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
       </div>
 
       {/* Players */}
-      <div className="flex items-center gap-2 mb-3">
-        <Users className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {joinedPlayers.map((p) => (
-            <div key={p.id} className="flex items-center gap-1">
-              <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
-              <span className="text-xs text-gray-700">{p.name.split(" ")[0]}</span>
-              {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-medium">(host)</span>}
+      {game.teams ? (
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {/* Team 1 */}
+          <div className="bg-blue-50 rounded-lg p-2">
+            <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide mb-1.5">Team 1</p>
+            <div className="space-y-1">
+              {game.teams.team1.map((id) => {
+                const p = players.find((pl) => pl.id === id);
+                if (!p) return null;
+                return (
+                  <div key={id} className="flex items-center gap-1">
+                    <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
+                    <span className="text-xs text-gray-700 truncate">{p.name.split(" ")[0]}</span>
+                    {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-medium">(host)</span>}
+                  </div>
+                );
+              })}
+              {Array.from({ length: 2 - game.teams.team1.length }).map((_, i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <div className="w-6 h-6 rounded-full border-2 border-dashed border-blue-200 flex items-center justify-center">
+                    <span className="text-blue-300 text-xs">+</span>
+                  </div>
+                  <span className="text-xs text-blue-300">open</span>
+                </div>
+              ))}
             </div>
-          ))}
-          {Array.from({ length: spotsLeft }).map((_, i) => (
-            <div key={i} className="w-6 h-6 rounded-full border-2 border-dashed border-gray-200 flex items-center justify-center">
-              <span className="text-gray-300 text-xs">+</span>
+          </div>
+          {/* Team 2 */}
+          <div className="bg-orange-50 rounded-lg p-2">
+            <p className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide mb-1.5">Team 2</p>
+            <div className="space-y-1">
+              {game.teams.team2.map((id) => {
+                const p = players.find((pl) => pl.id === id);
+                if (!p) return null;
+                return (
+                  <div key={id} className="flex items-center gap-1">
+                    <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
+                    <span className="text-xs text-gray-700 truncate">{p.name.split(" ")[0]}</span>
+                  </div>
+                );
+              })}
+              {Array.from({ length: 2 - game.teams.team2.length }).map((_, i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <div className="w-6 h-6 rounded-full border-2 border-dashed border-orange-200 flex items-center justify-center">
+                    <span className="text-orange-300 text-xs">+</span>
+                  </div>
+                  <span className="text-xs text-orange-300">open</span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {joinedPlayers.map((p) => (
+              <div key={p.id} className="flex items-center gap-1">
+                <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
+                <span className="text-xs text-gray-700">{p.name.split(" ")[0]}</span>
+                {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-medium">(host)</span>}
+              </div>
+            ))}
+            {Array.from({ length: spotsLeft }).map((_, i) => (
+              <div key={i} className="w-6 h-6 rounded-full border-2 border-dashed border-gray-200 flex items-center justify-center">
+                <span className="text-gray-300 text-xs">+</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {game.notes && (
         <p className="text-xs text-gray-500 italic mb-3 border-l-2 border-gray-200 pl-2">{game.notes}</p>
@@ -159,7 +214,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
             </Button>
           )}
 
-          {/* Leave / Cancel (only when open or full, not pending) */}
+          {/* Leave / Cancel / Join (only when open or full, not pending) */}
           {!isPending && (isFull || game.status === "open") && (
             isCreator ? (
               <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 ml-auto" onClick={() => onCancel(game.id)} disabled={loading}>
@@ -169,17 +224,41 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
               <Button variant="ghost" size="sm" className="text-gray-500 ml-auto" onClick={() => onLeave(game.id)} disabled={loading}>
                 Leave
               </Button>
-            ) : (
-              <Button size="sm" onClick={() => onJoin(game.id)} disabled={loading || isFull} className="flex items-center gap-1">
-                Join Game <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-            )
-          )}
-
-          {!isJoined && !isPending && !isFull && (
-            <Button size="sm" onClick={() => onJoin(game.id)} disabled={loading} className="flex items-center gap-1">
-              Join Game <ChevronRight className="w-3.5 h-3.5" />
-            </Button>
+            ) : !isFull ? (
+              showTeamPick ? (
+                <div className="flex items-center gap-2 flex-wrap w-full">
+                  <span className="text-xs text-gray-500">Choose team:</span>
+                  <Button
+                    size="sm"
+                    onClick={() => { onJoin(game.id, 1); setShowTeamPick(false); }}
+                    disabled={loading || (game.teams ? game.teams.team1.length >= 2 : false)}
+                    className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Team 1 {game.teams ? `(${game.teams.team1.length}/2)` : ""}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => { onJoin(game.id, 2); setShowTeamPick(false); }}
+                    disabled={loading || (game.teams ? game.teams.team2.length >= 2 : false)}
+                    className="flex items-center gap-1 bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    Team 2 {game.teams ? `(${game.teams.team2.length}/2)` : ""}
+                  </Button>
+                  <button type="button" onClick={() => setShowTeamPick(false)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => game.teams ? setShowTeamPick(true) : onJoin(game.id)}
+                  disabled={loading}
+                  className="flex items-center gap-1"
+                >
+                  Join Game <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              )
+            ) : null
           )}
         </div>
       )}
