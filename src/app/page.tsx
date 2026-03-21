@@ -1,7 +1,6 @@
 import HeroSection from "@/components/dashboard/HeroSection";
 import QuickStats from "@/components/dashboard/QuickStats";
 import RecentMatches from "@/components/dashboard/RecentMatches";
-import UpcomingBookings from "@/components/dashboard/UpcomingBookings";
 import ActiveTournaments from "@/components/dashboard/ActiveTournaments";
 
 export default function HomePage() {
@@ -14,7 +13,6 @@ export default function HomePage() {
           <RecentMatches />
         </div>
         <div className="space-y-6">
-          <UpcomingBookings />
           <ActiveTournaments />
         </div>
       </div>

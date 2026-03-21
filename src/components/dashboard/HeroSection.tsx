@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { Calendar, Trophy, TrendingUp } from "lucide-react";
+import { Users, Trophy, TrendingUp } from "lucide-react";
 
 export default function HeroSection() {
   return (
@@ -13,13 +13,13 @@ export default function HeroSection() {
         <p className="text-green-200 text-sm font-medium uppercase tracking-wider mb-2">Welcome to</p>
         <h1 className="text-3xl md:text-5xl font-black mb-3">PadelClub</h1>
         <p className="text-green-100 text-lg mb-8 max-w-md">
-          Book courts, track your matches, and compete in tournaments at the best padel facility in the city.
+          Find a game, track your matches, and compete in tournaments.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href="/bookings">
+          <Link href="/open-games">
             <Button className="bg-white !text-padel-green hover:bg-green-50" size="lg">
-              <Calendar className="w-5 h-5" />
-              Book a Court
+              <Users className="w-5 h-5" />
+              Find a Game
             </Button>
           </Link>
           <Link href="/matches">

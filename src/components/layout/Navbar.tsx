@@ -11,7 +11,6 @@ import NotificationBell from "@/components/layout/NotificationBell";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/bookings", label: "Book Court", icon: Calendar },
   { href: "/open-games", label: "Games", icon: Search },
   { href: "/players", label: "Players", icon: Users },
   { href: "/matches", label: "Matches", icon: Swords },
