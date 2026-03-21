@@ -14,7 +14,6 @@ export default function OpenGamesPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<"open" | "all">("open");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -32,14 +31,13 @@ export default function OpenGamesPage() {
   }, []);
 
   const loadGames = () => {
-    const url = statusFilter === "open" ? "/api/open-games?status=open" : "/api/open-games";
-    fetch(url).then((r) => r.json()).then(setGames);
+    fetch("/api/open-games?status=open").then((r) => r.json()).then(setGames);
   };
 
   useEffect(() => {
     loadGames();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, []);
 
   const handleCreate = async (data: {
     courtId: string;
@@ -84,9 +82,7 @@ export default function OpenGamesPage() {
     }
   };
 
-  const filtered = statusFilter === "open"
-    ? games.filter((g) => g.status === "open" || g.status === "full" || g.status === "pending_result")
-    : games;
+  const filtered = games.filter((g) => g.status === "open" || g.status === "full" || g.status === "pending_result");
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -102,21 +98,6 @@ export default function OpenGamesPage() {
         )}
       </div>
 
-      <div className="flex gap-2 mb-6">
-        {(["open", "all"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
-              statusFilter === s
-                ? "bg-padel-green text-white"
-                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            {s === "open" ? "Active Games" : "All Games"}
-          </button>
-        ))}
-      </div>
 
       {loading ? (
         <div className="flex justify-center py-16">
