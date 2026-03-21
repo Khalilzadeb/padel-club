@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import Link from "next/link";
-import { Trophy, Users, Swords, Gamepad2 } from "lucide-react";
+import { Trophy, Users, Swords, Gamepad2, ChevronRight } from "lucide-react";
 
 interface Stats {
   players: number;
