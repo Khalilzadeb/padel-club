@@ -7,6 +7,7 @@ interface AuthUser {
   name: string;
   playerId?: string;
   avatarUrl?: string | null;
+  role?: string;
 }
 
 interface AuthContextValue {

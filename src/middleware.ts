@@ -30,6 +30,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  if (pathname.startsWith("/admin") && session.role !== "admin") {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
   return NextResponse.next();
 }
 

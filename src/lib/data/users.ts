@@ -10,6 +10,7 @@ export interface User {
   playerId?: string
   googleId?: string
   avatarUrl?: string
+  role: string
 }
 
 function toModel(row: Record<string, unknown>): User {
@@ -22,6 +23,7 @@ function toModel(row: Record<string, unknown>): User {
     playerId: row.player_id as string | undefined,
     googleId: row.google_id as string | undefined,
     avatarUrl: row.avatar_url as string | undefined,
+    role: (row.role as string) ?? 'user',
   }
 }
 

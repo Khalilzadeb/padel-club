@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Search, MessageCircle } from "lucide-react";
+import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Search, MessageCircle, Shield } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
@@ -96,6 +96,16 @@ export default function Navbar() {
                           My Profile
                         </Link>
                       )}
+                      {user.role === "admin" && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-padel-green hover:bg-green-50"
+                        >
+                          <Shield className="w-4 h-4" />
+                          Admin Panel
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -171,6 +181,12 @@ export default function Navbar() {
                   <Link href={`/players/${user.playerId}`} onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
                     <User className="w-4 h-4" /> My Profile
+                  </Link>
+                )}
+                {user.role === "admin" && (
+                  <Link href="/admin" onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-padel-green hover:bg-green-50">
+                    <Shield className="w-4 h-4" /> Admin Panel
                   </Link>
                 )}
                 <button onClick={handleLogout}

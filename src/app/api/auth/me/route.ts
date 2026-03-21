@@ -20,6 +20,6 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    user: { id: user.id, email: user.email, name: user.name, playerId: user.playerId, avatarUrl },
+    user: { id: user.id, email: user.email, name: user.name, playerId: user.playerId, avatarUrl, role: user.role },
   });
 }

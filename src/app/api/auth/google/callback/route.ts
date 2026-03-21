@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const token = await signToken({ userId: user.id, email: user.email, name: user.name });
+  const token = await signToken({ userId: user.id, email: user.email, name: user.name, role: user.role });
 
   const redirectUrl = new URL(from.startsWith("/") ? from : "/", req.url);
   const res = NextResponse.redirect(redirectUrl);
