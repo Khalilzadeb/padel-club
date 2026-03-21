@@ -26,7 +26,7 @@ function toModel(row: Record<string, unknown>): OpenGame {
 }
 
 export async function getOpenGames(filters?: { status?: string; date?: string }): Promise<OpenGame[]> {
-  let query = supabase.from('open_games').select('*').order('date', { ascending: true }).order('start_time', { ascending: true })
+  let query = supabase.from('open_games').select('*').order('date', { ascending: false }).order('start_time', { ascending: false })
   if (filters?.status) query = query.eq('status', filters.status)
   if (filters?.date) query = query.eq('date', filters.date)
   const { data, error } = await query
