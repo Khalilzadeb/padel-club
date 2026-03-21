@@ -54,22 +54,25 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <MapPin className="w-3.5 h-3.5" />
-            <span>{court?.name ?? game.courtId}</span>
-            {court?.pricePerHour ? (
+            <span>
+              {court ? (court.location ? `${court.location} — ${court.name}` : court.name) : game.courtId}
+            </span>
+            {court?.pricePerHour != null && court.pricePerHour > 0 ? (
               <span className="text-padel-green font-semibold">₼{court.pricePerHour}/hr</span>
             ) : null}
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <Clock className="w-3.5 h-3.5" />
-            <span>{game.date} · {game.startTime} – {game.endTime}</span>
+            <span>
+              {new Date(game.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {game.startTime} – {game.endTime}
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Timer className="w-3.5 h-3.5" />
-            <span>{game.durationMinutes} min</span>
-            {(game.eloMin || game.eloMax) && (
-              <span className="text-blue-500 font-medium">· {game.eloMin ?? "?"} – {game.eloMax ?? "?"} ELO</span>
-            )}
-          </div>
+          {(game.eloMin || game.eloMax) && (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Timer className="w-3.5 h-3.5" />
+              <span className="text-blue-500 font-medium">{game.eloMax ?? "?"} – {game.eloMin ?? "?"} ELO</span>
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-end gap-1">
           {isPending || isCompleted || game.status === "cancelled"
