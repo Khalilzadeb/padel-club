@@ -119,13 +119,23 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          {/* Mobile — notification + user */}
+          <div className="md:hidden flex items-center gap-2">
+            <NotificationBell />
+            {!loading && user && (
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-xl hover:bg-gray-50"
+              >
+                <Avatar name={user.name} imageUrl={user.avatarUrl} size="sm" />
+              </button>
+            )}
+            {!loading && !user && (
+              <Link href="/login">
+                <Button size="sm">Sign in</Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

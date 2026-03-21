@@ -19,4 +19,7 @@ body {
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
 }

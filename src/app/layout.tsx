@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
+import BottomNav from "@/components/layout/BottomNav";
 import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -18,8 +19,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} min-h-screen flex flex-col bg-gray-50`}>
         <AuthProvider>
           <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <Footer className="hidden md:block" />
+          <BottomNav />
         </AuthProvider>
       </body>
     </html>
