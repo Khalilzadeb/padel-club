@@ -6,13 +6,41 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Avatar from "@/components/ui/Avatar";
 import { Tournament, Player, TournamentPrize } from "@/lib/types";
-import { Trophy, Save, ArrowLeft, Plus, X, Users, Gift } from "lucide-react";
+import { TournamentBracketSlot } from "@/lib/types";
+import { Trophy, Save, ArrowLeft, Plus, X, Users, Gift, Zap, RefreshCw } from "lucide-react";
 
 const statusVariant: Record<string, "green" | "yellow" | "blue" | "gray"> = {
   active: "green", registration: "yellow", upcoming: "blue", completed: "gray",
 };
 
-type Tab = "info" | "teams" | "prizes";
+type Tab = "info" | "teams" | "bracket" | "prizes";
+
+function generateBracket(teams: string[][]): TournamentBracketSlot[] {
+  const shuffled = [...teams].sort(() => Math.random() - 0.5);
+  const numRounds = Math.ceil(Math.log2(Math.max(shuffled.length, 2)));
+  const round1Matches = Math.pow(2, numRounds - 1);
+  const slots: TournamentBracketSlot[] = [];
+
+  for (let i = 0; i < round1Matches; i++) {
+    const team1 = shuffled[i * 2] as [string, string] | undefined;
+    const team2 = shuffled[i * 2 + 1] as [string, string] | undefined;
+    slots.push({
+      round: 1,
+      position: i + 1,
+      team1PlayerIds: team1?.length === 2 ? team1 : undefined,
+      team2PlayerIds: team2?.length === 2 ? team2 : undefined,
+    });
+  }
+
+  for (let round = 2; round <= numRounds; round++) {
+    const numMatches = Math.pow(2, numRounds - round);
+    for (let pos = 1; pos <= numMatches; pos++) {
+      slots.push({ round, position: pos });
+    }
+  }
+
+  return slots;
+}
 
 export default function AdminTournamentEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -155,8 +183,8 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        {(["info", "teams", "prizes"] as Tab[]).map((t) => (
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {(["info", "teams", "bracket", "prizes"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -380,6 +408,93 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
             )}
           </Card>
         </div>
+      )}
+
+      {/* Bracket Tab */}
+      {tab === "bracket" && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Trophy className="w-4 h-4" /> Bracket
+            </p>
+            <Button
+              size="sm"
+              onClick={async () => {
+                if (teams.length < 2) return;
+                const bracket = generateBracket(teams);
+                await save({ bracket, status: "active" });
+              }}
+              disabled={saving || teams.length < 2}
+              className="flex items-center gap-1.5"
+            >
+              {tournament.bracket?.length ? (
+                <><RefreshCw className="w-3.5 h-3.5" /> Regenerate</>
+              ) : (
+                <><Zap className="w-3.5 h-3.5" /> Generate Bracket</>
+              )}
+            </Button>
+          </div>
+
+          {teams.length < 2 && (
+            <p className="text-sm text-gray-400 text-center py-6">
+              Add at least 2 teams in the Teams tab first.
+            </p>
+          )}
+
+          {teams.length >= 2 && !tournament.bracket?.length && (
+            <div className="text-center py-6">
+              <Zap className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">No bracket yet.</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {teams.length} teams registered · Click "Generate Bracket" to create a random knockout draw.
+              </p>
+            </div>
+          )}
+
+          {tournament.bracket?.length ? (() => {
+            const rounds = Array.from(new Set(tournament.bracket!.map((s) => s.round))).sort((a, b) => a - b);
+            return (
+              <div className="space-y-4 overflow-x-auto">
+                {rounds.map((round) => {
+                  const slots = tournament.bracket!.filter((s) => s.round === round).sort((a, b) => a.position - b.position);
+                  const isLast = round === Math.max(...rounds);
+                  return (
+                    <div key={round}>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
+                        {isLast ? "Final" : round === Math.max(...rounds) - 1 && rounds.length > 2 ? "Semi-Final" : `Round ${round}`}
+                      </p>
+                      <div className="space-y-2">
+                        {slots.map((slot) => {
+                          const t1 = slot.team1PlayerIds?.map((pid) => players.find((p) => p.id === pid));
+                          const t2 = slot.team2PlayerIds?.map((pid) => players.find((p) => p.id === pid));
+                          return (
+                            <div key={`${round}-${slot.position}`} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl text-sm">
+                              <span className="text-xs text-gray-400 w-4">{slot.position}</span>
+                              <div className="flex-1 grid grid-cols-2 gap-1">
+                                <div className={`flex items-center gap-1.5 p-1.5 rounded-lg ${slot.winnerId === "team1" ? "bg-green-100" : "bg-white"}`}>
+                                  {t1?.map((p) => p && <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />)}
+                                  <span className="text-xs font-medium truncate">
+                                    {t1?.map((p) => p?.name.split(" ")[0]).join(" & ") || "TBD"}
+                                  </span>
+                                </div>
+                                <div className={`flex items-center gap-1.5 p-1.5 rounded-lg ${slot.winnerId === "team2" ? "bg-green-100" : "bg-white"}`}>
+                                  {t2?.map((p) => p && <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />)}
+                                  <span className="text-xs font-medium truncate">
+                                    {t2?.map((p) => p?.name.split(" ")[0]).join(" & ") || (slot.team1PlayerIds ? "TBD" : "–")}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })() : null}
+        </Card>
       )}
 
       {/* Prizes Tab */}
