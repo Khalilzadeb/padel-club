@@ -97,8 +97,11 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
     maxTeams: info.maxTeams,
   });
 
+  const registeredPlayerIds = teams.flat();
+
   const addTeam = async () => {
     if (!player1Id || !player2Id || player1Id === player2Id) return;
+    if (registeredPlayerIds.includes(player1Id) || registeredPlayerIds.includes(player2Id)) return;
     const newTeams = [...teams, [player1Id, player2Id]];
     await save({ registeredTeams: newTeams });
     setTeams(newTeams);
@@ -117,10 +120,10 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
   const savePrizes = () => save({ prizes });
 
   const filteredPlayers1 = players.filter(
-    (p) => p.name.toLowerCase().includes(player1Search.toLowerCase()) && p.id !== player2Id
+    (p) => p.name.toLowerCase().includes(player1Search.toLowerCase()) && p.id !== player2Id && !registeredPlayerIds.includes(p.id)
   );
   const filteredPlayers2 = players.filter(
-    (p) => p.name.toLowerCase().includes(player2Search.toLowerCase()) && p.id !== player1Id
+    (p) => p.name.toLowerCase().includes(player2Search.toLowerCase()) && p.id !== player1Id && !registeredPlayerIds.includes(p.id)
   );
 
   if (loading) {
