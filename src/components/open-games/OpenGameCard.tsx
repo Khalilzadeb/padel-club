@@ -197,7 +197,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
       {currentPlayerId && !isCompleted && game.status !== "cancelled" && (
         <div className="flex gap-2 pt-2 border-t border-gray-50 flex-wrap">
           {/* Host booking status update */}
-          {isCreator && game.courtBookingStatus === "not_booked" && !isCompleted && game.status !== "cancelled" && (
+          {isCreator && game.courtBookingStatus === "not_booked" && (
             <div className="flex gap-2 w-full pb-2 border-b border-gray-100 mb-1 flex-wrap">
               <span className="text-xs text-yellow-600 w-full">Kortu book etdinmi?</span>
               <Button size="sm" onClick={() => onUpdateBookingStatus(game.id, "booked")} disabled={loading}
