@@ -50,31 +50,44 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
 
   return (
     <Card className={`p-4 ${isCompleted ? "opacity-75" : ""}`}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <MapPin className="w-3.5 h-3.5" />
-            <span>
-              {court ? (court.location ? `${court.location} — ${court.name}` : court.name) : game.courtId}
-            </span>
-            {court?.pricePerHour != null && court.pricePerHour > 0 ? (
-              <span className="text-padel-green font-semibold">₼{court.pricePerHour}/hr</span>
-            ) : null}
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3 gap-2">
+        <div className="min-w-0">
+          {/* Location + Court */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <MapPin className="w-3.5 h-3.5 text-padel-green flex-shrink-0" />
+            <p className="text-sm font-bold text-gray-900 truncate">
+              {court ? (court.location ? `${court.location}` : court.name) : game.courtId}
+            </p>
+            {court?.location && (
+              <span className="text-xs text-gray-400 flex-shrink-0">· {court.name}</span>
+            )}
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Clock className="w-3.5 h-3.5" />
-            <span>
-              {new Date(game.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {game.startTime} – {game.endTime}
-            </span>
+          {/* Date + Time */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <Clock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+            <p className="text-sm font-semibold text-gray-700">
+              {new Date(game.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              <span className="text-gray-400 font-normal"> · </span>
+              {game.startTime} – {game.endTime}
+            </p>
           </div>
-          {(game.eloMin || game.eloMax) && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Timer className="w-3.5 h-3.5" />
-              <span className="text-blue-500 font-medium">{game.eloMax ?? "?"} – {game.eloMin ?? "?"} ELO</span>
-            </div>
-          )}
+          {/* Price + ELO */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {court?.pricePerHour != null && court.pricePerHour > 0 && (
+              <span className="text-xs font-semibold text-padel-green bg-green-50 px-2 py-0.5 rounded-full">
+                ₼{court.pricePerHour}/hr
+              </span>
+            )}
+            {(game.eloMin || game.eloMax) && (
+              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                {game.eloMax ?? "?"} – {game.eloMin ?? "?"} ELO
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        {/* Badges */}
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
           {isPending || isCompleted || game.status === "cancelled"
             ? statusBadge(game.status)
             : isFull
@@ -83,10 +96,10 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           }
           {game.status !== "cancelled" && !isCompleted && (
             game.courtBookingStatus === "booked"
-              ? <Badge variant="green">Kort book edilib ✓</Badge>
+              ? <Badge variant="green">Booked ✓</Badge>
               : game.courtBookingStatus === "failed"
                 ? <Badge variant="red">Book alınmadı</Badge>
-                : <Badge variant="yellow">Kort book edilməyib</Badge>
+                : <Badge variant="yellow">Book edilməyib</Badge>
           )}
         </div>
       </div>
@@ -95,50 +108,50 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
       {game.teams ? (
         <div className="grid grid-cols-2 gap-2 mb-3">
           {/* Team 1 */}
-          <div className="bg-blue-50 rounded-lg p-2">
-            <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide mb-1.5">Team 1</p>
-            <div className="space-y-1">
+          <div className="bg-blue-50 rounded-xl p-3">
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-2">Team 1</p>
+            <div className="space-y-1.5">
               {game.teams.team1.map((id) => {
                 const p = players.find((pl) => pl.id === id);
                 if (!p) return null;
                 return (
-                  <div key={id} className="flex items-center gap-1">
+                  <div key={id} className="flex items-center gap-2">
                     <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
-                    <span className="text-xs text-gray-700 truncate">{p.name.split(" ")[0]}</span>
-                    {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-medium">(host)</span>}
+                    <span className="text-sm font-medium text-gray-800 truncate">{p.name.split(" ")[0]}</span>
+                    {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-semibold">host</span>}
                   </div>
                 );
               })}
               {Array.from({ length: 2 - game.teams.team1.length }).map((_, i) => (
-                <div key={i} className="flex items-center gap-1">
-                  <div className="w-6 h-6 rounded-full border-2 border-dashed border-blue-200 flex items-center justify-center">
-                    <span className="text-blue-300 text-xs">+</span>
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full border-2 border-dashed border-blue-200 flex items-center justify-center">
+                    <span className="text-blue-300 text-sm">+</span>
                   </div>
-                  <span className="text-xs text-blue-300">open</span>
+                  <span className="text-sm text-blue-300">open</span>
                 </div>
               ))}
             </div>
           </div>
           {/* Team 2 */}
-          <div className="bg-orange-50 rounded-lg p-2">
-            <p className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide mb-1.5">Team 2</p>
-            <div className="space-y-1">
+          <div className="bg-orange-50 rounded-xl p-3">
+            <p className="text-xs font-bold text-orange-600 uppercase tracking-wide mb-2">Team 2</p>
+            <div className="space-y-1.5">
               {game.teams.team2.map((id) => {
                 const p = players.find((pl) => pl.id === id);
                 if (!p) return null;
                 return (
-                  <div key={id} className="flex items-center gap-1">
+                  <div key={id} className="flex items-center gap-2">
                     <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
-                    <span className="text-xs text-gray-700 truncate">{p.name.split(" ")[0]}</span>
+                    <span className="text-sm font-medium text-gray-800 truncate">{p.name.split(" ")[0]}</span>
                   </div>
                 );
               })}
               {Array.from({ length: 2 - game.teams.team2.length }).map((_, i) => (
-                <div key={i} className="flex items-center gap-1">
-                  <div className="w-6 h-6 rounded-full border-2 border-dashed border-orange-200 flex items-center justify-center">
-                    <span className="text-orange-300 text-xs">+</span>
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full border-2 border-dashed border-orange-200 flex items-center justify-center">
+                    <span className="text-orange-300 text-sm">+</span>
                   </div>
-                  <span className="text-xs text-orange-300">open</span>
+                  <span className="text-sm text-orange-300">open</span>
                 </div>
               ))}
             </div>
