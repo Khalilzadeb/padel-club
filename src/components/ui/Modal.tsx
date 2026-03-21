@@ -21,20 +21,29 @@ export default function Modal({ isOpen, onClose, title, children, size = "md" }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end md:items-center md:justify-center md:p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+
+      {/* Mobile: bottom sheet */}
       <div
         className={cn(
-          "relative bg-white rounded-xl shadow-xl w-full animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col",
+          "relative bg-white w-full flex flex-col",
+          "rounded-t-2xl max-h-[92dvh]",
+          "md:rounded-xl md:shadow-xl md:max-h-[90vh]",
           {
-            "max-w-sm": size === "sm",
-            "max-w-lg": size === "md",
-            "max-w-2xl": size === "lg",
-            "max-w-4xl": size === "xl",
+            "md:max-w-sm": size === "sm",
+            "md:max-w-lg": size === "md",
+            "md:max-w-2xl": size === "lg",
+            "md:max-w-4xl": size === "xl",
           }
         )}
       >
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 flex-shrink-0">
+        {/* Mobile drag indicator */}
+        <div className="md:hidden flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="w-10 h-1 bg-gray-200 rounded-full" />
+        </div>
+
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5 text-gray-500" />
