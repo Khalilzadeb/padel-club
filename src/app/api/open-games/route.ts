@@ -18,10 +18,24 @@ export async function GET(req: NextRequest) {
   const date = searchParams.get("date") ?? undefined;
   const games = await getOpenGames({ status, date });
 
+  // Determine current user's playerId (if authenticated)
+  let currentPlayerId: string | null = null;
+  const token = req.cookies.get("padel_session")?.value;
+  if (token) {
+    const payload = await verifyToken(token);
+    if (payload?.userId) {
+      const { findUserById } = await import("@/lib/data/users");
+      const user = await findUserById(payload.userId);
+      currentPlayerId = user?.playerId ?? null;
+    }
+  }
+
   const now = new Date();
-  const upcoming = games.filter(
-    (g) => new Date(`${g.date}T${g.startTime}:00+04:00`) > now && !g.isPrivate
-  );
+  const upcoming = games.filter((g) => {
+    if (new Date(`${g.date}T${g.startTime}:00+04:00`) <= now) return false;
+    if (g.isPrivate) return currentPlayerId !== null && g.playerIds.includes(currentPlayerId);
+    return true;
+  });
 
   return NextResponse.json(upcoming);
 }
@@ -113,6 +127,8 @@ export async function POST(req: NextRequest) {
           link: `/open-games?game=${game.id}`,
         });
       }
+      // Skip broadcast for private games
+      if (isPrivate === true) return Promise.resolve();
       // General broadcast
       return createNotification({
         playerId: p.id,
