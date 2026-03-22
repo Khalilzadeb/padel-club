@@ -1,12 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import MatchCard from "@/components/matches/MatchCard";
-import MatchForm from "@/components/matches/MatchForm";
 import OpenGameScoreForm from "@/components/open-games/OpenGameScoreForm";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import { Plus, Search, Trophy, User, X } from "lucide-react";
-import { Match, Player, Court, SetScore, OpenGame } from "@/lib/types";
+import { Search, Trophy, User, X } from "lucide-react";
+import { Match, Player, Court, OpenGame } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function MatchesPage() {
@@ -14,7 +13,6 @@ export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
-  const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "casual" | "ranked" | "tournament">("all");
   const [loading, setLoading] = useState(true);
@@ -92,44 +90,11 @@ export default function MatchesPage() {
     })
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const handleSubmit = async (data: {
-    courtId: string;
-    type: "casual" | "ranked";
-    team1PlayerIds: [string, string];
-    team2PlayerIds: [string, string];
-    sets: SetScore[];
-    date: string;
-    startTime: string;
-  }) => {
-    const res = await fetch("/api/matches", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        courtId: data.courtId,
-        type: data.type,
-        team1PlayerIds: data.team1PlayerIds,
-        team2PlayerIds: data.team2PlayerIds,
-        sets: data.sets,
-        date: data.date,
-        startTime: data.startTime,
-      }),
-    });
-    if (res.ok) {
-      setShowForm(false);
-      refreshMatches();
-    }
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-start justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 dark:text-white">Match Results</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{matches.length} matches played</p>
-        </div>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="w-4 h-4" /> Enter Score
-        </Button>
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Match Results</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{matches.length} matches played</p>
       </div>
 
       {pendingGames.length > 0 && (
@@ -160,7 +125,6 @@ export default function MatchesPage() {
       )}
 
       <div className="space-y-3 mb-6">
-        {/* Row 1: search + my matches */}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -183,7 +147,6 @@ export default function MatchesPage() {
           )}
         </div>
 
-        {/* Row 2: type + date filters */}
         <div className="flex flex-wrap gap-2 items-center">
           {(["all", "casual", "ranked", "tournament"] as const).map((t) => (
             <button
@@ -218,7 +181,6 @@ export default function MatchesPage() {
           </div>
         </div>
 
-        {/* Result count */}
         {!loading && (
           <p className="text-xs text-gray-400">
             {filtered.length} match{filtered.length !== 1 ? "es" : ""}
@@ -234,10 +196,7 @@ export default function MatchesPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-400 text-lg">No matches found</p>
-          <p className="text-gray-300 dark:text-gray-600 text-sm mt-1">Try adjusting your filters or enter a new score</p>
-          <Button className="mt-4" onClick={() => setShowForm(true)}>
-            <Plus className="w-4 h-4" /> Enter Score
-          </Button>
+          <p className="text-gray-300 dark:text-gray-600 text-sm mt-1">Results appear here after open games are completed</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -246,10 +205,6 @@ export default function MatchesPage() {
           ))}
         </div>
       )}
-
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Enter Match Result" size="lg">
-        <MatchForm players={players} courts={courts} onSubmit={handleSubmit} onClose={() => setShowForm(false)} />
-      </Modal>
 
       <Modal isOpen={!!selectedGame} onClose={() => setSelectedGame(null)} title="Enter Open Game Result" size="md">
         {selectedGame && user?.playerId && (
