@@ -17,7 +17,7 @@ interface Notification {
 
 const typeIcon = (type: string) => {
   if (type === "message") return <MessageCircle className="w-4 h-4 text-blue-500" />;
-  if (type === "open_game") return <Gamepad2 className="w-4 h-4 text-purple-500" />;
+  if (type === "open_game" || type === "game_invite") return <Gamepad2 className="w-4 h-4 text-purple-500" />;
   if (type === "challenge" || type === "challenge_accepted" || type === "challenge_declined") return <Swords className="w-4 h-4 text-orange-500" />;
   return <Users className="w-4 h-4 text-padel-green" />;
 };

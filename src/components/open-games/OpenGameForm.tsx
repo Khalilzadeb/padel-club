@@ -1,12 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 import Button from "@/components/ui/Button";
+import Avatar from "@/components/ui/Avatar";
 import BookingCalendar from "@/components/bookings/BookingCalendar";
-import { Court, Booking, OpenGame } from "@/lib/types";
-import { MapPin, ChevronRight } from "lucide-react";
+import { Court, Booking, OpenGame, Player } from "@/lib/types";
+import { MapPin, ChevronRight, UserPlus, X } from "lucide-react";
+
+const MAX_INVITES = 5;
 
 interface Props {
   courts: Court[];
+  players: Player[];
+  currentPlayerId?: string;
   playerElo: number;
   existingGames: OpenGame[];
   onSubmit: (data: {
@@ -17,6 +22,7 @@ interface Props {
     eloRange: string;
     courtBookingStatus: "booked" | "not_booked";
     notes?: string;
+    invitePlayerIds?: string[];
   }) => void;
   onClose: () => void;
 }
@@ -27,7 +33,7 @@ const DURATIONS = [
   { label: "120 min", value: 120 },
 ];
 
-export default function OpenGameForm({ courts, playerElo, existingGames, onSubmit, onClose }: Props) {
+export default function OpenGameForm({ courts, players, currentPlayerId, playerElo, existingGames, onSubmit, onClose }: Props) {
   // Step 1 — location + court
   const locations = [...new Set(courts.map((c) => c.location).filter(Boolean) as string[])];
   const [location, setLocation] = useState<string>(locations[0] ?? "");
@@ -44,6 +50,7 @@ export default function OpenGameForm({ courts, playerElo, existingGames, onSubmi
   const [eloRange, setEloRange] = useState("150");
   const [courtBookingStatus, setCourtBookingStatus] = useState<"booked" | "not_booked">("not_booked");
   const [notes, setNotes] = useState("");
+  const [invitePlayerIds, setInvitePlayerIds] = useState<string[]>([]);
 
   const locationCourts = courts.filter((c) => (location ? c.location === location : true));
 
@@ -84,9 +91,25 @@ export default function OpenGameForm({ courts, playerElo, existingGames, onSubmi
       ? "Any ELO"
       : `${Math.max(100, playerElo - Number(eloRange))} – ${playerElo + Number(eloRange)} ELO`;
 
+  // Players eligible to invite: within ELO range, excluding current player
+  const eligibleToInvite = players.filter((p) => {
+    if (p.id === currentPlayerId) return false;
+    if (eloRange === "any") return true;
+    const delta = Number(eloRange);
+    return p.stats.eloRating >= Math.max(100, playerElo - delta) && p.stats.eloRating <= playerElo + delta;
+  });
+
+  const toggleInvite = (id: string) => {
+    setInvitePlayerIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_INVITES) return prev;
+      return [...prev, id];
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ courtId, date: selectedDate, startTime: selectedTime, durationMinutes: duration, eloRange, courtBookingStatus, notes: notes.trim() || undefined });
+    onSubmit({ courtId, date: selectedDate, startTime: selectedTime, durationMinutes: duration, eloRange, courtBookingStatus, notes: notes.trim() || undefined, invitePlayerIds: invitePlayerIds.length > 0 ? invitePlayerIds : undefined });
     onClose();
   };
 
@@ -262,6 +285,44 @@ export default function OpenGameForm({ courts, playerElo, existingGames, onSubmi
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-padel-green"
             />
           </div>
+
+          {/* Invite players */}
+          {eligibleToInvite.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1">
+                <UserPlus className="w-3.5 h-3.5" /> Invite players
+                <span className="text-gray-400 font-normal ml-1">— max {MAX_INVITES}, within ELO range</span>
+              </label>
+              {invitePlayerIds.length >= MAX_INVITES && (
+                <p className="text-xs text-amber-600 mb-1.5">Maximum {MAX_INVITES} invites reached</p>
+              )}
+              <div className="max-h-44 overflow-y-auto space-y-1 border border-gray-100 rounded-xl p-2">
+                {eligibleToInvite.map((p) => {
+                  const selected = invitePlayerIds.includes(p.id);
+                  const disabled = !selected && invitePlayerIds.length >= MAX_INVITES;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleInvite(p.id)}
+                      disabled={disabled}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${selected ? "bg-green-50 border border-padel-green" : "hover:bg-gray-50 border border-transparent"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+                    >
+                      <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
+                        <p className="text-xs text-gray-400">{p.stats.eloRating} ELO</p>
+                      </div>
+                      {selected && <X className="w-4 h-4 text-padel-green flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+              {invitePlayerIds.length > 0 && (
+                <p className="text-xs text-padel-green mt-1">{invitePlayerIds.length} player{invitePlayerIds.length > 1 ? "s" : ""} will be invited</p>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-3 pt-1">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>

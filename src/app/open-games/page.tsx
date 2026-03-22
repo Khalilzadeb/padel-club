@@ -47,6 +47,7 @@ export default function OpenGamesPage() {
     eloRange: string;
     courtBookingStatus: "booked" | "not_booked";
     notes?: string;
+    invitePlayerIds?: string[];
   }) => {
     const res = await fetch("/api/open-games", {
       method: "POST",
@@ -143,6 +144,8 @@ export default function OpenGamesPage() {
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Post a Game" size="xl">
         <OpenGameForm
           courts={courts}
+          players={players}
+          currentPlayerId={currentPlayer?.id}
           playerElo={currentPlayer?.stats.eloRating ?? 1000}
           existingGames={games}
           onSubmit={handleCreate}

@@ -12,7 +12,6 @@ interface Props {
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const MINUTES = ["00", "15", "30", "45"];
 
 function groupCourtsByLocation(courts: Court[]): Record<string, Court[]> {
   const groups: Record<string, Court[]> = {};
@@ -35,13 +34,12 @@ export default function ChallengeButton({ player, courts }: Props) {
   const [courtId, setCourtId] = useState(activeCourts[0]?.id ?? "");
   const [date, setDate] = useState(today);
   const [hour, setHour] = useState("10");
-  const [minute, setMinute] = useState("00");
   const [matchType, setMatchType] = useState<"casual" | "ranked">("casual");
   const [message, setMessage] = useState("");
 
   if (!user?.playerId || user.playerId === player.id) return null;
 
-  const proposedTime = `${hour.padStart(2, "0")}:${minute}`;
+  const proposedTime = `${hour.padStart(2, "0")}:00`;
 
   const handleSend = async () => {
     setSending(true);
@@ -119,18 +117,12 @@ export default function ChallengeButton({ player, courts }: Props) {
               <input type="date" value={date} min={today} onChange={(e) => setDate(e.target.value)} className={inputClass} />
             </div>
 
-            {/* Time — 24h selects */}
+            {/* Time — 24h hour select */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">Time</label>
-              <div className="flex items-center gap-2">
-                <select value={hour} onChange={(e) => setHour(e.target.value)} className={selectClass}>
-                  {HOURS.map((h) => <option key={h} value={h}>{h}:00</option>)}
-                </select>
-                <span className="text-gray-400 font-semibold">:</span>
-                <select value={minute} onChange={(e) => setMinute(e.target.value)} className={selectClass}>
-                  {MINUTES.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
+              <select value={hour} onChange={(e) => setHour(e.target.value)} className={selectClass}>
+                {HOURS.map((h) => <option key={h} value={h}>{h}:00</option>)}
+              </select>
             </div>
 
             {/* Message */}

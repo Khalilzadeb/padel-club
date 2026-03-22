@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
   if (!payload?.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { courtId, date, startTime, durationMinutes, eloRange, notes, courtBookingStatus } = body;
+  const { courtId, date, startTime, durationMinutes, eloRange, notes, courtBookingStatus, invitePlayerIds } = body;
+
+  if (Array.isArray(invitePlayerIds) && invitePlayerIds.length > 5) {
+    return NextResponse.json({ error: "Maximum 5 players can be invited" }, { status: 400 });
+  }
 
   if (!courtId || !date || !startTime || !durationMinutes) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -72,9 +76,16 @@ export async function POST(req: NextRequest) {
     teams: { team1: [user.playerId], team2: [] },
   });
 
-  // Send notifications to eligible players (ELO in range, excluding creator)
+  // Send broadcast notifications to all ELO-eligible players
+  // Send personal invite notifications to specifically invited players (max 5)
   try {
     const allPlayers = await getPlayers();
+    const eloLabel = eloMin !== undefined && eloMax !== undefined
+      ? ` · ELO ${eloMin}–${eloMax}`
+      : "";
+
+    const inviteSet = new Set<string>(Array.isArray(invitePlayerIds) ? invitePlayerIds : []);
+
     const eligible = allPlayers.filter((p) => {
       if (p.id === user.playerId) return false;
       const elo = p.stats.eloRating;
@@ -83,19 +94,26 @@ export async function POST(req: NextRequest) {
       return true;
     });
 
-    const eloLabel = eloMin !== undefined && eloMax !== undefined
-      ? ` · ELO ${eloMin}–${eloMax}`
-      : "";
-
-    await Promise.all(eligible.map((p) =>
-      createNotification({
+    await Promise.all(eligible.map((p) => {
+      if (inviteSet.has(p.id)) {
+        // Personal invite notification
+        return createNotification({
+          playerId: p.id,
+          type: "game_invite",
+          title: `${player.name} invited you to a game!`,
+          body: `${date} at ${startTime}${eloLabel}`,
+          link: "/open-games",
+        });
+      }
+      // General broadcast
+      return createNotification({
         playerId: p.id,
         type: "open_game",
         title: "New open game available",
         body: `${player.name} opened a game on ${date} at ${startTime}${eloLabel}`,
         link: "/open-games",
-      })
-    ));
+      });
+    }));
   } catch {
     // Notifications are non-critical; don't fail the request
   }
