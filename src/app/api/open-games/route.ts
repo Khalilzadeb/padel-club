@@ -17,7 +17,11 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") ?? undefined;
   const date = searchParams.get("date") ?? undefined;
   const games = await getOpenGames({ status, date });
-  return NextResponse.json(games);
+
+  const now = new Date();
+  const upcoming = games.filter((g) => new Date(`${g.date}T${g.startTime}`) > now);
+
+  return NextResponse.json(upcoming);
 }
 
 export async function POST(req: NextRequest) {
