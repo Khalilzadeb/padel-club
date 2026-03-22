@@ -33,7 +33,10 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const upcoming = games.filter((g) => {
     if (new Date(`${g.date}T${g.startTime}:00+04:00`) <= now) return false;
-    if (g.isPrivate) return currentPlayerId !== null && g.playerIds.includes(currentPlayerId);
+    if (g.isPrivate) {
+      if (currentPlayerId === null) return false;
+      return g.playerIds.includes(currentPlayerId) || (g.invitedPlayerIds ?? []).includes(currentPlayerId);
+    }
     return true;
   });
 
@@ -95,6 +98,7 @@ export async function POST(req: NextRequest) {
     courtBookingStatus: (courtBookingStatus as "booked" | "not_booked") ?? "not_booked",
     gameType: (gameType as "friendly" | "ranked") ?? "ranked",
     isPrivate: isPrivate === true,
+    invitedPlayerIds: Array.isArray(invitePlayerIds) ? invitePlayerIds : [],
     teams: { team1: [user.playerId], team2: [] },
   });
 

@@ -145,6 +145,7 @@ export interface OpenGame {
   courtBookingStatus: CourtBookingStatus;
   gameType: "friendly" | "ranked";
   isPrivate: boolean;
+  invitedPlayerIds?: string[];
   teams?: { team1: string[]; team2: string[] };
   pendingScore?: PendingScore;
   submittedBy?: string;
