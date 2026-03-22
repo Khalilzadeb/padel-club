@@ -67,14 +67,13 @@ export default function NotificationsPage() {
             <p className="text-sm text-gray-500 mt-0.5">{unreadCount} unread</p>
           )}
         </div>
-        {unreadCount > 0 && (
-          <button
-            onClick={markAllRead}
-            className="flex items-center gap-1.5 text-sm text-padel-green hover:text-green-700 font-medium"
-          >
-            <CheckCheck className="w-4 h-4" /> Mark all read
-          </button>
-        )}
+        <button
+          onClick={markAllRead}
+          disabled={unreadCount === 0}
+          className="flex items-center gap-1.5 text-sm font-medium disabled:text-gray-300 text-padel-green hover:text-green-700 disabled:cursor-default"
+        >
+          <CheckCheck className="w-4 h-4" /> Mark all read
+        </button>
       </div>
 
       {/* Filter tabs */}

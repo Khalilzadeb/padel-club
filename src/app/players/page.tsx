@@ -230,7 +230,7 @@ export default function PlayersPage() {
         </div>
       ) : tab === "leaderboard" ? (
         <Card>
-          <LeaderboardTable players={search ? filtered : players} />
+          <LeaderboardTable players={filtered} />
         </Card>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
