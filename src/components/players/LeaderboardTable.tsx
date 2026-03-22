@@ -22,13 +22,11 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-100">
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Rank</th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Player</th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Level</th>
-            <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">ELO</th>
-            <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Win Rate</th>
-            <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Points</th>
-            <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Streak</th>
+            <th className="text-left py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Rank</th>
+            <th className="text-left py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Player</th>
+            <th className="text-right py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">ELO</th>
+            <th className="text-right py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Win Rate</th>
+            <th className="text-right py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Points</th>
           </tr>
         </thead>
         <tbody>
@@ -39,7 +37,7 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
 
             return (
               <tr key={player.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                <td className="py-3 px-4">
+                <td className="py-3 px-2 sm:px-4">
                   <div className="flex items-center gap-1">
                     {rank <= 3 ? (
                       <Trophy className={`w-4 h-4 ${rank === 1 ? "text-yellow-500" : rank === 2 ? "text-gray-400" : "text-amber-600"}`} />
@@ -48,22 +46,32 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
                     )}
                   </div>
                 </td>
-                <td className="py-3 px-4">
-                  <Link href={`/players/${player.id}`} className="flex items-center gap-3 hover:text-padel-green">
+                <td className="py-3 px-2 sm:px-4">
+                  <Link href={`/players/${player.id}`} className="flex items-center gap-2 sm:gap-3 hover:text-padel-green">
                     <Avatar name={player.name} imageUrl={player.avatarUrl} size="sm" />
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{player.name}</p>
-                      <p className="text-xs text-gray-400">{player.stats.matchesPlayed} matches</p>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <Badge variant={eloToLevelVariant(player.stats.eloRating)} className="text-xs">Lv {eloToDisplayLevel(player.stats.eloRating)}</Badge>
+                        <span className="text-xs text-gray-400">{player.stats.matchesPlayed}m</span>
+                      </div>
                     </div>
                   </Link>
                 </td>
-                <td className="py-3 px-4 hidden sm:table-cell">
-                  <Badge variant={eloToLevelVariant(player.stats.eloRating)}>Lv {eloToDisplayLevel(player.stats.eloRating)}</Badge>
+                <td className="py-3 px-2 sm:px-4 text-right">
+                  <p className="text-sm font-bold text-gray-900">{player.stats.eloRating}</p>
+                  <div className="flex items-center justify-end gap-1 mt-0.5">
+                    <span className="text-xs text-gray-400">{wr}%</span>
+                    {streak > 0 ? (
+                      <span className="text-xs text-green-600 font-medium flex items-center gap-0.5"><TrendingUp className="w-3 h-3" />{streak}W</span>
+                    ) : streak < 0 ? (
+                      <span className="text-xs text-red-500 font-medium flex items-center gap-0.5"><TrendingDown className="w-3 h-3" />{Math.abs(streak)}L</span>
+                    ) : (
+                      <Minus className="w-3 h-3 text-gray-300" />
+                    )}
+                  </div>
                 </td>
-                <td className="py-3 px-4 text-right">
-                  <span className="text-sm font-bold text-gray-900">{player.stats.eloRating}</span>
-                </td>
-                <td className="py-3 px-4 text-right hidden md:table-cell">
+                <td className="py-3 px-2 sm:px-4 text-right hidden sm:table-cell">
                   <div className="flex items-center justify-end gap-2">
                     <div className="w-16 bg-gray-100 rounded-full h-1.5">
                       <div className="bg-padel-green h-1.5 rounded-full" style={{ width: `${wr}%` }} />
@@ -71,19 +79,8 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
                     <span className="text-sm text-gray-700 w-10 text-right">{wr}%</span>
                   </div>
                 </td>
-                <td className="py-3 px-4 text-right hidden lg:table-cell">
+                <td className="py-3 px-2 sm:px-4 text-right hidden md:table-cell">
                   <span className="text-sm text-gray-700">{player.stats.rankingPoints}</span>
-                </td>
-                <td className="py-3 px-4 text-right hidden lg:table-cell">
-                  <div className="flex items-center justify-end gap-1">
-                    {streak > 0 ? (
-                      <><TrendingUp className="w-3.5 h-3.5 text-green-500" /><span className="text-xs text-green-600 font-medium">{streak}W</span></>
-                    ) : streak < 0 ? (
-                      <><TrendingDown className="w-3.5 h-3.5 text-red-500" /><span className="text-xs text-red-500 font-medium">{Math.abs(streak)}L</span></>
-                    ) : (
-                      <Minus className="w-3.5 h-3.5 text-gray-400" />
-                    )}
-                  </div>
                 </td>
               </tr>
             );
