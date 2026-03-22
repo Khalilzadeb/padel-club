@@ -64,20 +64,20 @@ function LoginForm() {
           <div className="inline-flex w-14 h-14 bg-padel-green rounded-2xl items-center justify-center mb-4 shadow-lg">
             <span className="text-white font-black text-2xl">P</span>
           </div>
-          <h1 className="text-2xl font-black text-gray-900">Welcome back</h1>
-          <p className="text-gray-500 mt-1 text-sm">Sign in to your PadelClub account</p>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Welcome back</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Sign in to your PadelClub account</p>
         </div>
 
         {/* Demo credentials */}
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm">
-          <p className="font-semibold text-blue-800 mb-1">Demo credentials</p>
-          <p className="text-blue-600">Email: <span className="font-mono">demo@padel.club</span></p>
-          <p className="text-blue-600">Password: <span className="font-mono">password123</span></p>
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6 text-sm">
+          <p className="font-semibold text-blue-800 dark:text-blue-300 mb-1">Demo credentials</p>
+          <p className="text-blue-600 dark:text-blue-400">Email: <span className="font-mono">demo@padel.club</span></p>
+          <p className="text-blue-600 dark:text-blue-400">Password: <span className="font-mono">password123</span></p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-8 space-y-5">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-card border border-gray-100 dark:border-gray-700 p-8 space-y-5">
           {(error || oauthError) && (
-            <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 text-sm px-4 py-3 rounded-lg">
               {error || ERROR_MESSAGES[oauthError!] || "Something went wrong. Please try again."}
             </div>
           )}
@@ -86,21 +86,21 @@ function LoginForm() {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
           >
             <GoogleIcon />
             Continue with Google
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
             <span className="text-xs text-gray-400 font-medium">or sign in with email</span>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
@@ -108,12 +108,12 @@ function LoginForm() {
                 required
                 autoFocus
                 placeholder="you@example.com"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -121,12 +121,12 @@ function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full px-4 py-2.5 pr-11 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 pr-11 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -147,7 +147,7 @@ function LoginForm() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-padel-green font-medium hover:underline">
               Create one

@@ -73,7 +73,7 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
     }
   };
 
-  const selectClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green";
+  const selectClass = "w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white";
 
   return (
     <div className="space-y-5">
@@ -100,7 +100,7 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
 
       {/* Name */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1.5">Full name</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Full name</label>
         <input
           type="text"
           value={name}
@@ -113,7 +113,7 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
 
       {/* Hand */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1.5">Playing hand</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Playing hand</label>
         <div className="grid grid-cols-2 gap-2">
           {HAND_OPTIONS.map((o) => (
             <button
@@ -121,7 +121,9 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
               type="button"
               onClick={() => setHand(o.value as Player["hand"])}
               className={`py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
-                hand === o.value ? "border-padel-green bg-green-50 text-padel-green" : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                hand === o.value
+                  ? "border-padel-green bg-green-50 dark:bg-green-900/30 text-padel-green"
+                  : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {o.label}
@@ -132,7 +134,7 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
 
       {/* Position */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1.5">Court position</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Court position</label>
         <select value={position} onChange={(e) => setPosition(e.target.value as Player["position"])} className={selectClass}>
           {POSITION_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
@@ -140,7 +142,7 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
 
       {/* Gender */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1.5">Gender</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Gender</label>
         <select value={gender} onChange={(e) => setGender(e.target.value)} className={selectClass}>
           <option value="">Prefer not to say</option>
           {GENDER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

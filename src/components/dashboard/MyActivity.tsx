@@ -55,12 +55,12 @@ export default function MyActivity() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-bold text-gray-900">Your Activity</h2>
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">Your Activity</h2>
 
       {myGames.length > 0 && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
               <Users className="w-4 h-4 text-padel-green" /> Upcoming Games
             </p>
             <Link href="/open-games" className="text-xs text-padel-green hover:underline flex items-center gap-0.5">
@@ -78,7 +78,7 @@ export default function MyActivity() {
 
               return (
                 <Link key={game.id} href="/open-games">
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-green-50 transition-colors">
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
                     <div className="w-10 h-10 rounded-xl bg-padel-green/10 flex flex-col items-center justify-center flex-shrink-0">
                       <span className="text-[10px] font-bold text-padel-green uppercase">
                         {new Date(game.date + "T00:00:00").toLocaleDateString("en-US", { month: "short" })}
@@ -89,7 +89,7 @@ export default function MyActivity() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {court ? (court.location ?? court.name) : game.courtId}
                         </p>
                         {game.status === "full"
@@ -97,10 +97,10 @@ export default function MyActivity() {
                           : <Badge variant="green">{spotsLeft} left</Badge>}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-xs text-gray-500">{game.startTime} – {game.endTime}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{game.startTime} – {game.endTime}</p>
                         {gamePlayers.length > 0 && (
                           <div className="flex items-center gap-1">
-                            <span className="text-gray-300 text-xs">·</span>
+                            <span className="text-gray-300 dark:text-gray-600 text-xs">·</span>
                             <div className="flex -space-x-1">
                               {gamePlayers.slice(0, 3).map((p) => (
                                 <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />
@@ -121,7 +121,7 @@ export default function MyActivity() {
       {myTournaments.length > 0 && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
               <Trophy className="w-4 h-4 text-amber-500" /> My Tournaments
             </p>
             <Link href="/tournaments" className="text-xs text-padel-green hover:underline flex items-center gap-0.5">
@@ -137,13 +137,13 @@ export default function MyActivity() {
 
               return (
                 <Link key={t.id} href={`/tournaments/${t.id}`}>
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                      <Trophy className="w-4 h-4 text-amber-600" />
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
+                      <Trophy className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{t.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{t.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {t.startDate}
                         {partner && ` · with ${partner.name.split(" ")[0]}`}
                       </p>

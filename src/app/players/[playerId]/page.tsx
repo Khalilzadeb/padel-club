@@ -88,10 +88,10 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
           <Avatar name={player.name} imageUrl={player.avatarUrl} size="xl" />
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-3xl font-black text-gray-900">{player.name}</h1>
+              <h1 className="text-3xl font-black text-gray-900 dark:text-white">{player.name}</h1>
               <Badge variant={eloToLevelVariant(s.eloRating)} className="text-sm px-3 py-1">Lv {eloToDisplayLevel(s.eloRating)}</Badge>
             </div>
-            <p className="text-gray-500 mt-1 capitalize">
+            <p className="text-gray-500 dark:text-gray-400 mt-1 capitalize">
               {player.position} · {player.hand}-handed{player.gender ? ` · ${player.gender}` : ""}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">Member since {player.memberSince}</p>
@@ -99,7 +99,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             <EditProfileButton player={player} />
             <ChallengeButton player={player} courts={courts} />
             <Link href={`/messages/${playerId}`}
-              className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700 font-medium transition-colors">
+              className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-300 font-medium transition-colors">
               <MessageCircle className="w-4 h-4" /> Message
             </Link>
             </div>
@@ -110,10 +110,10 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 { label: "Win Rate", value: `${winRate}%`, icon: <TrendingUp className="w-4 h-4" /> },
                 { label: "Matches", value: s.matchesPlayed, icon: <Calendar className="w-4 h-4" /> },
               ].map(({ label, value, icon }) => (
-                <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
+                <div key={label} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-center">
                   <div className="flex justify-center text-padel-green mb-1">{icon}</div>
-                  <p className="text-xl font-bold text-gray-900">{value}</p>
-                  <p className="text-xs text-gray-500">{label}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
                 </div>
               ))}
             </div>
@@ -124,7 +124,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-4">
           <Card className="p-5">
-            <h2 className="font-semibold text-gray-900 mb-4">Statistics</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Statistics</h2>
             <div className="space-y-4">
               {[
                 { label: "Matches Won", value: s.matchesWon, total: s.matchesPlayed, color: "bg-padel-green" },
@@ -134,22 +134,22 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                 return (
                   <div key={label}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">{label}</span>
-                      <span className="font-semibold text-gray-900">{value}/{total} ({pct}%)</span>
+                      <span className="text-gray-600 dark:text-gray-400">{label}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{value}/{total} ({pct}%)</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                       <div className={`${color} h-2 rounded-full`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
               })}
               <div className="pt-2 grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-gray-500">Games Won</span><p className="font-semibold">{s.gamesWon}</p></div>
-                <div><span className="text-gray-500">Games Lost</span><p className="font-semibold">{s.gamesLost}</p></div>
-                <div><span className="text-gray-500">Tournaments Won</span><p className="font-semibold">{s.tournamentsWon}</p></div>
+                <div><span className="text-gray-500 dark:text-gray-400">Games Won</span><p className="font-semibold dark:text-white">{s.gamesWon}</p></div>
+                <div><span className="text-gray-500 dark:text-gray-400">Games Lost</span><p className="font-semibold dark:text-white">{s.gamesLost}</p></div>
+                <div><span className="text-gray-500 dark:text-gray-400">Tournaments Won</span><p className="font-semibold dark:text-white">{s.tournamentsWon}</p></div>
                 <div>
-                  <span className="text-gray-500">Current Streak</span>
-                  <p className={`font-semibold flex items-center gap-1 ${s.currentStreak > 0 ? "text-green-600" : s.currentStreak < 0 ? "text-red-500" : "text-gray-500"}`}>
+                  <span className="text-gray-500 dark:text-gray-400">Current Streak</span>
+                  <p className={`font-semibold flex items-center gap-1 ${s.currentStreak > 0 ? "text-green-600" : s.currentStreak < 0 ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}>
                     {s.currentStreak > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : s.currentStreak < 0 ? <TrendingDown className="w-3.5 h-3.5" /> : null}
                     {s.currentStreak > 0 ? `${s.currentStreak}W` : s.currentStreak < 0 ? `${Math.abs(s.currentStreak)}L` : "—"}
                   </p>
@@ -159,13 +159,13 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
           </Card>
 
           <Card className="p-5">
-            <h2 className="font-semibold text-gray-900 mb-3">ELO History</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-3">ELO History</h2>
             <EloChart history={chartHistory} currentElo={s.eloRating} />
           </Card>
 
           {Object.keys(partnerCount).length > 0 && (
             <Card className="p-5">
-              <h2 className="font-semibold text-gray-900 mb-3">Frequent Partners</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white mb-3">Frequent Partners</h2>
               <div className="space-y-2">
                 {Object.entries(partnerCount)
                   .sort((a, b) => b[1] - a[1])
@@ -174,9 +174,9 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
                     const partner = allPlayers.find((p) => p.id === pid);
                     if (!partner) return null;
                     return (
-                      <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg">
+                      <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 p-2 rounded-lg">
                         <Avatar name={partner.name} imageUrl={partner.avatarUrl} size="sm" />
-                        <span className="text-sm text-gray-700 flex-1">{partner.name}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{partner.name}</span>
                         <span className="text-xs text-gray-400">{count} matches</span>
                       </Link>
                     );
@@ -186,26 +186,26 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
           )}
           {h2hEntries.length > 0 && (
             <Card className="p-5">
-              <h2 className="font-semibold text-gray-900 mb-3">Head-to-Head</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-white mb-3">Head-to-Head</h2>
               <div className="space-y-2">
                 {h2hEntries.map(({ pid, wins, losses, total }) => {
                   const opp = allPlayers.find((p) => p.id === pid);
                   if (!opp) return null;
                   const winPct = Math.round((wins / total) * 100);
                   return (
-                    <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                    <Link key={pid} href={`/players/${pid}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <Avatar name={opp.name} imageUrl={opp.avatarUrl} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{opp.name}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{opp.name}</p>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div className="h-full bg-padel-green rounded-full" style={{ width: `${winPct}%` }} />
                           </div>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <span className="text-sm font-bold text-green-600">{wins}W</span>
-                        <span className="text-sm text-gray-300 mx-0.5">–</span>
+                        <span className="text-sm text-gray-300 dark:text-gray-600 mx-0.5">–</span>
                         <span className="text-sm font-bold text-red-400">{losses}L</span>
                         <p className="text-xs text-gray-400">{total} played</p>
                       </div>
@@ -219,7 +219,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
         <div className="lg:col-span-2">
           <Card className="p-5">
-            <h2 className="font-semibold text-gray-900 mb-4">Match History</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Match History</h2>
             {recentMatches.length === 0 ? (
               <p className="text-gray-400 text-center py-8">No matches yet</p>
             ) : (
@@ -237,18 +237,18 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
                   return (
                     <Link key={match.id} href={`/matches/${match.id}`}>
-                      <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${won ? "bg-green-100 text-green-700" : "bg-red-50 text-red-500"}`}>
+                      <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${won ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-red-50 dark:bg-red-900/20 text-red-500"}`}>
                           {won ? "W" : "L"}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {partners ? `w/ ${partners} ` : ""}vs {opponents}
                           </p>
                           <p className="text-xs text-gray-400">{court?.name} · {match.date}</p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-sm font-mono font-semibold text-gray-900">{score}</p>
+                          <p className="text-sm font-mono font-semibold text-gray-900 dark:text-white">{score}</p>
                           {eloChange !== undefined && (
                             <p className={`text-xs font-medium ${eloChange > 0 ? "text-green-600" : "text-red-500"}`}>
                               {eloChange > 0 ? "+" : ""}{eloChange} ELO

@@ -17,9 +17,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           {
             "bg-padel-green text-white hover:bg-padel-green-dark focus:ring-padel-green":
               variant === "primary",
-            "bg-white text-padel-green border border-padel-green hover:bg-green-50 focus:ring-padel-green":
+            "bg-white dark:bg-gray-800 text-padel-green border border-padel-green hover:bg-green-50 dark:hover:bg-gray-700 focus:ring-padel-green":
               variant === "secondary",
-            "text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-300":
+            "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-gray-300":
               variant === "ghost",
             "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500":
               variant === "danger",

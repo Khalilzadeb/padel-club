@@ -30,7 +30,7 @@ export default function MatchCard({ match, players, courts }: MatchCardProps) {
     <Link href={`/matches/${match.id}`}>
       <Card hover className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <MapPin className="w-3.5 h-3.5" />
             {court?.name}
             <Clock className="w-3.5 h-3.5 ml-1" />
@@ -50,7 +50,7 @@ export default function MatchCard({ match, players, courts }: MatchCardProps) {
                 <span className="text-xs font-bold text-padel-green">W</span>
               )}
             </div>
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
               {t1.map((p) => p.name.split(" ")[0]).join(" & ")}
             </p>
           </div>
@@ -63,7 +63,7 @@ export default function MatchCard({ match, players, courts }: MatchCardProps) {
                   <div className={`text-sm font-bold ${match.winnerId === "team1" ? "text-padel-green" : "text-gray-400"}`}>
                     {s.team1Games}
                   </div>
-                  <div className="text-xs text-gray-300">—</div>
+                  <div className="text-xs text-gray-300 dark:text-gray-600">—</div>
                   <div className={`text-sm font-bold ${match.winnerId === "team2" ? "text-padel-green" : "text-gray-400"}`}>
                     {s.team2Games}
                   </div>
@@ -82,14 +82,14 @@ export default function MatchCard({ match, players, courts }: MatchCardProps) {
                 {t2.map((p) => <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />)}
               </div>
             </div>
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
               {t2.map((p) => p.name.split(" ")[0]).join(" & ")}
             </p>
           </div>
         </div>
 
         {match.tournamentRound && (
-          <p className="text-xs text-purple-600 font-medium mt-2 text-center">
+          <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mt-2 text-center">
             {match.tournamentRound}
           </p>
         )}

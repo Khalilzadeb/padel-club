@@ -14,8 +14,8 @@ export default async function TournamentsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900">Tournaments</h1>
-        <p className="text-gray-500 mt-1">{tournaments.length} tournaments · Compete for ranking points and trophies</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Tournaments</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{tournaments.length} tournaments · Compete for ranking points and trophies</p>
       </div>
 
       {sections.map(({ label, statuses }) => {
@@ -23,7 +23,7 @@ export default async function TournamentsPage() {
         if (group.length === 0) return null;
         return (
           <section key={label} className="mb-10">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{label}</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{label}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {group.map((t) => <TournamentCard key={t.id} tournament={t} />)}
             </div>

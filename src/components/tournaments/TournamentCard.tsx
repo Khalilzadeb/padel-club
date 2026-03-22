@@ -43,16 +43,16 @@ export default function TournamentCard({ tournament: t }: TournamentCardProps) {
       </div>
 
       <div className="p-4">
-        <h3 className="font-bold text-gray-900 mb-1">{t.name}</h3>
-        <p className="text-xs text-gray-500 mb-3 line-clamp-2">{t.description}</p>
+        <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t.name}</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{t.description}</p>
 
         <div className="space-y-1.5 mb-4">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <Calendar className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
             {t.startDate} – {t.endDate}
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <Users className="w-3.5 h-3.5 text-gray-400" />
+          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <Users className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
             {t.registeredTeams.length}/{t.maxTeams} teams · {t.format}
           </div>
           {t.prizes[0] && (
@@ -65,11 +65,11 @@ export default function TournamentCard({ tournament: t }: TournamentCardProps) {
 
         {/* Team progress bar */}
         <div className="mb-4">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
             <span>Teams registered</span>
             <span>{t.registeredTeams.length}/{t.maxTeams}</span>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-1.5">
+          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
             <div
               className="bg-padel-green h-1.5 rounded-full transition-all"
               style={{ width: `${(t.registeredTeams.length / t.maxTeams) * 100}%` }}

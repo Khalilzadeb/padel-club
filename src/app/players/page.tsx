@@ -71,8 +71,8 @@ export default function PlayersPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-black text-gray-900">Players</h1>
-        <p className="text-gray-500 mt-1">{players.length} members · Rankings updated after every match</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Players</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{players.length} members · Rankings updated after every match</p>
       </div>
 
       {/* Search + filter toggle */}
@@ -83,10 +83,10 @@ export default function PlayersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search players..."
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -96,7 +96,7 @@ export default function PlayersPage() {
           className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
             showFilters || hasActiveFilters
               ? "bg-padel-green text-white border-padel-green"
-              : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+              : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
@@ -109,14 +109,14 @@ export default function PlayersPage() {
 
       {/* Expanded filters */}
       {showFilters && (
-        <div className="bg-white border border-gray-100 rounded-xl p-4 mb-4 space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 mb-4 space-y-4">
           {/* Level */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Level</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Level</p>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setLevelFilter("all")}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${levelFilter === "all" ? "bg-padel-green text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${levelFilter === "all" ? "bg-padel-green text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
               >
                 All
               </button>
@@ -124,7 +124,7 @@ export default function PlayersPage() {
                 <button
                   key={l}
                   onClick={() => setLevelFilter(l)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${levelFilter === l ? "bg-padel-green text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${levelFilter === l ? "bg-padel-green text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
                 >
                   {l}
                 </button>
@@ -134,11 +134,11 @@ export default function PlayersPage() {
 
           {/* Position */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Position</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Position</p>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setPositionFilter("all")}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${positionFilter === "all" ? "bg-padel-green text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${positionFilter === "all" ? "bg-padel-green text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
               >
                 All
               </button>
@@ -146,7 +146,7 @@ export default function PlayersPage() {
                 <button
                   key={pos}
                   onClick={() => setPositionFilter(pos)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${positionFilter === pos ? "bg-padel-green text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${positionFilter === pos ? "bg-padel-green text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"}`}
                 >
                   {pos}
                 </button>
@@ -156,14 +156,14 @@ export default function PlayersPage() {
 
           {/* ELO range */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">ELO Range</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">ELO Range</p>
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 placeholder="Min"
                 value={eloMin}
                 onChange={(e) => setEloMin(e.target.value)}
-                className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-24 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
               />
               <span className="text-gray-400 text-sm">–</span>
               <input
@@ -171,7 +171,7 @@ export default function PlayersPage() {
                 placeholder="Max"
                 value={eloMax}
                 onChange={(e) => setEloMax(e.target.value)}
-                className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-24 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
               />
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function PlayersPage() {
               key={t}
               onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                tab === t ? "bg-padel-green text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                tab === t ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {t === "leaderboard" ? "Leaderboard" : "All Players"}
@@ -207,7 +207,7 @@ export default function PlayersPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-700"
+              className="border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800"
             >
               {sortOptions.map((o) => (
                 <option key={o.key} value={o.key}>{o.label}</option>

@@ -170,15 +170,15 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
     <div>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600">
+        <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-black text-gray-900 truncate">{tournament.name}</h1>
+            <h1 className="text-xl font-black text-gray-900 dark:text-white truncate">{tournament.name}</h1>
             <Badge variant={statusVariant[tournament.status]}>{tournament.status}</Badge>
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">{tournament.registeredTeams.length}/{tournament.maxTeams} teams registered</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{tournament.registeredTeams.length}/{tournament.maxTeams} teams registered</p>
         </div>
       </div>
 
@@ -189,7 +189,7 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
-              tab === t ? "bg-padel-green text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+              tab === t ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             {t}
@@ -202,17 +202,17 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
         <Card className="p-5">
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Name</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Name</label>
               <input
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={info.name}
                 onChange={(e) => setInfo({ ...info, name: e.target.value })}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Description</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Description</label>
               <textarea
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green resize-none"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 rows={3}
                 value={info.description}
                 onChange={(e) => setInfo({ ...info, description: e.target.value })}
@@ -220,9 +220,9 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Status</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Status</label>
                 <select
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={info.status}
                   onChange={(e) => setInfo({ ...info, status: e.target.value as Tournament["status"] })}
                 >
@@ -233,9 +233,9 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Format</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Format</label>
                 <select
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={info.format}
                   onChange={(e) => setInfo({ ...info, format: e.target.value as Tournament["format"] })}
                 >
@@ -247,19 +247,19 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Start Date</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Start Date</label>
                 <input
                   type="date"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={info.startDate}
                   onChange={(e) => setInfo({ ...info, startDate: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">End Date</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">End Date</label>
                 <input
                   type="date"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={info.endDate}
                   onChange={(e) => setInfo({ ...info, endDate: e.target.value })}
                 />
@@ -267,21 +267,21 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Registration Deadline</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Registration Deadline</label>
                 <input
                   type="date"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={info.registrationDeadline}
                   onChange={(e) => setInfo({ ...info, registrationDeadline: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Max Teams</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Max Teams</label>
                 <input
                   type="number"
                   min={2}
                   max={64}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   value={info.maxTeams}
                   onChange={(e) => setInfo({ ...info, maxTeams: parseInt(e.target.value) || 8 })}
                 />
@@ -299,33 +299,33 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
         <div className="space-y-4">
           {/* Add team */}
           <Card className="p-4">
-            <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
               <Plus className="w-4 h-4" /> Add Team
             </p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Player 1</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Player 1</label>
                 <input
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green mb-1"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green mb-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
                   placeholder="Search player..."
                   value={player1Search}
                   onChange={(e) => { setPlayer1Search(e.target.value); setPlayer1Id(""); }}
                 />
                 {player1Search && !player1Id && (
-                  <div className="border border-gray-100 rounded-xl overflow-hidden max-h-40 overflow-y-auto shadow-sm">
+                  <div className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden max-h-40 overflow-y-auto shadow-sm bg-white dark:bg-gray-800">
                     {filteredPlayers1.slice(0, 8).map((p) => (
                       <button
                         key={p.id}
                         type="button"
                         onClick={() => { setPlayer1Id(p.id); setPlayer1Search(p.name); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-left text-gray-900 dark:text-white"
                       >
                         <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
                         {p.name}
                       </button>
                     ))}
                     {filteredPlayers1.length === 0 && (
-                      <p className="text-xs text-gray-400 px-3 py-2">No players found</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 px-3 py-2">No players found</p>
                     )}
                   </div>
                 )}
@@ -334,28 +334,28 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
                 )}
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Player 2</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Player 2</label>
                 <input
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green mb-1"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green mb-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
                   placeholder="Search player..."
                   value={player2Search}
                   onChange={(e) => { setPlayer2Search(e.target.value); setPlayer2Id(""); }}
                 />
                 {player2Search && !player2Id && (
-                  <div className="border border-gray-100 rounded-xl overflow-hidden max-h-40 overflow-y-auto shadow-sm">
+                  <div className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden max-h-40 overflow-y-auto shadow-sm bg-white dark:bg-gray-800">
                     {filteredPlayers2.slice(0, 8).map((p) => (
                       <button
                         key={p.id}
                         type="button"
                         onClick={() => { setPlayer2Id(p.id); setPlayer2Search(p.name); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-left text-gray-900 dark:text-white"
                       >
                         <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
                         {p.name}
                       </button>
                     ))}
                     {filteredPlayers2.length === 0 && (
-                      <p className="text-xs text-gray-400 px-3 py-2">No players found</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 px-3 py-2">No players found</p>
                     )}
                   </div>
                 )}
@@ -375,7 +375,7 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
 
           {/* Registered teams */}
           <Card className="p-4">
-            <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
               <Users className="w-4 h-4" /> Registered Teams ({teams.length}/{tournament.maxTeams})
             </p>
             {teams.length === 0 ? (
@@ -386,14 +386,14 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
                   const p1 = players.find((p) => p.id === team[0]);
                   const p2 = players.find((p) => p.id === team[1]);
                   return (
-                    <div key={idx} className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-xl">
-                      <span className="text-xs font-bold text-gray-400 w-5 text-center">{idx + 1}</span>
+                    <div key={idx} className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      <span className="text-xs font-bold text-gray-400 dark:text-gray-500 w-5 text-center">{idx + 1}</span>
                       <div className="flex items-center gap-1.5 flex-1">
                         {p1 && <Avatar name={p1.name} imageUrl={p1.avatarUrl} size="sm" />}
-                        <span className="text-sm font-medium">{p1?.name ?? team[0]}</span>
-                        <span className="text-gray-300 text-sm">&</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{p1?.name ?? team[0]}</span>
+                        <span className="text-gray-300 dark:text-gray-600 text-sm">&</span>
                         {p2 && <Avatar name={p2.name} imageUrl={p2.avatarUrl} size="sm" />}
-                        <span className="text-sm font-medium">{p2?.name ?? team[1]}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{p2?.name ?? team[1]}</span>
                       </div>
                       <button
                         onClick={() => removeTeam(idx)}
@@ -414,7 +414,7 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
       {tab === "bracket" && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Trophy className="w-4 h-4" /> Bracket
             </p>
             <Button
@@ -460,7 +460,7 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
                   const isLast = round === Math.max(...rounds);
                   return (
                     <div key={round}>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
+                      <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">
                         {isLast ? "Final" : round === Math.max(...rounds) - 1 && rounds.length > 2 ? "Semi-Final" : `Round ${round}`}
                       </p>
                       <div className="space-y-2">
@@ -468,18 +468,18 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
                           const t1 = slot.team1PlayerIds?.map((pid) => players.find((p) => p.id === pid));
                           const t2 = slot.team2PlayerIds?.map((pid) => players.find((p) => p.id === pid));
                           return (
-                            <div key={`${round}-${slot.position}`} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl text-sm">
-                              <span className="text-xs text-gray-400 w-4">{slot.position}</span>
+                            <div key={`${round}-${slot.position}`} className="flex items-center gap-2 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl text-sm">
+                              <span className="text-xs text-gray-400 dark:text-gray-500 w-4">{slot.position}</span>
                               <div className="flex-1 grid grid-cols-2 gap-1">
-                                <div className={`flex items-center gap-1.5 p-1.5 rounded-lg ${slot.winnerId === "team1" ? "bg-green-100" : "bg-white"}`}>
+                                <div className={`flex items-center gap-1.5 p-1.5 rounded-lg ${slot.winnerId === "team1" ? "bg-green-100 dark:bg-green-900/30" : "bg-white dark:bg-gray-800"}`}>
                                   {t1?.map((p) => p && <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />)}
-                                  <span className="text-xs font-medium truncate">
+                                  <span className="text-xs font-medium truncate text-gray-900 dark:text-white">
                                     {t1?.map((p) => p?.name.split(" ")[0]).join(" & ") || "TBD"}
                                   </span>
                                 </div>
-                                <div className={`flex items-center gap-1.5 p-1.5 rounded-lg ${slot.winnerId === "team2" ? "bg-green-100" : "bg-white"}`}>
+                                <div className={`flex items-center gap-1.5 p-1.5 rounded-lg ${slot.winnerId === "team2" ? "bg-green-100 dark:bg-green-900/30" : "bg-white dark:bg-gray-800"}`}>
                                   {t2?.map((p) => p && <Avatar key={p.id} name={p.name} imageUrl={p.avatarUrl} size="sm" />)}
-                                  <span className="text-xs font-medium truncate">
+                                  <span className="text-xs font-medium truncate text-gray-900 dark:text-white">
                                     {t2?.map((p) => p?.name.split(" ")[0]).join(" & ") || (slot.team1PlayerIds ? "TBD" : "–")}
                                   </span>
                                 </div>
@@ -501,7 +501,7 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
       {tab === "prizes" && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Gift className="w-4 h-4" /> Prize Structure
             </p>
             <Button
@@ -525,7 +525,7 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
                   {prize.place}
                 </div>
                 <input
-                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
                   placeholder="Prize description"
                   value={prize.description}
                   onChange={(e) => {
@@ -536,7 +536,7 @@ export default function AdminTournamentEditPage({ params }: { params: Promise<{ 
                 />
                 <input
                   type="number"
-                  className="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-24 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
                   placeholder="Value (₼)"
                   value={prize.value ? prize.value / 100 : ""}
                   onChange={(e) => {

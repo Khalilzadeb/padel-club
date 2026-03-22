@@ -19,10 +19,10 @@ function timeAgo(dateStr: string): string {
 }
 
 const statusBadge: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "bg-yellow-100 text-yellow-700" },
-  accepted: { label: "Accepted", className: "bg-green-100 text-green-700" },
-  declined: { label: "Declined", className: "bg-red-50 text-red-500" },
-  expired: { label: "Cancelled", className: "bg-gray-100 text-gray-500" },
+  pending: { label: "Pending", className: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" },
+  accepted: { label: "Accepted", className: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" },
+  declined: { label: "Declined", className: "bg-red-50 dark:bg-red-900/20 text-red-500" },
+  expired: { label: "Cancelled", className: "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
 };
 
 function PlayerSnippet({ player }: { player: Player }) {
@@ -30,9 +30,9 @@ function PlayerSnippet({ player }: { player: Player }) {
   const winRate = s.matchesPlayed ? Math.round((s.matchesWon / s.matchesPlayed) * 100) : 0;
   const streak = s.currentStreak;
   return (
-    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-      <span><span className="font-semibold text-gray-800">{s.eloRating}</span> ELO</span>
-      <span><span className="font-semibold text-gray-800">{s.matchesPlayed}</span> games · <span className="font-semibold text-gray-800">{winRate}%</span> win</span>
+    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
+      <span><span className="font-semibold text-gray-800 dark:text-gray-200">{s.eloRating}</span> ELO</span>
+      <span><span className="font-semibold text-gray-800 dark:text-gray-200">{s.matchesPlayed}</span> games · <span className="font-semibold text-gray-800 dark:text-gray-200">{winRate}%</span> win</span>
       {streak !== 0 && (
         <span className={`flex items-center gap-0.5 font-semibold ${streak > 0 ? "text-green-600" : "text-red-500"}`}>
           {streak > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -93,7 +93,7 @@ export default function ChallengesPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center gap-3 mb-6">
         <Target className="w-6 h-6 text-padel-green" />
-        <h1 className="text-2xl font-black text-gray-900">Challenges</h1>
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white">Challenges</h1>
       </div>
 
       {/* Tabs */}
@@ -103,7 +103,7 @@ export default function ChallengesPage() {
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition-colors relative ${
-              tab === t ? "bg-padel-green text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+              tab === t ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             {t === "incoming" ? "Incoming" : "Outgoing"}
@@ -122,7 +122,7 @@ export default function ChallengesPage() {
         </div>
       ) : displayed.length === 0 ? (
         <Card className="p-12 text-center">
-          <Target className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+          <Target className="w-10 h-10 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
           <p className="text-gray-400">{tab === "incoming" ? "No challenges received yet" : "You haven't challenged anyone yet"}</p>
         </Card>
       ) : (
@@ -142,19 +142,19 @@ export default function ChallengesPage() {
                   </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Link href={`/players/${otherPlayerId}`} className="font-semibold text-gray-900 text-sm hover:text-padel-green transition-colors">
+                      <Link href={`/players/${otherPlayerId}`} className="font-semibold text-gray-900 dark:text-white text-sm hover:text-padel-green transition-colors">
                         {other?.name ?? "Unknown"}
                       </Link>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.className}`}>{badge.label}</span>
                       <span className="text-xs text-gray-400 capitalize">{c.matchType}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {court?.name ?? c.courtId} · {c.proposedDate} at {c.proposedTime.slice(0, 5)}
                     </p>
                     {c.message && (
                       <p className="text-xs text-gray-400 mt-1 italic">"{c.message}"</p>
                     )}
-                    <p className="text-[11px] text-gray-300 mt-1 flex items-center gap-1">
+                    <p className="text-[11px] text-gray-300 dark:text-gray-600 mt-1 flex items-center gap-1">
                       <Clock className="w-3 h-3" /> {timeAgo(c.createdAt)}
                     </p>
 
@@ -168,7 +168,7 @@ export default function ChallengesPage() {
                       <button
                         onClick={() => handleAction(c.id, "accept")}
                         disabled={!!actionLoading}
-                        className="w-8 h-8 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 flex items-center justify-center transition-colors disabled:opacity-50"
+                        className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 flex items-center justify-center transition-colors disabled:opacity-50"
                         title="Accept"
                       >
                         <Check className="w-4 h-4" />
@@ -176,7 +176,7 @@ export default function ChallengesPage() {
                       <button
                         onClick={() => handleAction(c.id, "decline")}
                         disabled={!!actionLoading}
-                        className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition-colors disabled:opacity-50"
+                        className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 flex items-center justify-center transition-colors disabled:opacity-50"
                         title="Decline"
                       >
                         <X className="w-4 h-4" />

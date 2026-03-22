@@ -184,7 +184,7 @@ export default function OnboardingPage() {
     : "Result";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6">
@@ -195,28 +195,28 @@ export default function OnboardingPage() {
         </div>
 
         {/* Progress */}
-        <div className="w-full bg-gray-100 rounded-full h-1.5 mb-8">
+        <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mb-8">
           <div className="bg-padel-green h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 
           {/* Step 1 — Name */}
           {step === 1 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-2xl font-black text-gray-900">Welcome! 👋</h2>
-                <p className="text-gray-500 mt-1 text-sm">First, tell us your name. Then we&apos;ll run a short level test to find your initial ELO.</p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Welcome! 👋</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">First, tell us your name. Then we&apos;ll run a short level test to find your initial ELO.</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Full name</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Full name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
                   autoFocus
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
                 />
               </div>
             </div>
@@ -225,7 +225,7 @@ export default function OnboardingPage() {
           {/* Steps 2-8 — Survey */}
           {inSurvey && currentQ && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-gray-900 leading-snug">{currentQ.question}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-snug">{currentQ.question}</h2>
               <div className="space-y-2">
                 {currentQ.options.map((opt, i) => {
                   const selected = surveyAnswers[currentQ.id] === opt.pts && surveyAnswers[currentQ.id] !== undefined
@@ -240,11 +240,11 @@ export default function OnboardingPage() {
                       onClick={() => setSurveyAnswers((prev) => ({ ...prev, [currentQ.id]: opt.pts, [currentQ.id + "_idx"]: i }))}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-left transition-all text-sm ${
                         isSelected
-                          ? "border-padel-green bg-green-50 text-padel-green font-medium"
-                          : "border-gray-100 text-gray-700 hover:border-gray-200"
+                          ? "border-padel-green bg-green-50 dark:bg-green-900/20 text-padel-green font-medium"
+                          : "border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-200 dark:hover:border-gray-600"
                       }`}
                     >
-                      <span className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? "border-padel-green bg-padel-green" : "border-gray-300"}`}>
+                      <span className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? "border-padel-green bg-padel-green" : "border-gray-300 dark:border-gray-600"}`}>
                         {isSelected && <Check className="w-3 h-3 text-white" />}
                       </span>
                       {opt.label}
@@ -259,17 +259,17 @@ export default function OnboardingPage() {
           {step === 9 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-900">Court position</h2>
-                <p className="text-gray-500 mt-1 text-sm">Which side of the court do you prefer?</p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Court position</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Which side of the court do you prefer?</p>
               </div>
               <div className="space-y-2">
                 {POSITIONS.map((p) => (
                   <button key={p.value} type="button" onClick={() => setPosition(p.value)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${position === p.value ? "border-padel-green bg-green-50" : "border-gray-100 hover:border-gray-200"}`}>
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${position === p.value ? "border-padel-green bg-green-50 dark:bg-green-900/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"}`}>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className={`font-semibold text-sm ${position === p.value ? "text-padel-green" : "text-gray-800"}`}>{p.label}</p>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{p.side}</span>
+                        <p className={`font-semibold text-sm ${position === p.value ? "text-padel-green" : "text-gray-800 dark:text-gray-200"}`}>{p.label}</p>
+                        <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{p.side}</span>
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">{p.desc}</p>
                     </div>
@@ -284,15 +284,15 @@ export default function OnboardingPage() {
           {step === 10 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-900">Playing hand</h2>
-                <p className="text-gray-500 mt-1 text-sm">Which hand do you play with?</p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Playing hand</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Which hand do you play with?</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {(["right", "left"] as const).map((h) => (
                   <button key={h} type="button" onClick={() => setHand(h)}
-                    className={`py-8 rounded-xl border-2 text-center transition-all ${hand === h ? "border-padel-green bg-green-50" : "border-gray-100 hover:border-gray-200"}`}>
+                    className={`py-8 rounded-xl border-2 text-center transition-all ${hand === h ? "border-padel-green bg-green-50 dark:bg-green-900/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"}`}>
                     <span className="text-3xl block mb-2">{h === "right" ? "🤜" : "🤛"}</span>
-                    <p className={`font-semibold text-sm ${hand === h ? "text-padel-green" : "text-gray-700"}`}>{h === "right" ? "Right-handed" : "Left-handed"}</p>
+                    <p className={`font-semibold text-sm ${hand === h ? "text-padel-green" : "text-gray-700 dark:text-gray-300"}`}>{h === "right" ? "Right-handed" : "Left-handed"}</p>
                   </button>
                 ))}
               </div>
@@ -303,8 +303,8 @@ export default function OnboardingPage() {
           {step === 11 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-900">One more thing</h2>
-                <p className="text-gray-500 mt-1 text-sm">Gender <span className="text-gray-400">(optional — used for tournament categories)</span></p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">One more thing</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Gender <span className="text-gray-400">(optional — used for tournament categories)</span></p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {([
@@ -314,9 +314,9 @@ export default function OnboardingPage() {
                   { value: "",       label: "Prefer not to say", emoji: "🤐" },
                 ] as const).map((g) => (
                   <button key={String(g.value)} type="button" onClick={() => setGender(g.value as Gender)}
-                    className={`py-5 rounded-xl border-2 text-center transition-all ${gender === g.value ? "border-padel-green bg-green-50" : "border-gray-100 hover:border-gray-200"}`}>
+                    className={`py-5 rounded-xl border-2 text-center transition-all ${gender === g.value ? "border-padel-green bg-green-50 dark:bg-green-900/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"}`}>
                     <span className="text-2xl block mb-1">{g.emoji}</span>
-                    <p className={`font-medium text-xs ${gender === g.value ? "text-padel-green" : "text-gray-600"}`}>{g.label}</p>
+                    <p className={`font-medium text-xs ${gender === g.value ? "text-padel-green" : "text-gray-600 dark:text-gray-400"}`}>{g.label}</p>
                   </button>
                 ))}
               </div>
@@ -328,8 +328,8 @@ export default function OnboardingPage() {
             <div className="text-center space-y-5 py-2">
               <div>
                 <p className="text-5xl mb-3">{result.emoji}</p>
-                <h2 className="text-2xl font-black text-gray-900">Your initial level</h2>
-                <p className="text-gray-500 text-sm mt-1">Based on your level test answers</p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Your initial level</h2>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Based on your level test answers</p>
               </div>
               <div className="bg-padel-green rounded-2xl py-6 px-8">
                 <p className="text-6xl font-black text-white">{eloToDisplayLevel(result.elo)}</p>
@@ -347,7 +347,7 @@ export default function OnboardingPage() {
         <div className="flex gap-3 mt-6">
           {step > 1 && (
             <button onClick={() => setStep((s) => s - 1)}
-              className="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+              className="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
           )}

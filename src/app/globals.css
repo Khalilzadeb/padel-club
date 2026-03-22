@@ -12,6 +12,11 @@ body {
   color: var(--foreground);
 }
 
+.dark body {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
 @layer utilities {
   .line-clamp-2 {
     display: -webkit-box;

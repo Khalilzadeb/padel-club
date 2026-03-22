@@ -98,15 +98,15 @@ export default function ChatPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 flex flex-col h-[calc(100vh-4rem)]">
-      <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-        <Link href="/messages" className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-500" />
+      <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-gray-700">
+        <Link href="/messages" className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
         </Link>
         {otherPlayer && (
           <Link href={`/players/${otherPlayerId}`} className="flex items-center gap-2 hover:opacity-80">
             <Avatar name={otherPlayer.name} imageUrl={otherPlayer.avatarUrl} size="sm" />
             <div>
-              <p className="text-sm font-semibold text-gray-900">{otherPlayer.name}</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">{otherPlayer.name}</p>
               <p className="text-xs text-gray-400">Lv {eloToDisplayLevel(otherPlayer.stats.eloRating)}</p>
             </div>
           </Link>
@@ -115,17 +115,17 @@ export default function ChatPage() {
 
       <div className="flex-1 overflow-y-auto py-4 space-y-2">
         {messages.length === 0 && (
-          <p className="text-center text-gray-300 text-sm py-8">No messages yet. Say hello!</p>
+          <p className="text-center text-gray-300 dark:text-gray-600 text-sm py-8">No messages yet. Say hello!</p>
         )}
         {messages.map((msg) => {
           const isMine = msg.fromPlayerId === user?.playerId;
           return (
             <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm ${
-                isMine ? "bg-padel-green text-white rounded-br-sm" : "bg-gray-100 text-gray-900 rounded-bl-sm"
+                isMine ? "bg-padel-green text-white rounded-br-sm" : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm"
               }`}>
                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                <p className={`text-[10px] mt-1 ${isMine ? "text-green-100" : "text-gray-400"}`}>
+                <p className={`text-[10px] mt-1 ${isMine ? "text-green-100" : "text-gray-400 dark:text-gray-500"}`}>
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
@@ -135,14 +135,14 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleSend} className="flex gap-2 pt-3 border-t border-gray-100">
+      <form onSubmit={handleSend} className="flex gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Write a message... (Enter to send)"
           rows={1}
-          className="flex-1 resize-none border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+          className="flex-1 resize-none border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400"
         />
         <button
           type="submit"

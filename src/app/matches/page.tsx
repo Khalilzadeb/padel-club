@@ -124,8 +124,8 @@ export default function MatchesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">Match Results</h1>
-          <p className="text-gray-500 mt-1">{matches.length} matches played</p>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white">Match Results</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{matches.length} matches played</p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="w-4 h-4" /> Enter Score
@@ -133,8 +133,8 @@ export default function MatchesPage() {
       </div>
 
       {pendingGames.length > 0 && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-          <p className="text-sm font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+          <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-400 mb-3 flex items-center gap-2">
             <Trophy className="w-4 h-4" /> Open games ready for result entry
           </p>
           <div className="space-y-2">
@@ -142,12 +142,12 @@ export default function MatchesPage() {
               const court = courts.find((c) => c.id === g.courtId);
               const gamePlayers = g.playerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean) as Player[];
               return (
-                <div key={g.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-yellow-100">
+                <div key={g.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border border-yellow-100 dark:border-yellow-800">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {gamePlayers.map((p) => p.name.split(" ")[0]).join(", ")}
                     </p>
-                    <p className="text-xs text-gray-500">{court?.name ?? g.courtId} · {g.date} at {g.startTime}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{court?.name ?? g.courtId} · {g.date} at {g.startTime}</p>
                   </div>
                   <Button size="sm" onClick={() => setSelectedGame(g)} className="flex items-center gap-1">
                     <Trophy className="w-3.5 h-3.5" /> Enter Result
@@ -168,14 +168,14 @@ export default function MatchesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search players..."
-              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           {user?.playerId && (
             <button
               onClick={() => setMyMatchesOnly(!myMatchesOnly)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors flex-shrink-0 ${
-                myMatchesOnly ? "bg-padel-green text-white border-padel-green" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                myMatchesOnly ? "bg-padel-green text-white border-padel-green" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               <User className="w-3.5 h-3.5" /> My Matches
@@ -190,7 +190,7 @@ export default function MatchesPage() {
               key={t}
               onClick={() => setTypeFilter(t)}
               className={`px-3 py-1.5 rounded-xl text-sm font-medium capitalize transition-colors ${
-                typeFilter === t ? "bg-padel-green text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                typeFilter === t ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {t}
@@ -201,17 +201,17 @@ export default function MatchesPage() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-600"
+              className="border border-gray-200 dark:border-gray-600 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800"
             />
             <span className="text-gray-400 text-xs">–</span>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-600"
+              className="border border-gray-200 dark:border-gray-600 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800"
             />
             {(dateFrom || dateTo) && (
-              <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -234,7 +234,7 @@ export default function MatchesPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-400 text-lg">No matches found</p>
-          <p className="text-gray-300 text-sm mt-1">Try adjusting your filters or enter a new score</p>
+          <p className="text-gray-300 dark:text-gray-600 text-sm mt-1">Try adjusting your filters or enter a new score</p>
           <Button className="mt-4" onClick={() => setShowForm(true)}>
             <Plus className="w-4 h-4" /> Enter Score
           </Button>

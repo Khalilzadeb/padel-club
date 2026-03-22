@@ -60,12 +60,12 @@ export default function AdminPlayersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-gray-900">Players</h1>
-        <p className="text-sm text-gray-500">{players.length} total</p>
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white">Players</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{players.length} total</p>
       </div>
 
       <input
-        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green mb-4"
+        className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
         placeholder="Search players..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -80,20 +80,20 @@ export default function AdminPlayersPage() {
           {filtered.map((player, idx) => (
             <Card key={player.id} className="p-3">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-gray-300 w-5 text-center flex-shrink-0">
+                <span className="text-xs font-bold text-gray-300 dark:text-gray-600 w-5 text-center flex-shrink-0">
                   {idx + 1}
                 </span>
                 <Avatar name={player.name} imageUrl={player.avatarUrl} size="sm" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{player.name}</p>
-                  <p className="text-xs text-gray-500">{player.level} · {player.stats.matchesPlayed} matches</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{player.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{player.level} · {player.stats.matchesPlayed} matches</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {editingId === player.id ? (
                     <>
                       <input
                         type="number"
-                        className="w-20 border border-padel-green rounded-lg px-2 py-1 text-sm text-center focus:outline-none"
+                        className="w-20 border border-padel-green rounded-lg px-2 py-1 text-sm text-center focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         value={eloValue}
                         onChange={(e) => setEloValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter") saveElo(player.id); if (e.key === "Escape") setEditingId(null); }}
@@ -102,14 +102,14 @@ export default function AdminPlayersPage() {
                       <button onClick={() => saveElo(player.id)} disabled={saving} className="text-padel-green hover:text-green-700">
                         <Save className="w-4 h-4" />
                       </button>
-                      <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600">
+                      <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                         <X className="w-4 h-4" />
                       </button>
                     </>
                   ) : (
                     <button
                       onClick={() => startEdit(player)}
-                      className="text-sm font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition-colors"
+                      className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                     >
                       {player.stats.eloRating} ELO
                     </button>

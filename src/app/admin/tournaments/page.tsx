@@ -85,7 +85,7 @@ export default function AdminTournamentsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-gray-900">Tournaments</h1>
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white">Tournaments</h1>
         <Button onClick={() => setShowCreate(true)} className="flex items-center gap-2">
           <Plus className="w-4 h-4" /> New Tournament
         </Button>
@@ -106,15 +106,15 @@ export default function AdminTournamentsPage() {
           {tournaments.map((t) => (
             <Card key={t.id} className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center flex-shrink-0">
                   <Trophy className="w-5 h-5 text-amber-500" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-gray-900 truncate">{t.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white truncate">{t.name}</p>
                     <Badge variant={statusVariant[t.status]}>{statusLabel[t.status]}</Badge>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {t.startDate} → {t.endDate} · {t.registeredTeams.length}/{t.maxTeams} teams · {t.format}
                   </p>
                 </div>
@@ -143,18 +143,18 @@ export default function AdminTournamentsPage() {
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="New Tournament" size="md">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">Name *</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Name *</label>
             <input
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
               placeholder="Tournament name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">Description</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Description</label>
             <textarea
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green resize-none"
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
               rows={2}
               placeholder="Tournament description"
               value={form.description}
@@ -163,9 +163,9 @@ export default function AdminTournamentsPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Format</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Format</label>
               <select
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={form.format}
                 onChange={(e) => setForm({ ...form, format: e.target.value as Tournament["format"] })}
               >
@@ -175,9 +175,9 @@ export default function AdminTournamentsPage() {
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Status</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Status</label>
               <select
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as Tournament["status"] })}
               >
@@ -190,19 +190,19 @@ export default function AdminTournamentsPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Start Date *</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Start Date *</label>
               <input
                 type="date"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">End Date *</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">End Date *</label>
               <input
                 type="date"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
               />
@@ -210,21 +210,21 @@ export default function AdminTournamentsPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Registration Deadline</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Registration Deadline</label>
               <input
                 type="date"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={form.registrationDeadline}
                 onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Max Teams</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Max Teams</label>
               <input
                 type="number"
                 min={2}
                 max={64}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={form.maxTeams}
                 onChange={(e) => setForm({ ...form, maxTeams: parseInt(e.target.value) || 8 })}
               />
@@ -245,7 +245,7 @@ export default function AdminTournamentsPage() {
 
       {/* Delete confirm */}
       <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Tournament" size="sm">
-        <p className="text-sm text-gray-600 mb-4">Bu turniri silmək istədiyinizə əminsiniz?</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Bu turniri silmək istədiyinizə əminsiniz?</p>
         <div className="flex gap-2">
           <Button variant="ghost" className="flex-1" onClick={() => setDeleteId(null)}>Cancel</Button>
           <Button

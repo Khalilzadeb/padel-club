@@ -18,7 +18,7 @@ export default function EditProfileButton({ player }: { player: Player }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700 font-medium transition-colors"
+        className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-300 font-medium transition-colors"
       >
         <Pencil className="w-3.5 h-3.5" /> Edit profile
       </button>

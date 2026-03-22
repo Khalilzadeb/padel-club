@@ -14,9 +14,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Admin header */}
-      <div className="bg-gray-900 text-white px-4 py-3 flex items-center gap-2">
+      <div className="bg-gray-900 dark:bg-gray-950 text-white px-4 py-3 flex items-center gap-2">
         <Shield className="w-4 h-4 text-padel-green" />
         <span className="text-sm font-semibold">Admin Panel</span>
         <Link href="/" className="ml-auto text-xs text-gray-400 hover:text-white transition-colors">
@@ -38,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     active
                       ? "bg-padel-green text-white"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-white"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-800"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={href}
                 className={cn(
                   "flex-1 flex flex-col items-center gap-1 py-2 rounded-lg text-xs font-medium transition-colors",
-                  active ? "bg-padel-green text-white" : "bg-white text-gray-600"
+                  active ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300"
                 )}
               >
                 <Icon className="w-4 h-4" />

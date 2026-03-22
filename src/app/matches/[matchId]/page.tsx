@@ -46,9 +46,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
             <div className="flex justify-center -space-x-3 mb-2">
               {t1.map((p) => p && <Avatar key={p.id} name={p.name} size="lg" />)}
             </div>
-            <p className="font-bold text-gray-900">{t1.map((p) => p?.name.split(" ")[0]).join(" & ")}</p>
+            <p className="font-bold text-gray-900 dark:text-white">{t1.map((p) => p?.name.split(" ")[0]).join(" & ")}</p>
             {match.winnerId === "team1" && (
-              <span className="inline-block mt-1 text-xs font-bold text-padel-green bg-green-50 px-2 py-0.5 rounded-full">WINNER</span>
+              <span className="inline-block mt-1 text-xs font-bold text-padel-green bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full">WINNER</span>
             )}
             {match.eloChanges && (
               <div className="mt-2 flex justify-center gap-2">
@@ -70,10 +70,10 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
             <div className="flex gap-3 justify-center">
               {match.sets.map((s, i) => (
                 <div key={i} className="text-center">
-                  <p className="text-3xl font-black text-gray-900">{s.team1Games}</p>
+                  <p className="text-3xl font-black text-gray-900 dark:text-white">{s.team1Games}</p>
                   {s.tiebreak && <p className="text-xs text-gray-400">{s.tiebreak.team1Points}</p>}
                   <p className="text-xs text-gray-400 my-0.5">Set {s.setNumber}</p>
-                  <p className="text-3xl font-black text-gray-900">{s.team2Games}</p>
+                  <p className="text-3xl font-black text-gray-900 dark:text-white">{s.team2Games}</p>
                   {s.tiebreak && <p className="text-xs text-gray-400">{s.tiebreak.team2Points}</p>}
                 </div>
               ))}
@@ -84,9 +84,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
             <div className="flex justify-center -space-x-3 mb-2">
               {t2.map((p) => p && <Avatar key={p.id} name={p.name} size="lg" />)}
             </div>
-            <p className="font-bold text-gray-900">{t2.map((p) => p?.name.split(" ")[0]).join(" & ")}</p>
+            <p className="font-bold text-gray-900 dark:text-white">{t2.map((p) => p?.name.split(" ")[0]).join(" & ")}</p>
             {match.winnerId === "team2" && (
-              <span className="inline-block mt-1 text-xs font-bold text-padel-green bg-green-50 px-2 py-0.5 rounded-full">WINNER</span>
+              <span className="inline-block mt-1 text-xs font-bold text-padel-green bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full">WINNER</span>
             )}
             {match.eloChanges && (
               <div className="mt-2 flex justify-center gap-2">
@@ -105,7 +105,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-50 text-sm text-gray-500">
+        <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-gray-50 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
           <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {court?.name}</span>
           <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {match.date} at {match.startTime}</span>
           {match.durationMinutes && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {match.durationMinutes} min</span>}
@@ -116,16 +116,16 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[{ team: t1, label: "Team 1", id: "team1" }, { team: t2, label: "Team 2", id: "team2" }].map(({ team, label, id }) => (
           <Card key={id} className="p-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase mb-3">{label}</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">{label}</p>
             <div className="space-y-3">
               {team.map((p) => {
                 if (!p) return null;
                 const eloChange = match.eloChanges?.[p.id];
                 return (
-                  <Link key={p.id} href={`/players/${p.id}`} className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg">
+                  <Link key={p.id} href={`/players/${p.id}`} className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 p-2 rounded-lg">
                     <Avatar name={p.name} imageUrl={p.avatarUrl} size="md" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{p.name}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{p.name}</p>
                       <p className="text-xs text-gray-400">ELO: {p.stats.eloRating}</p>
                     </div>
                     {eloChange !== undefined && (
@@ -147,7 +147,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
             <Card hover className="p-4 flex items-center gap-3">
               <Trophy className="w-5 h-5 text-orange-500" />
               <div>
-                <p className="text-sm font-semibold text-gray-900">{tournament.name}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{tournament.name}</p>
                 <p className="text-xs text-gray-400">View tournament bracket</p>
               </div>
             </Card>

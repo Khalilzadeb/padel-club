@@ -47,23 +47,23 @@ export default function MessagesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-3xl font-black text-gray-900 mb-6">Messages</h1>
+      <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-6">Messages</h1>
 
       {convs.length === 0 ? (
         <div className="text-center py-16">
-          <MessageCircle className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+          <MessageCircle className="w-12 h-12 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
           <p className="text-gray-400">No conversations yet</p>
-          <p className="text-gray-300 text-sm mt-1">Go to a player&apos;s profile and send them a message</p>
+          <p className="text-gray-300 dark:text-gray-600 text-sm mt-1">Go to a player&apos;s profile and send them a message</p>
         </div>
       ) : (
-        <Card className="divide-y divide-gray-50">
+        <Card className="divide-y divide-gray-50 dark:divide-gray-700">
           {convs.map((conv) => {
             const other = players.find((p) => p.id === conv.otherPlayerId);
             if (!other) return null;
             const isMe = conv.lastMessage.fromPlayerId === user?.playerId;
             return (
               <Link key={conv.otherPlayerId} href={`/messages/${conv.otherPlayerId}`}
-                className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
+                className="flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <div className="relative flex-shrink-0">
                   <Avatar name={other.name} imageUrl={other.avatarUrl} size="md" />
                   {conv.unreadCount > 0 && (
@@ -73,14 +73,14 @@ export default function MessagesPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold text-gray-900 ${conv.unreadCount > 0 ? "" : "font-medium"}`}>
+                  <p className={`text-sm font-semibold text-gray-900 dark:text-white ${conv.unreadCount > 0 ? "" : "font-medium"}`}>
                     {other.name}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
                     {isMe ? "You: " : ""}{conv.lastMessage.content}
                   </p>
                 </div>
-                <p className="text-xs text-gray-300 flex-shrink-0">
+                <p className="text-xs text-gray-300 dark:text-gray-600 flex-shrink-0">
                   {new Date(conv.lastMessage.createdAt).toLocaleDateString()}
                 </p>
               </Link>

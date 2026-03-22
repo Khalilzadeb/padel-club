@@ -56,8 +56,8 @@ export default function ChallengeButton({ player, courts }: Props) {
     }
   };
 
-  const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green";
-  const selectClass = inputClass + " bg-white";
+  const inputClass = "w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400";
+  const selectClass = inputClass;
   const courtGroups = groupCourtsByLocation(activeCourts);
   const hasGroups = Object.keys(courtGroups).length > 1 || (Object.keys(courtGroups).length === 1 && Object.keys(courtGroups)[0] !== "Other");
 
@@ -74,18 +74,18 @@ export default function ChallengeButton({ player, courts }: Props) {
         {sent ? (
           <div className="py-8 text-center">
             <p className="text-2xl mb-2">⚔️</p>
-            <p className="font-semibold text-gray-900">Challenge sent!</p>
-            <p className="text-sm text-gray-500 mt-1">{player.name} will be notified</p>
+            <p className="font-semibold text-gray-900 dark:text-white">Challenge sent!</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{player.name} will be notified</p>
           </div>
         ) : (
           <div className="space-y-4">
             {/* Match type */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Match type</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Match type</label>
               <div className="grid grid-cols-2 gap-2">
                 {(["casual", "ranked"] as const).map((t) => (
                   <button key={t} type="button" onClick={() => setMatchType(t)}
-                    className={`py-2.5 rounded-lg border-2 text-sm font-medium capitalize transition-colors ${matchType === t ? "border-padel-green bg-green-50 text-padel-green" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                    className={`py-2.5 rounded-lg border-2 text-sm font-medium capitalize transition-colors ${matchType === t ? "border-padel-green bg-green-50 dark:bg-green-900/30 text-padel-green" : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
                     {t}
                   </button>
                 ))}
@@ -94,7 +94,7 @@ export default function ChallengeButton({ player, courts }: Props) {
 
             {/* Court */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Court</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Court</label>
               <select value={courtId} onChange={(e) => setCourtId(e.target.value)} className={selectClass}>
                 {hasGroups
                   ? Object.entries(courtGroups).map(([location, lCourts]) => (
@@ -113,13 +113,13 @@ export default function ChallengeButton({ player, courts }: Props) {
 
             {/* Date */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Date</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Date</label>
               <input type="date" value={date} min={today} onChange={(e) => setDate(e.target.value)} className={inputClass} />
             </div>
 
             {/* Time — 24h hour select */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Time</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Time</label>
               <select value={hour} onChange={(e) => setHour(e.target.value)} className={selectClass}>
                 {HOURS.map((h) => <option key={h} value={h}>{h}:00</option>)}
               </select>
@@ -127,7 +127,7 @@ export default function ChallengeButton({ player, courts }: Props) {
 
             {/* Message */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Message <span className="text-gray-400">(optional)</span></label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Message <span className="text-gray-400">(optional)</span></label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}

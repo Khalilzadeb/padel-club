@@ -61,13 +61,13 @@ export default function SignupPage() {
           <div className="inline-flex w-14 h-14 bg-padel-green rounded-2xl items-center justify-center mb-4 shadow-lg">
             <span className="text-white font-black text-2xl">P</span>
           </div>
-          <h1 className="text-2xl font-black text-gray-900">Join PadelClub</h1>
-          <p className="text-gray-500 mt-1 text-sm">Create your account and start playing</p>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Join PadelClub</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Create your account and start playing</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-8 space-y-5">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-card border border-gray-100 dark:border-gray-700 p-8 space-y-5">
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 text-sm px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
@@ -76,21 +76,21 @@ export default function SignupPage() {
           <button
             type="button"
             onClick={() => { window.location.href = "/api/auth/google?from=/"; }}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
           >
             <GoogleIcon />
             Continue with Google
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
             <span className="text-xs text-gray-400 font-medium">or sign up with email</span>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
             <input
               type="text"
               value={name}
@@ -98,24 +98,24 @@ export default function SignupPage() {
               required
               autoFocus
               placeholder="Alejandro García"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all"
+              className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all"
+              className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -123,12 +123,12 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Min. 6 characters"
-                className="w-full px-4 py-2.5 pr-11 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 pr-11 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -137,7 +137,7 @@ export default function SignupPage() {
               <div className="mt-2">
                 <div className="flex gap-1 mb-1">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= strength ? strengthColor : "bg-gray-100"}`} />
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= strength ? strengthColor : "bg-gray-100 dark:bg-gray-700"}`} />
                   ))}
                 </div>
                 <p className="text-xs text-gray-400">{strengthLabel}</p>
@@ -146,17 +146,17 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Confirm Password</label>
             <input
               type={showPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               placeholder="Repeat your password"
-              className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all ${
+              className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400 ${
                 confirmPassword && confirmPassword !== password
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200"
+                  ? "border-red-300 bg-red-50 dark:bg-red-900/20"
+                  : "border-gray-200 dark:border-gray-600"
               }`}
             />
           </div>
@@ -174,7 +174,7 @@ export default function SignupPage() {
             {loading ? "Creating account..." : "Create account"}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
             Already have an account?{" "}
             <Link href="/login" className="text-padel-green font-medium hover:underline">
               Sign in

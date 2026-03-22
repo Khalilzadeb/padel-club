@@ -69,10 +69,10 @@ export default function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={handleOpen}
-        className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-gray-600" />
+        <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
         {unread > 0 && (
           <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
             {unread > 9 ? "9+" : unread}
@@ -81,45 +81,45 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
-            <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-            <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-gray-100">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
+            <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
               <X className="w-4 h-4 text-gray-400" />
             </button>
           </div>
 
           {notifications.length === 0 ? (
             <div className="py-10 text-center">
-              <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+              <Bell className="w-8 h-8 text-gray-200 dark:text-gray-600 mx-auto mb-2" />
               <p className="text-sm text-gray-400">No notifications yet</p>
             </div>
           ) : (
-            <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
+            <div className="max-h-96 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700">
               {notifications.map((n) => (
                 n.link ? (
                   <Link
                     key={n.id}
                     href={n.link}
                     onClick={() => setOpen(false)}
-                    className={cn("flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors", !n.read && "bg-blue-50/50")}
+                    className={cn("flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors", !n.read && "bg-blue-50/50 dark:bg-blue-900/20")}
                   >
                     <div className="mt-0.5 flex-shrink-0">{typeIcon(n.type)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{n.title}</p>
-                      <p className="text-xs text-gray-500 truncate">{n.body}</p>
-                      <p className="text-[10px] text-gray-300 mt-0.5">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{n.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{n.body}</p>
+                      <p className="text-[10px] text-gray-300 dark:text-gray-500 mt-0.5">
                         {new Date(n.createdAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
                     {!n.read && <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />}
                   </Link>
                 ) : (
-                  <div key={n.id} className={cn("flex gap-3 px-4 py-3", !n.read && "bg-blue-50/50")}>
+                  <div key={n.id} className={cn("flex gap-3 px-4 py-3", !n.read && "bg-blue-50/50 dark:bg-blue-900/20")}>
                     <div className="mt-0.5 flex-shrink-0">{typeIcon(n.type)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{n.title}</p>
-                      <p className="text-xs text-gray-500">{n.body}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{n.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{n.body}</p>
                     </div>
                   </div>
                 )
@@ -127,8 +127,8 @@ export default function NotificationBell() {
             </div>
           )}
 
-          <div className="px-4 py-2.5 border-t border-gray-50 flex items-center justify-between">
-            <p className="text-xs text-gray-300 flex items-center gap-1">
+          <div className="px-4 py-2.5 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
+            <p className="text-xs text-gray-300 dark:text-gray-500 flex items-center gap-1">
               <CheckCheck className="w-3.5 h-3.5" /> Marked as read when opened
             </p>
             <Link href="/notifications" onClick={() => setOpen(false)} className="text-xs text-padel-green hover:underline font-medium">

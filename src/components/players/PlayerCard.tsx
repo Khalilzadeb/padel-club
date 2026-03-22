@@ -19,24 +19,24 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           <Avatar name={player.name} imageUrl={player.avatarUrl} size="lg" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-gray-900 truncate">{player.name}</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white truncate">{player.name}</h3>
               <Badge variant={eloToLevelVariant(player.stats.eloRating)}>Lv {eloToDisplayLevel(player.stats.eloRating)}</Badge>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5 capitalize">{player.position} · {player.hand}-handed</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 capitalize">{player.position} · {player.hand}-handed</p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-50">
+        <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
           <div className="text-center">
-            <p className="text-lg font-bold text-gray-900">{player.stats.eloRating}</p>
-            <p className="text-xs text-gray-500">ELO</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">{player.stats.eloRating}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">ELO</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-gray-900">{wr}%</p>
-            <p className="text-xs text-gray-500">Win Rate</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">{wr}%</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Win Rate</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-gray-900">{player.stats.matchesPlayed}</p>
-            <p className="text-xs text-gray-500">Matches</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">{player.stats.matchesPlayed}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Matches</p>
           </div>
         </div>
       </Card>

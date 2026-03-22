@@ -116,12 +116,14 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
   const canShowCalendar = !!courtId;
   const canShowDetails = !!selectedDate && !!selectedTime;
 
+  const inputClass = "w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400";
+
   return (
     <div className="space-y-5">
       {/* Step 1 — Location */}
       {locations.length > 1 && (
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-2">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
             <MapPin className="w-3.5 h-3.5 inline mr-1" />Location
           </label>
           <div className="flex gap-2 flex-wrap">
@@ -133,7 +135,7 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
                 className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                   location === loc
                     ? "bg-padel-green text-white border-padel-green"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                 }`}
               >
                 {loc}
@@ -145,7 +147,7 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
 
       {/* Step 1 — Court selection */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-2">Select Court</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Select Court</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {locationCourts.map((c) => (
             <button
@@ -155,7 +157,7 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
               className={`py-3 px-2 rounded-xl text-sm font-medium border transition-all text-center ${
                 courtId === c.id
                   ? "bg-padel-green text-white border-padel-green shadow-sm"
-                  : "bg-white text-gray-700 border-gray-200 hover:border-padel-green hover:bg-green-50"
+                  : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-padel-green hover:bg-green-50 dark:hover:bg-green-900/20"
               }`}
             >
               {c.name}
@@ -166,10 +168,10 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
 
       {/* Step 2 — Calendar */}
       {canShowCalendar && (
-        <div className="border-t border-gray-100 pt-4">
-          <p className="text-xs font-medium text-gray-600 mb-3 flex items-center gap-1">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+          <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-3 flex items-center gap-1">
             <ChevronRight className="w-3.5 h-3.5 text-padel-green" />
-            Select a time slot for <span className="font-semibold text-gray-800">{selectedCourt?.name}</span>
+            Select a time slot for <span className="font-semibold text-gray-800 dark:text-gray-200">{selectedCourt?.name}</span>
           </p>
           {bookingsLoading ? (
             <div className="flex justify-center py-8">
@@ -187,26 +189,26 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
 
       {/* Step 3 — Details */}
       {canShowDetails && (
-        <form onSubmit={handleSubmit} className="border-t border-gray-100 pt-4 space-y-4">
-          <div className="bg-green-50 rounded-xl px-4 py-3 flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-4">
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-xl px-4 py-3 flex items-center gap-2">
             <span className="text-padel-green font-bold text-lg">✓</span>
             <div>
-              <p className="text-sm font-semibold text-gray-800">{selectedCourt?.name}</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{selectedCourt?.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {new Date(selectedDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })} at {selectedTime}
               </p>
             </div>
             <button
               type="button"
               onClick={() => { setSelectedDate(""); setSelectedTime(""); }}
-              className="ml-auto text-xs text-gray-400 hover:text-gray-600 underline"
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline"
             >
               Change
             </button>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-2">Duration</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Duration</label>
             <div className="flex gap-2">
               {DURATIONS.map(({ label, value }) => (
                 <button
@@ -216,7 +218,7 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
                   className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
                     duration === value
                       ? "bg-padel-green text-white border-padel-green"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                      : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                   }`}
                 >
                   {label}
@@ -226,13 +228,13 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               ELO Range <span className="text-gray-400 font-normal">— your ELO: {playerElo}</span>
             </label>
             <select
               value={eloRange}
               onChange={(e) => setEloRange(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+              className={inputClass}
             >
               <option value="any">Any ELO (open to all)</option>
               <option value="100">±100 ELO</option>
@@ -244,15 +246,15 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-2">Court Booking</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Court Booking</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setCourtBookingStatus("not_booked")}
                 className={`py-3 px-3 rounded-xl text-sm border transition-all text-left ${
                   courtBookingStatus === "not_booked"
-                    ? "bg-yellow-50 border-yellow-400 text-yellow-800 font-medium"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                    ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 text-yellow-800 dark:text-yellow-300 font-medium"
+                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                 }`}
               >
                 <p className="font-medium">⏳ Not booked yet</p>
@@ -263,8 +265,8 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
                 onClick={() => setCourtBookingStatus("booked")}
                 className={`py-3 px-3 rounded-xl text-sm border transition-all text-left ${
                   courtBookingStatus === "booked"
-                    ? "bg-green-50 border-green-400 text-green-800 font-medium"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                    ? "bg-green-50 dark:bg-green-900/20 border-green-400 text-green-800 dark:text-green-300 font-medium"
+                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
                 }`}
               >
                 <p className="font-medium">✅ Already booked</p>
@@ -274,7 +276,7 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Notes <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <textarea
@@ -282,21 +284,21 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Friendly game, beginners welcome..."
               rows={2}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-padel-green"
+              className={inputClass + " resize-none"}
             />
           </div>
 
           {/* Invite players */}
           {eligibleToInvite.length > 0 && (
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1 flex items-center gap-1">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 flex items-center gap-1">
                 <UserPlus className="w-3.5 h-3.5" /> Invite players
                 <span className="text-gray-400 font-normal ml-1">— max {MAX_INVITES}, within ELO range</span>
               </label>
               {invitePlayerIds.length >= MAX_INVITES && (
                 <p className="text-xs text-amber-600 mb-1.5">Maximum {MAX_INVITES} invites reached</p>
               )}
-              <div className="max-h-44 overflow-y-auto space-y-1 border border-gray-100 rounded-xl p-2">
+              <div className="max-h-44 overflow-y-auto space-y-1 border border-gray-100 dark:border-gray-700 rounded-xl p-2">
                 {eligibleToInvite.map((p) => {
                   const selected = invitePlayerIds.includes(p.id);
                   const disabled = !selected && invitePlayerIds.length >= MAX_INVITES;
@@ -306,11 +308,11 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
                       type="button"
                       onClick={() => toggleInvite(p.id)}
                       disabled={disabled}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${selected ? "bg-green-50 border border-padel-green" : "hover:bg-gray-50 border border-transparent"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${selected ? "bg-green-50 dark:bg-green-900/20 border border-padel-green" : "hover:bg-gray-50 dark:hover:bg-gray-700 border border-transparent"} ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
                     >
                       <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{p.name}</p>
                         <p className="text-xs text-gray-400">{p.stats.eloRating} ELO</p>
                       </div>
                       {selected && <X className="w-4 h-4 text-padel-green flex-shrink-0" />}
