@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils/cn";
 const links = [
   { href: "/", label: "Home", icon: Home },
   { href: "/open-games", label: "Games", icon: Search },
-  { href: "/matches", label: "Matches", icon: Swords },
+  { href: "/matches", label: "Results", icon: Swords },
   { href: "/players", label: "Players", icon: Users },
   { href: "/messages", label: "Messages", icon: MessageCircle },
 ];

@@ -14,7 +14,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/open-games", label: "Games", icon: Search },
   { href: "/players", label: "Players", icon: Users },
-  { href: "/matches", label: "Matches", icon: Swords },
+  { href: "/matches", label: "Results", icon: Swords },
   { href: "/tournaments", label: "Tournaments", icon: Trophy },
   { href: "/messages", label: "Messages", icon: MessageCircle },
   { href: "/challenges", label: "Challenges", icon: Target },
