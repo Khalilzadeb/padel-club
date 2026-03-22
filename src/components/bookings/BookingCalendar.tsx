@@ -40,7 +40,16 @@ export default function BookingCalendar({ courtId, bookings, onSlotSelect }: Boo
   };
 
   const fmt = (d: Date) => d.toISOString().split("T")[0];
-  const today = new Date().toISOString().split("T")[0];
+  const nowBaku = new Date(new Date().getTime() + 4 * 60 * 60 * 1000);
+  const today = nowBaku.toISOString().split("T")[0];
+  const currentTimeBaku = nowBaku.toISOString().slice(11, 16);
+
+  // 00:00–03:00 rows belong to the early morning of the NEXT day of that column
+  const nextDay = (dateStr: string) => {
+    const d = new Date(dateStr + "T12:00:00Z");
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  };
 
   return (
     <div>
@@ -83,8 +92,11 @@ export default function BookingCalendar({ courtId, bookings, onSlotSelect }: Boo
                 {weekDates.map((d, i) => {
                   const dateStr = fmt(d);
                   const slotKey = `${dateStr}-${hour}`;
+                  const lateNight = hour <= "03:00";
+                  const effectiveDateStr = lateNight ? nextDay(dateStr) : dateStr;
                   const booked = isBooked(dateStr, hour);
-                  const isPast = dateStr < today || (dateStr === today && hour < new Date().toTimeString().slice(0, 5));
+                  const isPast = effectiveDateStr < today ||
+                    (effectiveDateStr === today && hour < currentTimeBaku);
                   const isSelected = selected === slotKey;
 
                   return (
@@ -93,7 +105,7 @@ export default function BookingCalendar({ courtId, bookings, onSlotSelect }: Boo
                         disabled={booked || isPast}
                         onClick={() => {
                           setSelected(slotKey);
-                          onSlotSelect(dateStr, hour);
+                          onSlotSelect(lateNight ? effectiveDateStr : dateStr, hour);
                         }}
                         className={cn(
                           "w-full h-8 rounded text-xs font-medium transition-all",
