@@ -16,6 +16,7 @@ const navLinks = [
   { href: "/matches", label: "Matches", icon: Swords },
   { href: "/tournaments", label: "Tournaments", icon: Trophy },
   { href: "/messages", label: "Messages", icon: MessageCircle },
+  { href: "/challenges", label: "Challenges", icon: Swords },
 ];
 
 export default function Navbar() {

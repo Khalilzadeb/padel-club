@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
-import { Bell, MessageCircle, Users, Trophy, CheckCheck, Gamepad2 } from "lucide-react";
+import { Bell, MessageCircle, Users, Trophy, CheckCheck, Gamepad2, Swords } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 interface Notification {
@@ -18,7 +18,8 @@ interface Notification {
 const typeIcon = (type: string) => {
   if (type === "message") return <MessageCircle className="w-4 h-4 text-blue-500" />;
   if (type === "tournament_register") return <Trophy className="w-4 h-4 text-amber-500" />;
-  if (type === "game_full" || type === "game_cancelled") return <Gamepad2 className="w-4 h-4 text-purple-500" />;
+  if (type === "game_full" || type === "game_cancelled" || type === "open_game") return <Gamepad2 className="w-4 h-4 text-purple-500" />;
+  if (type === "challenge" || type === "challenge_accepted" || type === "challenge_declined") return <Swords className="w-4 h-4 text-orange-500" />;
   return <Users className="w-4 h-4 text-padel-green" />;
 };
 

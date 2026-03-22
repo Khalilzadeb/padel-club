@@ -187,6 +187,23 @@ export interface TournamentBracketSlot {
   winnerId?: "team1" | "team2";
 }
 
+// ─── Challenge ────────────────────────────────────────────────────────────────
+
+export type ChallengeStatus = "pending" | "accepted" | "declined" | "expired";
+
+export interface Challenge {
+  id: string;
+  challengerId: string;
+  challengedId: string;
+  courtId: string;
+  proposedDate: string;
+  proposedTime: string;
+  matchType: "casual" | "ranked";
+  message?: string;
+  status: ChallengeStatus;
+  createdAt: string;
+}
+
 export interface Tournament {
   id: string;
   name: string;

@@ -8,6 +8,7 @@ import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { TrendingUp, TrendingDown, Trophy, Calendar, Target, MessageCircle } from "lucide-react";
 import EditProfileButton from "@/components/players/EditProfileButton";
+import ChallengeButton from "@/components/players/ChallengeButton";
 import EloChart from "@/components/players/EloChart";
 
 const levelVariant: Record<string, "green" | "blue" | "purple" | "gray"> = {
@@ -99,6 +100,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             <p className="text-xs text-gray-400 mt-0.5">Member since {player.memberSince}</p>
             <div className="flex items-center gap-2 flex-wrap">
             <EditProfileButton player={player} />
+            <ChallengeButton player={player} courts={courts} />
             <Link href={`/messages/${playerId}`}
               className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700 font-medium transition-colors">
               <MessageCircle className="w-4 h-4" /> Message
