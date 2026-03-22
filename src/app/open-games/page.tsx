@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { Plus, Users } from "lucide-react";
 import { OpenGame, Player, Court } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils/cn";
 
 export default function OpenGamesPage() {
   const { user } = useAuth();
@@ -85,6 +86,21 @@ export default function OpenGamesPage() {
 
   const filtered = games.filter((g) => g.status === "open" || g.status === "full" || g.status === "pending_result");
 
+  // Scroll to highlighted game from notification link (?game=xxx)
+  useEffect(() => {
+    if (!loading && filtered.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const gameId = params.get("game");
+      if (gameId) {
+        setTimeout(() => {
+          const el = document.getElementById(`game-${gameId}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-start justify-between mb-8 gap-4">
@@ -121,23 +137,27 @@ export default function OpenGamesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((g) => (
-            <OpenGameCard
-              key={g.id}
-              game={g}
-              players={players}
-              courts={courts}
-              currentPlayerId={currentPlayer?.id}
-              onJoin={(id, teamNumber) => handleAction(id, "join", { teamNumber })}
-              onLeave={(id) => handleAction(id, "leave")}
-              onCancel={(id) => handleAction(id, "cancel")}
-              onSubmitScore={(id, data) => handleAction(id, "submit_score", data)}
-              onConfirmScore={(id) => handleAction(id, "confirm_score")}
-              onDisputeScore={(id) => handleAction(id, "dispute_score")}
-              onUpdateBookingStatus={(id, status) => handleAction(id, "update_booking_status", { status })}
-              loading={actionLoading}
-            />
-          ))}
+          {filtered.map((g) => {
+            const isHighlighted = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("game") === g.id;
+            return (
+              <div key={g.id} id={`game-${g.id}`} className={cn("rounded-xl transition-all", isHighlighted && "ring-2 ring-padel-green ring-offset-2")}>
+                <OpenGameCard
+                  game={g}
+                  players={players}
+                  courts={courts}
+                  currentPlayerId={currentPlayer?.id}
+                  onJoin={(id, teamNumber) => handleAction(id, "join", { teamNumber })}
+                  onLeave={(id) => handleAction(id, "leave")}
+                  onCancel={(id) => handleAction(id, "cancel")}
+                  onSubmitScore={(id, data) => handleAction(id, "submit_score", data)}
+                  onConfirmScore={(id) => handleAction(id, "confirm_score")}
+                  onDisputeScore={(id) => handleAction(id, "dispute_score")}
+                  onUpdateBookingStatus={(id, status) => handleAction(id, "update_booking_status", { status })}
+                  loading={actionLoading}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 

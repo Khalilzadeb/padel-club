@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
           type: "game_invite",
           title: `${player.name} invited you to a game!`,
           body: `${date} at ${startTime}${eloLabel}`,
-          link: "/open-games",
+          link: `/open-games?game=${game.id}`,
         });
       }
       // General broadcast

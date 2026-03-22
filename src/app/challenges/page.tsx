@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Swords, Check, X, Clock, ChevronRight } from "lucide-react";
+import { Swords, Check, X, Clock, Target, TrendingUp, TrendingDown } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { Challenge, Player, Court } from "@/lib/types";
 
@@ -23,6 +24,28 @@ const statusBadge: Record<string, { label: string; className: string }> = {
   declined: { label: "Declined", className: "bg-red-50 text-red-500" },
   expired: { label: "Cancelled", className: "bg-gray-100 text-gray-500" },
 };
+
+function PlayerSnippet({ player }: { player: Player }) {
+  const s = player.stats;
+  const winRate = s.matchesPlayed ? Math.round((s.matchesWon / s.matchesPlayed) * 100) : 0;
+  const streak = s.currentStreak;
+  return (
+    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+      <span><span className="font-semibold text-gray-800">{s.eloRating}</span> ELO</span>
+      <span><span className="font-semibold text-gray-800">{s.matchesPlayed}</span> games · <span className="font-semibold text-gray-800">{winRate}%</span> win</span>
+      {streak !== 0 && (
+        <span className={`flex items-center gap-0.5 font-semibold ${streak > 0 ? "text-green-600" : "text-red-500"}`}>
+          {streak > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+          {Math.abs(streak)}{streak > 0 ? "W" : "L"} streak
+        </span>
+      )}
+      {player.gender && <span className="capitalize text-gray-400">{player.gender}</span>}
+      <Link href={`/players/${player.id}`} className="text-padel-green hover:underline font-medium ml-auto">
+        View profile →
+      </Link>
+    </div>
+  );
+}
 
 export default function ChallengesPage() {
   const { user } = useAuth();
@@ -64,13 +87,12 @@ export default function ChallengesPage() {
   const incoming = challenges.filter((c) => c.challengedId === user?.playerId);
   const outgoing = challenges.filter((c) => c.challengerId === user?.playerId);
   const displayed = tab === "incoming" ? incoming : outgoing;
-
   const incomingPending = incoming.filter((c) => c.status === "pending").length;
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center gap-3 mb-6">
-        <Swords className="w-6 h-6 text-padel-green" />
+        <Target className="w-6 h-6 text-padel-green" />
         <h1 className="text-2xl font-black text-gray-900">Challenges</h1>
       </div>
 
@@ -100,7 +122,7 @@ export default function ChallengesPage() {
         </div>
       ) : displayed.length === 0 ? (
         <Card className="p-12 text-center">
-          <Swords className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+          <Target className="w-10 h-10 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-400">{tab === "incoming" ? "No challenges received yet" : "You haven't challenged anyone yet"}</p>
         </Card>
       ) : (
@@ -115,10 +137,14 @@ export default function ChallengesPage() {
             return (
               <Card key={c.id} className="p-4">
                 <div className="flex items-start gap-3">
-                  <Avatar name={other?.name ?? "?"} imageUrl={other?.avatarUrl ?? null} size="sm" />
+                  <Link href={`/players/${otherPlayerId}`} className="flex-shrink-0">
+                    <Avatar name={other?.name ?? "?"} imageUrl={other?.avatarUrl ?? null} size="sm" />
+                  </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-gray-900 text-sm">{other?.name ?? "Unknown"}</p>
+                      <Link href={`/players/${otherPlayerId}`} className="font-semibold text-gray-900 text-sm hover:text-padel-green transition-colors">
+                        {other?.name ?? "Unknown"}
+                      </Link>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badge.className}`}>{badge.label}</span>
                       <span className="text-xs text-gray-400 capitalize">{c.matchType}</span>
                     </div>
@@ -131,6 +157,9 @@ export default function ChallengesPage() {
                     <p className="text-[11px] text-gray-300 mt-1 flex items-center gap-1">
                       <Clock className="w-3 h-3" /> {timeAgo(c.createdAt)}
                     </p>
+
+                    {/* Challenger stats — shown on incoming challenges */}
+                    {tab === "incoming" && other && <PlayerSnippet player={other} />}
                   </div>
 
                   {/* Actions */}
@@ -162,9 +191,6 @@ export default function ChallengesPage() {
                     >
                       Cancel
                     </button>
-                  )}
-                  {!isPending && (
-                    <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 mt-0.5" />
                   )}
                 </div>
               </Card>
