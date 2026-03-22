@@ -2,12 +2,9 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getOpenGame } from "@/lib/data/open-games";
 import { supabase } from "@/lib/supabase";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { MapPin, Clock, Users } from "lucide-react";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -20,15 +17,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const title = `Open Game · ${courtName}`;
   const description = `${game.date} at ${game.startTime} · ${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left · ${game.gameType === "friendly" ? "Friendly 🤝" : "Ranked 🏆"}`;
 
-  const ogParams = new URLSearchParams({
-    court: courtName,
-    date: game.date,
-    time: game.startTime,
-    endTime: game.endTime,
-    spots: String(spotsLeft),
-    type: game.gameType,
-  });
-  const imageUrl = `${siteUrl}/api/og?${ogParams.toString()}`;
+  // Build absolute image URL from request headers (works in all environments)
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "localhost:3000";
+  const proto = headersList.get("x-forwarded-proto") ?? "https";
+  const imageUrl = `${proto}://${host}/api/og?id=${id}`;
 
   return {
     title,

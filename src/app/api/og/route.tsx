@@ -1,19 +1,45 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { getOpenGame } from "@/lib/data/open-games";
+import { supabase } from "@/lib/supabase";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const court = searchParams.get("court") ?? "Open Game";
-  const date = searchParams.get("date") ?? "";
-  const time = searchParams.get("time") ?? "";
-  const endTime = searchParams.get("endTime") ?? "";
-  const spots = searchParams.get("spots") ?? "0";
-  const type = searchParams.get("type") ?? "ranked";
+  const id = searchParams.get("id");
 
-  const spotsNum = parseInt(spots, 10);
-  const isFull = spotsNum <= 0;
+  let court = "Open Game";
+  let date = "";
+  let time = "";
+  let endTime = "";
+  let spotsLeft = 0;
+  let gameType = "ranked";
+
+  if (id) {
+    try {
+      const game = await getOpenGame(id);
+      if (game) {
+        const { data: courtRow } = await supabase
+          .from("courts")
+          .select("name, location")
+          .eq("id", game.courtId)
+          .single();
+        court = courtRow?.location
+          ? `${courtRow.location} · ${courtRow.name}`
+          : (courtRow?.name ?? court);
+        date = game.date;
+        time = game.startTime;
+        endTime = game.endTime;
+        spotsLeft = game.maxPlayers - game.playerIds.length;
+        gameType = game.gameType;
+      }
+    } catch {
+      // fallback to defaults
+    }
+  }
+
+  const isFull = spotsLeft <= 0;
 
   return new ImageResponse(
     (
@@ -24,13 +50,11 @@ export async function GET(req: NextRequest) {
           display: "flex",
           flexDirection: "column",
           background: "linear-gradient(135deg, #14532d 0%, #166534 55%, #15803d 100%)",
-          padding: "0",
           fontFamily: "sans-serif",
         }}
       >
-        {/* Top stripe */}
+        {/* Header */}
         <div style={{ display: "flex", alignItems: "center", padding: "40px 60px 0", gap: "16px" }}>
-          {/* Logo circle */}
           <div style={{
             width: "56px", height: "56px", borderRadius: "50%",
             background: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center",
@@ -47,57 +71,40 @@ export async function GET(req: NextRequest) {
 
         {/* Main content */}
         <div style={{ display: "flex", flexDirection: "column", padding: "36px 60px 0", flex: 1 }}>
-          {/* Court name */}
-          <div style={{
-            fontSize: "60px", fontWeight: 900, color: "white",
-            lineHeight: "1.1", marginBottom: "16px",
-            maxWidth: "900px",
-            overflow: "hidden",
-            display: "-webkit-box",
-          }}>
+          <div style={{ fontSize: "56px", fontWeight: 900, color: "white", lineHeight: "1.1", marginBottom: "16px" }}>
             {court}
           </div>
-
-          {/* Date & time */}
           {date && (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "40px" }}>
-              <span style={{ fontSize: "32px", color: "#86efac" }}>
-                {date}{time ? `  ·  ${time}${endTime ? ` – ${endTime}` : ""}` : ""}
-              </span>
+            <div style={{ fontSize: "30px", color: "#86efac", marginBottom: "40px" }}>
+              {date}{time ? `  ·  ${time}${endTime ? ` – ${endTime}` : ""}` : ""}
             </div>
           )}
 
-          {/* Chips row */}
+          {/* Chips */}
           <div style={{ display: "flex", gap: "16px", marginTop: "auto", paddingBottom: "52px" }}>
-            {/* Spots chip */}
             <div style={{
-              display: "flex", alignItems: "center", gap: "10px",
               background: isFull ? "rgba(239,68,68,0.2)" : "rgba(74,222,128,0.2)",
               border: `2px solid ${isFull ? "rgba(239,68,68,0.5)" : "rgba(74,222,128,0.5)"}`,
               borderRadius: "14px", padding: "14px 28px",
               color: "white", fontSize: "26px", fontWeight: 600,
+              display: "flex", alignItems: "center",
             }}>
-              {isFull ? "⛔ Full" : `✅ ${spotsNum} spot${spotsNum !== 1 ? "s" : ""} left`}
+              {isFull ? "⛔ Full" : `✅ ${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left`}
             </div>
-
-            {/* Type chip */}
             <div style={{
-              display: "flex", alignItems: "center", gap: "10px",
-              background: type === "ranked" ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.1)",
-              border: `2px solid ${type === "ranked" ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.25)"}`,
+              background: gameType === "ranked" ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.1)",
+              border: `2px solid ${gameType === "ranked" ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.25)"}`,
               borderRadius: "14px", padding: "14px 28px",
               color: "white", fontSize: "26px", fontWeight: 600,
+              display: "flex", alignItems: "center",
             }}>
-              {type === "ranked" ? "🏆 Ranked" : "🤝 Friendly"}
+              {gameType === "ranked" ? "🏆 Ranked" : "🤝 Friendly"}
             </div>
           </div>
         </div>
 
-        {/* Bottom green bar */}
-        <div style={{
-          height: "8px",
-          background: "linear-gradient(90deg, #4ade80, #16a34a, #4ade80)",
-        }} />
+        {/* Bottom bar */}
+        <div style={{ height: "8px", background: "linear-gradient(90deg, #4ade80, #16a34a, #4ade80)" }} />
       </div>
     ),
     { width: 1200, height: 630 }
