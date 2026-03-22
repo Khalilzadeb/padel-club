@@ -48,6 +48,17 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     eloHistory.unshift({ date: matchesWithElo[0].date, elo: s.eloRating - totalEloChange, change: 0 });
   }
 
+  // If too many points, aggregate by month (last ELO value per month)
+  const chartHistory = eloHistory.length > 20
+    ? Object.values(
+        eloHistory.reduce((acc, point) => {
+          const month = point.date.slice(0, 7); // "YYYY-MM"
+          acc[month] = point; // overwrite → keeps last match of each month
+          return acc;
+        }, {} as Record<string, typeof eloHistory[0]>)
+      )
+    : eloHistory;
+
   const partnerCount: Record<string, number> = {};
   recentMatches.forEach((m) => {
     const myTeam = m.team1.playerIds.includes(playerId) ? m.team1.playerIds : m.team2.playerIds;
@@ -151,7 +162,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
           <Card className="p-5">
             <h2 className="font-semibold text-gray-900 mb-3">ELO History</h2>
-            <EloChart history={eloHistory} currentElo={s.eloRating} />
+            <EloChart history={chartHistory} currentElo={s.eloRating} />
           </Card>
 
           {Object.keys(partnerCount).length > 0 && (
