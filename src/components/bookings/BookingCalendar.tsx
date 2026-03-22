@@ -22,7 +22,7 @@ function getWeekDates(offset: number): Date[] {
   });
 }
 
-const HOURS = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`);
+const HOURS = Array.from({ length: 16 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`);
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function BookingCalendar({ courtId, bookings, onSlotSelect }: BookingCalendarProps) {
