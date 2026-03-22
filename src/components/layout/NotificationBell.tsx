@@ -125,13 +125,14 @@ export default function NotificationBell() {
             </div>
           )}
 
-          {notifications.length > 0 && (
-            <div className="px-4 py-2 border-t border-gray-50">
-              <p className="text-xs text-gray-300 flex items-center gap-1">
-                <CheckCheck className="w-3.5 h-3.5" /> Marked as read when opened
-              </p>
-            </div>
-          )}
+          <div className="px-4 py-2.5 border-t border-gray-50 flex items-center justify-between">
+            <p className="text-xs text-gray-300 flex items-center gap-1">
+              <CheckCheck className="w-3.5 h-3.5" /> Marked as read when opened
+            </p>
+            <Link href="/notifications" onClick={() => setOpen(false)} className="text-xs text-padel-green hover:underline font-medium">
+              See all
+            </Link>
+          </div>
         </div>
       )}
     </div>
