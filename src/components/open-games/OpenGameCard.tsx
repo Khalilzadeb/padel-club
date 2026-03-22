@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import OpenGameScoreForm from "@/components/open-games/OpenGameScoreForm";
 import { OpenGame, Player, Court } from "@/lib/types";
-import { Clock, MapPin, Users, ChevronRight, CheckCircle, AlertTriangle, Trophy, X, Copy, UserPlus } from "lucide-react";
+import { Clock, MapPin, Users, ChevronRight, CheckCircle, AlertTriangle, Trophy, X, Copy, UserPlus, Share2 } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
@@ -39,6 +39,21 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
   const [showTeamPick, setShowTeamPick] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const handleShare = () => {
+    const base = typeof window !== "undefined" ? window.location.origin : "";
+    const url = game.isPrivate && isCreator && game.joinCode
+      ? `${base}/open-games/${game.id}?code=${game.joinCode}`
+      : `${base}/open-games/${game.id}`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({ title: "PadelClub · Open Game", url });
+    } else {
+      navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    }
+  };
   const court = courts.find((c) => c.id === game.courtId);
   const joinedPlayers = game.playerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean) as Player[];
   const spotsLeft = game.maxPlayers - game.playerIds.length;
@@ -89,8 +104,15 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
             )}
           </div>
         </div>
-        {/* Badges */}
+        {/* Share + Badges */}
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <button
+            onClick={handleShare}
+            title="Share game"
+            className="text-gray-400 hover:text-padel-green dark:hover:text-green-400 transition-colors mb-0.5"
+          >
+            {shareCopied ? <CheckCircle className="w-4 h-4 text-padel-green" /> : <Share2 className="w-4 h-4" />}
+          </button>
           {isPending || isCompleted || game.status === "cancelled"
             ? statusBadge(game.status)
             : isFull

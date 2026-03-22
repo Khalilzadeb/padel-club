@@ -102,17 +102,24 @@ export default function OpenGamesPage() {
 
   const filtered = games.filter((g) => g.status === "open" || g.status === "full" || g.status === "pending_result");
 
-  // Scroll to highlighted game from notification link (?game=xxx)
+  // Handle ?game= scroll and ?joinCode= auto-join modal
   useEffect(() => {
-    if (!loading && filtered.length > 0) {
-      const params = new URLSearchParams(window.location.search);
-      const gameId = params.get("game");
-      if (gameId) {
-        setTimeout(() => {
-          const el = document.getElementById(`game-${gameId}`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 100);
-      }
+    const params = new URLSearchParams(window.location.search);
+    const gameId = params.get("game");
+    const joinCode = params.get("joinCode") ?? params.get("code");
+
+    if (joinCode && gameId) {
+      // Load game by ID and open join modal with code pre-filled
+      fetch(`/api/open-games/${gameId}`).then((r) => r.json()).then((g: OpenGame) => {
+        setCodeGame(g);
+        setCodeInput(joinCode.toUpperCase());
+        setShowCodeModal(true);
+      }).catch(() => {});
+    } else if (!loading && filtered.length > 0 && gameId) {
+      setTimeout(() => {
+        const el = document.getElementById(`game-${gameId}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
