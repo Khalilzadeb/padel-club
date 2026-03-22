@@ -47,6 +47,8 @@ export default function OpenGamesPage() {
     durationMinutes: number;
     eloRange: string;
     courtBookingStatus: "booked" | "not_booked";
+    gameType: "friendly" | "ranked";
+    isPrivate: boolean;
     notes?: string;
     invitePlayerIds?: string[];
   }) => {

@@ -21,6 +21,8 @@ interface Props {
     durationMinutes: number;
     eloRange: string;
     courtBookingStatus: "booked" | "not_booked";
+    gameType: "friendly" | "ranked";
+    isPrivate: boolean;
     notes?: string;
     invitePlayerIds?: string[];
   }) => void;
@@ -49,6 +51,8 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
   const [duration, setDuration] = useState(90);
   const [eloRange, setEloRange] = useState("150");
   const [courtBookingStatus, setCourtBookingStatus] = useState<"booked" | "not_booked">("not_booked");
+  const [gameType, setGameType] = useState<"friendly" | "ranked">("ranked");
+  const [isPrivate, setIsPrivate] = useState(false);
   const [notes, setNotes] = useState("");
   const [invitePlayerIds, setInvitePlayerIds] = useState<string[]>([]);
 
@@ -109,7 +113,7 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ courtId, date: selectedDate, startTime: selectedTime, durationMinutes: duration, eloRange, courtBookingStatus, notes: notes.trim() || undefined, invitePlayerIds: invitePlayerIds.length > 0 ? invitePlayerIds : undefined });
+    onSubmit({ courtId, date: selectedDate, startTime: selectedTime, durationMinutes: duration, eloRange, courtBookingStatus, gameType, isPrivate, notes: notes.trim() || undefined, invitePlayerIds: invitePlayerIds.length > 0 ? invitePlayerIds : undefined });
     onClose();
   };
 
@@ -271,6 +275,66 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
               >
                 <p className="font-medium">✅ Already booked</p>
                 <p className="text-xs mt-0.5 opacity-70">Court is confirmed</p>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Game Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setGameType("ranked")}
+                className={`py-3 px-3 rounded-xl text-sm border transition-all text-left ${
+                  gameType === "ranked"
+                    ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 text-blue-800 dark:text-blue-300 font-medium"
+                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                }`}
+              >
+                <p className="font-medium">🏆 Ranked</p>
+                <p className="text-xs mt-0.5 opacity-70">ELO rating changes</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setGameType("friendly")}
+                className={`py-3 px-3 rounded-xl text-sm border transition-all text-left ${
+                  gameType === "friendly"
+                    ? "bg-green-50 dark:bg-green-900/20 border-padel-green text-green-800 dark:text-green-300 font-medium"
+                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                }`}
+              >
+                <p className="font-medium">🤝 Friendly</p>
+                <p className="text-xs mt-0.5 opacity-70">No ELO changes</p>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Visibility</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setIsPrivate(false)}
+                className={`py-3 px-3 rounded-xl text-sm border transition-all text-left ${
+                  !isPrivate
+                    ? "bg-green-50 dark:bg-green-900/20 border-padel-green text-green-800 dark:text-green-300 font-medium"
+                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                }`}
+              >
+                <p className="font-medium">🌐 Public</p>
+                <p className="text-xs mt-0.5 opacity-70">Visible to everyone</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(true)}
+                className={`py-3 px-3 rounded-xl text-sm border transition-all text-left ${
+                  isPrivate
+                    ? "bg-purple-50 dark:bg-purple-900/20 border-purple-400 text-purple-800 dark:text-purple-300 font-medium"
+                    : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                }`}
+              >
+                <p className="font-medium">🔒 Private</p>
+                <p className="text-xs mt-0.5 opacity-70">Invite only</p>
               </button>
             </div>
           </div>

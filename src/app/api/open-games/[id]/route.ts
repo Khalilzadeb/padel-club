@@ -131,25 +131,31 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const t2Sets = sets.filter((s: SetScore) => s.team2Games > s.team1Games).length;
     const winnerId: "team1" | "team2" = t1Sets > t2Sets ? "team1" : "team2";
 
-    // Calculate ELO
-    const [p1, p2, p3, p4] = await Promise.all([
-      getPlayer(team1PlayerIds[0]), getPlayer(team1PlayerIds[1]),
-      getPlayer(team2PlayerIds[0]), getPlayer(team2PlayerIds[1]),
-    ]);
-    const team1Elos: [number, number] = [p1?.stats.eloRating ?? 1000, p2?.stats.eloRating ?? 1000];
-    const team2Elos: [number, number] = [p3?.stats.eloRating ?? 1000, p4?.stats.eloRating ?? 1000];
-    const { team1Change, team2Change } = calculateEloChanges(team1Elos, team2Elos, winnerId);
+    const isFriendly = game.gameType === "friendly";
 
-    const eloChanges: Record<string, number> = {
-      [team1PlayerIds[0]]: team1Change, [team1PlayerIds[1]]: team1Change,
-      [team2PlayerIds[0]]: team2Change, [team2PlayerIds[1]]: team2Change,
-    };
+    // Calculate ELO (only for ranked games)
+    let eloChanges: Record<string, number> = {};
+    let team1Change = 0;
+    let team2Change = 0;
+    if (!isFriendly) {
+      const [p1, p2, p3, p4] = await Promise.all([
+        getPlayer(team1PlayerIds[0]), getPlayer(team1PlayerIds[1]),
+        getPlayer(team2PlayerIds[0]), getPlayer(team2PlayerIds[1]),
+      ]);
+      const team1Elos: [number, number] = [p1?.stats.eloRating ?? 1000, p2?.stats.eloRating ?? 1000];
+      const team2Elos: [number, number] = [p3?.stats.eloRating ?? 1000, p4?.stats.eloRating ?? 1000];
+      ({ team1Change, team2Change } = calculateEloChanges(team1Elos, team2Elos, winnerId));
+      eloChanges = {
+        [team1PlayerIds[0]]: team1Change, [team1PlayerIds[1]]: team1Change,
+        [team2PlayerIds[0]]: team2Change, [team2PlayerIds[1]]: team2Change,
+      };
+    }
 
     // Create match
     const match: Match = {
       id: `m${crypto.randomUUID().slice(0, 8)}`,
       courtId: game.courtId,
-      type: "casual",
+      type: isFriendly ? "casual" : "ranked",
       format: "best-of-3",
       status: "completed",
       team1: { playerIds: team1PlayerIds },
@@ -159,17 +165,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       date: game.date,
       startTime: game.startTime,
       durationMinutes: game.durationMinutes,
-      eloChanges,
+      eloChanges: isFriendly ? undefined : eloChanges,
     };
     const saved = await addMatch(match);
 
-    // Update ELO for all 4 players
-    await Promise.all([
-      updatePlayerElo(team1PlayerIds[0], team1Change, winnerId === "team1"),
-      updatePlayerElo(team1PlayerIds[1], team1Change, winnerId === "team1"),
-      updatePlayerElo(team2PlayerIds[0], team2Change, winnerId === "team2"),
-      updatePlayerElo(team2PlayerIds[1], team2Change, winnerId === "team2"),
-    ]);
+    // Update ELO for all 4 players (ranked only)
+    if (!isFriendly) {
+      await Promise.all([
+        updatePlayerElo(team1PlayerIds[0], team1Change, winnerId === "team1"),
+        updatePlayerElo(team1PlayerIds[1], team1Change, winnerId === "team1"),
+        updatePlayerElo(team2PlayerIds[0], team2Change, winnerId === "team2"),
+        updatePlayerElo(team2PlayerIds[1], team2Change, winnerId === "team2"),
+      ]);
+    }
 
     // Mark open game as completed
     await supabase.from("open_games").update({ status: "completed", match_id: saved.id }).eq("id", id);
@@ -182,7 +190,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           playerId: pid,
           type: "score_confirmed",
           title: "Match result confirmed!",
-          body: `ELO change: ${change > 0 ? "+" : ""}${change}`,
+          body: isFriendly ? "Friendly game recorded" : `ELO change: ${change > 0 ? "+" : ""}${change}`,
           link: `/matches/${saved.id}`,
         });
       })

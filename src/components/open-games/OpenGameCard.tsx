@@ -94,6 +94,11 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
               ? <Badge variant="red">Full</Badge>
               : <Badge variant="green">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</Badge>
           }
+          {game.gameType === "friendly"
+            ? <Badge variant="gray">Friendly</Badge>
+            : <Badge variant="blue">Ranked</Badge>
+          }
+          {game.isPrivate && <Badge variant="purple">Private</Badge>}
           {game.status !== "cancelled" && !isCompleted && (
             game.courtBookingStatus === "booked"
               ? <Badge variant="green">Booked ✓</Badge>

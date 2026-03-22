@@ -19,7 +19,9 @@ export async function GET(req: NextRequest) {
   const games = await getOpenGames({ status, date });
 
   const now = new Date();
-  const upcoming = games.filter((g) => new Date(`${g.date}T${g.startTime}:00+04:00`) > now);
+  const upcoming = games.filter(
+    (g) => new Date(`${g.date}T${g.startTime}:00+04:00`) > now && !g.isPrivate
+  );
 
   return NextResponse.json(upcoming);
 }
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest) {
   if (!payload?.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { courtId, date, startTime, durationMinutes, eloRange, notes, courtBookingStatus, invitePlayerIds } = body;
+  const { courtId, date, startTime, durationMinutes, eloRange, notes, courtBookingStatus, invitePlayerIds, gameType, isPrivate } = body;
 
   if (Array.isArray(invitePlayerIds) && invitePlayerIds.length > 5) {
     return NextResponse.json({ error: "Maximum 5 players can be invited" }, { status: 400 });
@@ -77,6 +79,8 @@ export async function POST(req: NextRequest) {
     notes: notes || undefined,
     status: "open",
     courtBookingStatus: (courtBookingStatus as "booked" | "not_booked") ?? "not_booked",
+    gameType: (gameType as "friendly" | "ranked") ?? "ranked",
+    isPrivate: isPrivate === true,
     teams: { team1: [user.playerId], team2: [] },
   });
 
