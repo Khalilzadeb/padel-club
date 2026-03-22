@@ -45,7 +45,7 @@ export async function getPlayer(id: string): Promise<Player | null> {
 
 export async function createPlayer(id: string, name: string, email: string): Promise<void> {
   const today = new Date().toISOString().split('T')[0]
-  await supabase.from('players').insert({
+  const { error } = await supabase.from('players').insert({
     id,
     name,
     level: 'beginner',
@@ -66,6 +66,7 @@ export async function createPlayer(id: string, name: string, email: string): Pro
     contact_email: email,
     onboarding_done: false,
   })
+  if (error) console.error('[createPlayer] failed:', error.message)
 }
 
 export async function updatePlayerProfile(id: string, updates: { elo_rating?: number; level?: string }): Promise<void> {
@@ -86,7 +87,7 @@ export async function updatePlayerElo(id: string, eloDelta: number, won: boolean
     : (currentStreak <= 0 ? currentStreak - 1 : -1)
 
   await supabase.from('players').update({
-    elo_rating: Math.max(100, (data.elo_rating as number) + eloDelta),
+    elo_rating: Math.min(2000, Math.max(300, (data.elo_rating as number) + eloDelta)),
     matches_played: (data.matches_played as number) + 1,
     matches_won: (data.matches_won as number) + (won ? 1 : 0),
     matches_lost: (data.matches_lost as number) + (won ? 0 : 1),

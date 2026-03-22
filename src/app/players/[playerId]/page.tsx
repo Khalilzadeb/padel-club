@@ -10,10 +10,7 @@ import { TrendingUp, TrendingDown, Trophy, Calendar, Target, MessageCircle } fro
 import EditProfileButton from "@/components/players/EditProfileButton";
 import ChallengeButton from "@/components/players/ChallengeButton";
 import EloChart from "@/components/players/EloChart";
-
-const levelVariant: Record<string, "green" | "blue" | "purple" | "gray"> = {
-  pro: "purple", advanced: "blue", intermediate: "green", beginner: "gray",
-};
+import { eloToDisplayLevel, eloToLevelVariant } from "@/lib/elo";
 
 export default async function PlayerProfilePage({ params }: { params: Promise<{ playerId: string }> }) {
   const { playerId } = await params;
@@ -92,7 +89,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-3xl font-black text-gray-900">{player.name}</h1>
-              <Badge variant={levelVariant[player.level]} className="text-sm px-3 py-1">{player.level}</Badge>
+              <Badge variant={eloToLevelVariant(s.eloRating)} className="text-sm px-3 py-1">Lv {eloToDisplayLevel(s.eloRating)}</Badge>
             </div>
             <p className="text-gray-500 mt-1 capitalize">
               {player.position} · {player.hand}-handed{player.gender ? ` · ${player.gender}` : ""}

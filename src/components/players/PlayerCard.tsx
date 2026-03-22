@@ -3,13 +3,7 @@ import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import { Player } from "@/lib/types";
-
-const levelVariant: Record<string, "green" | "blue" | "purple" | "gray"> = {
-  pro: "purple",
-  advanced: "blue",
-  intermediate: "green",
-  beginner: "gray",
-};
+import { eloToDisplayLevel, eloToLevelVariant } from "@/lib/elo";
 
 interface PlayerCardProps { player: Player; }
 
@@ -26,7 +20,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold text-gray-900 truncate">{player.name}</h3>
-              <Badge variant={levelVariant[player.level]}>{player.level}</Badge>
+              <Badge variant={eloToLevelVariant(player.stats.eloRating)}>Lv {eloToDisplayLevel(player.stats.eloRating)}</Badge>
             </div>
             <p className="text-xs text-gray-500 mt-0.5 capitalize">{player.position} · {player.hand}-handed</p>
           </div>

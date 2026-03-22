@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { eloToDisplayLevel } from "@/lib/elo";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 
 type Position = "drive" | "revés" | "flexible";
@@ -90,11 +91,18 @@ const SURVEY: {
 ];
 
 // Max pts = 3+4+2+0+3+4+4 = 20
-function calcElo(pts: number): { elo: number; level: string; emoji: string } {
-  if (pts <= 5)  return { elo: 600,  level: "beginner",     emoji: "🌱" };
-  if (pts <= 10) return { elo: 900,  level: "intermediate", emoji: "⚡" };
-  if (pts <= 15) return { elo: 1200, level: "advanced",     emoji: "🔥" };
-  return         { elo: 1500, level: "pro",          emoji: "🏆" };
+// Linear ELO range: 600 (0 pts) → 1400 (20 pts)
+function calcElo(pts: number): { elo: number; dbLevel: string; emoji: string } {
+  const elo = Math.round(600 + (pts / 20) * 800);
+  const dbLevel =
+    elo < 800  ? "beginner" :
+    elo < 1050 ? "intermediate" :
+    elo < 1250 ? "advanced" : "pro";
+  const emoji =
+    elo < 800  ? "🌱" :
+    elo < 1050 ? "⚡" :
+    elo < 1250 ? "🔥" : "🏆";
+  return { elo, dbLevel, emoji };
 }
 
 // Steps: 1=name, 2-8=survey Q1-Q7, 9=position, 10=hand, 11=gender, 12=result
@@ -109,7 +117,7 @@ const POSITIONS: { value: Position; label: string; side: string; desc: string }[
 ];
 
 export default function OnboardingPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -124,7 +132,9 @@ export default function OnboardingPage() {
   const inSurvey = step >= SURVEY_START && step <= SURVEY_END;
   const currentQ = inSurvey ? SURVEY[surveyIndex] : null;
 
-  const totalPts = Object.values(surveyAnswers).reduce((a, b) => a + b, 0);
+  const totalPts = Object.entries(surveyAnswers)
+    .filter(([key]) => !key.endsWith("_idx"))
+    .reduce((a, [, b]) => a + b, 0);
   const result = calcElo(totalPts);
 
   const canNext = () => {
@@ -137,12 +147,12 @@ export default function OnboardingPage() {
     if (!user?.playerId) return;
     setSaving(true);
     try {
-      await fetch(`/api/players/${user.playerId}`, {
+      const res = await fetch(`/api/players/${user.playerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
-          level: result.level,
+          level: result.dbLevel,
           position,
           hand,
           gender: gender || undefined,
@@ -150,8 +160,14 @@ export default function OnboardingPage() {
           onboarding_done: true,
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Failed to save profile. Please try again.");
+        return;
+      }
+      // Update cached user immediately so OnboardingGuard doesn't re-trigger
+      updateUser({ onboardingDone: true, name: name.trim() });
       router.replace("/");
-      router.refresh();
     } finally {
       setSaving(false);
     }
@@ -312,15 +328,15 @@ export default function OnboardingPage() {
             <div className="text-center space-y-5 py-2">
               <div>
                 <p className="text-5xl mb-3">{result.emoji}</p>
-                <h2 className="text-2xl font-black text-gray-900">Your initial ELO</h2>
+                <h2 className="text-2xl font-black text-gray-900">Your initial level</h2>
                 <p className="text-gray-500 text-sm mt-1">Based on your level test answers</p>
               </div>
               <div className="bg-padel-green rounded-2xl py-6 px-8">
-                <p className="text-5xl font-black text-white">{result.elo}</p>
-                <p className="text-green-100 text-sm mt-1 capitalize font-medium">{result.level}</p>
+                <p className="text-6xl font-black text-white">{eloToDisplayLevel(result.elo)}</p>
+                <p className="text-green-100 text-sm mt-1 font-medium">Level · {result.elo} ELO</p>
               </div>
               <p className="text-xs text-gray-400 leading-relaxed">
-                This is your starting ELO. It will automatically update after every ranked match you play.
+                This is your starting level. It will automatically update after every ranked match. Max level is 7.0.
               </p>
             </div>
           )}

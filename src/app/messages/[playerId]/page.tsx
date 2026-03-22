@@ -6,6 +6,7 @@ import Avatar from "@/components/ui/Avatar";
 import { ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
 import { Player } from "@/lib/types";
+import { eloToDisplayLevel } from "@/lib/elo";
 
 interface Message {
   id: string;
@@ -106,7 +107,7 @@ export default function ChatPage() {
             <Avatar name={otherPlayer.name} imageUrl={otherPlayer.avatarUrl} size="sm" />
             <div>
               <p className="text-sm font-semibold text-gray-900">{otherPlayer.name}</p>
-              <p className="text-xs text-gray-400 capitalize">{otherPlayer.level}</p>
+              <p className="text-xs text-gray-400">Lv {eloToDisplayLevel(otherPlayer.stats.eloRating)}</p>
             </div>
           </Link>
         )}

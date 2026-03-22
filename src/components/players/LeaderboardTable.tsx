@@ -3,17 +3,11 @@ import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import { Player } from "@/lib/types";
 import { TrendingUp, TrendingDown, Minus, Trophy } from "lucide-react";
+import { eloToDisplayLevel, eloToLevelVariant } from "@/lib/elo";
 
 interface LeaderboardTableProps {
   players: Player[];
 }
-
-const levelVariant: Record<string, "green" | "blue" | "purple" | "gray"> = {
-  pro: "purple",
-  advanced: "blue",
-  intermediate: "green",
-  beginner: "gray",
-};
 
 function winRate(p: Player) {
   if (p.stats.matchesPlayed === 0) return 0;
@@ -64,7 +58,7 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
                   </Link>
                 </td>
                 <td className="py-3 px-4 hidden sm:table-cell">
-                  <Badge variant={levelVariant[player.level]}>{player.level}</Badge>
+                  <Badge variant={eloToLevelVariant(player.stats.eloRating)}>Lv {eloToDisplayLevel(player.stats.eloRating)}</Badge>
                 </td>
                 <td className="py-3 px-4 text-right">
                   <span className="text-sm font-bold text-gray-900">{player.stats.eloRating}</span>
