@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const games = await getOpenGames({ status, date });
 
   const now = new Date();
-  const upcoming = games.filter((g) => new Date(`${g.date}T${g.startTime}`) > now);
+  const upcoming = games.filter((g) => new Date(`${g.date}T${g.startTime}:00+04:00`) > now);
 
   return NextResponse.json(upcoming);
 }
