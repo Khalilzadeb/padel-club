@@ -5,6 +5,10 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { MapPin, Clock, Users } from "lucide-react";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const game = await getOpenGame(id);
@@ -15,6 +19,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const spotsLeft = game.maxPlayers - game.playerIds.length;
   const title = `Open Game · ${courtName}`;
   const description = `${game.date} at ${game.startTime} · ${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left · ${game.gameType === "friendly" ? "Friendly 🤝" : "Ranked 🏆"}`;
+
+  const ogParams = new URLSearchParams({
+    court: courtName,
+    date: game.date,
+    time: game.startTime,
+    endTime: game.endTime,
+    spots: String(spotsLeft),
+    type: game.gameType,
+  });
+  const imageUrl = `${siteUrl}/api/og?${ogParams.toString()}`;
+
   return {
     title,
     description,
@@ -22,11 +37,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title,
       description,
       type: "website",
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [imageUrl],
     },
   };
 }

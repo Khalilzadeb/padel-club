@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   "/api/auth/signup",
   "/api/auth/google",
   "/open-games/",  // share pages + OG images — must be public for WhatsApp/Telegram previews
+  "/api/og",       // OG image generator — must be public
 ];
 
 export async function middleware(req: NextRequest) {
