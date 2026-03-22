@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Search, MessageCircle, Shield } from "lucide-react";
+import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Search, MessageCircle, Shield, Target } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
@@ -16,7 +16,7 @@ const navLinks = [
   { href: "/matches", label: "Matches", icon: Swords },
   { href: "/tournaments", label: "Tournaments", icon: Trophy },
   { href: "/messages", label: "Messages", icon: MessageCircle },
-  { href: "/challenges", label: "Challenges", icon: Swords },
+  { href: "/challenges", label: "Challenges", icon: Target },
 ];
 
 export default function Navbar() {

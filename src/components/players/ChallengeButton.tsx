@@ -11,6 +11,19 @@ interface Props {
   courts: Court[];
 }
 
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES = ["00", "15", "30", "45"];
+
+function groupCourtsByLocation(courts: Court[]): Record<string, Court[]> {
+  const groups: Record<string, Court[]> = {};
+  for (const c of courts) {
+    const key = c.location?.trim() || "Other";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(c);
+  }
+  return groups;
+}
+
 export default function ChallengeButton({ player, courts }: Props) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -18,13 +31,17 @@ export default function ChallengeButton({ player, courts }: Props) {
   const [sent, setSent] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
-  const [courtId, setCourtId] = useState(courts[0]?.id ?? "");
+  const activeCourts = courts.filter((c) => c.isActive);
+  const [courtId, setCourtId] = useState(activeCourts[0]?.id ?? "");
   const [date, setDate] = useState(today);
-  const [time, setTime] = useState("10:00");
+  const [hour, setHour] = useState("10");
+  const [minute, setMinute] = useState("00");
   const [matchType, setMatchType] = useState<"casual" | "ranked">("casual");
   const [message, setMessage] = useState("");
 
   if (!user?.playerId || user.playerId === player.id) return null;
+
+  const proposedTime = `${hour.padStart(2, "0")}:${minute}`;
 
   const handleSend = async () => {
     setSending(true);
@@ -32,7 +49,7 @@ export default function ChallengeButton({ player, courts }: Props) {
       const res = await fetch("/api/challenges", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ challengedId: player.id, courtId, proposedDate: date, proposedTime: time, matchType, message }),
+        body: JSON.stringify({ challengedId: player.id, courtId, proposedDate: date, proposedTime, matchType, message }),
       });
       if (res.ok) { setSent(true); setTimeout(() => { setOpen(false); setSent(false); }, 1500); }
       else { const err = await res.json(); alert(err.error ?? "Failed to send challenge"); }
@@ -42,6 +59,9 @@ export default function ChallengeButton({ player, courts }: Props) {
   };
 
   const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green";
+  const selectClass = inputClass + " bg-white";
+  const courtGroups = groupCourtsByLocation(activeCourts);
+  const hasGroups = Object.keys(courtGroups).length > 1 || (Object.keys(courtGroups).length === 1 && Object.keys(courtGroups)[0] !== "Other");
 
   return (
     <>
@@ -77,22 +97,39 @@ export default function ChallengeButton({ player, courts }: Props) {
             {/* Court */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">Court</label>
-              <select value={courtId} onChange={(e) => setCourtId(e.target.value)} className={inputClass}>
-                {courts.filter((c) => c.isActive).map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
+              <select value={courtId} onChange={(e) => setCourtId(e.target.value)} className={selectClass}>
+                {hasGroups
+                  ? Object.entries(courtGroups).map(([location, lCourts]) => (
+                      <optgroup key={location} label={location}>
+                        {lCourts.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </optgroup>
+                    ))
+                  : activeCourts.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))
+                }
               </select>
             </div>
 
-            {/* Date + Time */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Date</label>
-                <input type="date" value={date} min={today} onChange={(e) => setDate(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Time</label>
-                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={inputClass} />
+            {/* Date */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Date</label>
+              <input type="date" value={date} min={today} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+            </div>
+
+            {/* Time — 24h selects */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Time</label>
+              <div className="flex items-center gap-2">
+                <select value={hour} onChange={(e) => setHour(e.target.value)} className={selectClass}>
+                  {HOURS.map((h) => <option key={h} value={h}>{h}:00</option>)}
+                </select>
+                <span className="text-gray-400 font-semibold">:</span>
+                <select value={minute} onChange={(e) => setMinute(e.target.value)} className={selectClass}>
+                  {MINUTES.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
               </div>
             </div>
 
@@ -110,7 +147,7 @@ export default function ChallengeButton({ player, courts }: Props) {
 
             <div className="flex gap-3 pt-1">
               <Button type="button" variant="secondary" onClick={() => setOpen(false)} className="flex-1">Cancel</Button>
-              <Button onClick={handleSend} disabled={sending || !courtId || !date || !time} className="flex-1">
+              <Button onClick={handleSend} disabled={sending || !courtId || !date} className="flex-1">
                 {sending ? "Sending..." : "Send Challenge"}
               </Button>
             </div>
