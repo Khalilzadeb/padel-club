@@ -27,12 +27,14 @@ const GENDER_OPTIONS = [
 ];
 
 export default function EditProfileForm({ player, onSave, onClose }: Props) {
+  const [name, setName] = useState(player.name);
   const [hand, setHand] = useState(player.hand);
   const [position, setPosition] = useState(player.position);
   const [gender, setGender] = useState(player.gender ?? "");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(player.avatarUrl);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +45,11 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
   };
 
   const handleSave = async () => {
+    if (name.trim().length < 2) {
+      setNameError("Name must be at least 2 characters");
+      return;
+    }
+    setNameError("");
     setSaving(true);
     try {
       // Upload avatar if changed
@@ -56,7 +63,7 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
       await fetch(`/api/players/${player.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hand, position, gender: gender || undefined }),
+        body: JSON.stringify({ name: name.trim(), hand, position, gender: gender || undefined }),
       });
 
       onSave();
@@ -89,6 +96,19 @@ export default function EditProfileForm({ player, onSave, onClose }: Props) {
         </div>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
         <p className="text-xs text-gray-400">Click the camera icon to upload a photo</p>
+      </div>
+
+      {/* Name */}
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1.5">Full name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => { setName(e.target.value); setNameError(""); }}
+          className={selectClass}
+          placeholder="Your name"
+        />
+        {nameError && <p className="text-xs text-red-500 mt-1">{nameError}</p>}
       </div>
 
       {/* Hand */}

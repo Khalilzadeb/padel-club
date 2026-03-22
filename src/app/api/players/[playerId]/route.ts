@@ -24,10 +24,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pl
   if (user?.playerId !== playerId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const allowed = ["hand", "position", "gender"];
+  const allowed = ["hand", "position", "gender", "name"];
   const updates: Record<string, string> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) updates[key] = body[key];
+  }
+
+  if (updates.name !== undefined && updates.name.trim().length < 2) {
+    return NextResponse.json({ error: "Name must be at least 2 characters" }, { status: 400 });
   }
 
   if (Object.keys(updates).length === 0) {

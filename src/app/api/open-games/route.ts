@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOpenGames, createOpenGame } from "@/lib/data/open-games";
 import { verifyToken } from "@/lib/auth";
-import { getPlayer } from "@/lib/data/players";
+import { getPlayer, getPlayers } from "@/lib/data/players";
+import { createNotification } from "@/lib/data/notifications";
 
 function addMinutes(time: string, minutes: number): string {
   const [h, m] = time.split(":").map(Number);
@@ -70,6 +71,34 @@ export async function POST(req: NextRequest) {
     courtBookingStatus: (courtBookingStatus as "booked" | "not_booked") ?? "not_booked",
     teams: { team1: [user.playerId], team2: [] },
   });
+
+  // Send notifications to eligible players (ELO in range, excluding creator)
+  try {
+    const allPlayers = await getPlayers();
+    const eligible = allPlayers.filter((p) => {
+      if (p.id === user.playerId) return false;
+      const elo = p.stats.eloRating;
+      if (eloMin !== undefined && elo < eloMin) return false;
+      if (eloMax !== undefined && elo > eloMax) return false;
+      return true;
+    });
+
+    const eloLabel = eloMin !== undefined && eloMax !== undefined
+      ? ` · ELO ${eloMin}–${eloMax}`
+      : "";
+
+    await Promise.all(eligible.map((p) =>
+      createNotification({
+        playerId: p.id,
+        type: "open_game",
+        title: "New open game available",
+        body: `${player.name} opened a game on ${date} at ${startTime}${eloLabel}`,
+        link: "/open-games",
+      })
+    ));
+  } catch {
+    // Notifications are non-critical; don't fail the request
+  }
 
   return NextResponse.json(game, { status: 201 });
 }
