@@ -32,6 +32,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // ── JOIN ─────────────────────────────────────────────────────────────────
   if (action === "join") {
     const teamNumber = (body.teamNumber as 1 | 2) ?? 1;
+    const joinCode = body.joinCode as string | undefined;
+
+    // For private games: verify join code if player not already invited
+    const gameCheck = await getOpenGame(id);
+    if (gameCheck?.isPrivate) {
+      const alreadyAllowed = gameCheck.playerIds.includes(user.playerId) || (gameCheck.invitedPlayerIds ?? []).includes(user.playerId);
+      if (!alreadyAllowed) {
+        if (!joinCode || joinCode.toUpperCase() !== gameCheck.joinCode) {
+          return NextResponse.json({ error: "Invalid join code" }, { status: 403 });
+        }
+        // Add to invitedPlayerIds so they can see the game going forward
+        const { supabase } = await import("@/lib/supabase");
+        const updated = [...(gameCheck.invitedPlayerIds ?? []), user.playerId];
+        await supabase.from("open_games").update({ invited_player_ids: updated }).eq("id", id);
+      }
+    }
+
     const { game, error } = await joinOpenGame(id, user.playerId, teamNumber);
     if (!game) return NextResponse.json({ error: error ?? "Cannot join this game" }, { status: 400 });
     const joiner = await getPlayer(user.playerId);
@@ -197,6 +214,35 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     );
 
     return NextResponse.json({ matchId: saved.id });
+  }
+
+  // ── INVITE PLAYER ────────────────────────────────────────────────────────
+  if (action === "invite_player") {
+    const game = await getOpenGame(id);
+    if (!game) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (game.createdBy !== user.playerId) return NextResponse.json({ error: "Only the host can invite" }, { status: 403 });
+    if (game.status === "cancelled" || game.status === "completed") return NextResponse.json({ error: "Game is no longer active" }, { status: 400 });
+
+    const inviteeId = body.playerId as string;
+    if (!inviteeId) return NextResponse.json({ error: "Missing playerId" }, { status: 400 });
+    if (game.playerIds.includes(inviteeId)) return NextResponse.json({ error: "Player already in game" }, { status: 400 });
+
+    const existing = game.invitedPlayerIds ?? [];
+    if (!existing.includes(inviteeId)) {
+      const { supabase } = await import("@/lib/supabase");
+      await supabase.from("open_games").update({ invited_player_ids: [...existing, inviteeId] }).eq("id", id);
+    }
+
+    const host = await getPlayer(user.playerId);
+    await createNotification({
+      playerId: inviteeId,
+      type: "game_invite",
+      title: `${host?.name ?? "Host"} invited you to a game!`,
+      body: `${game.date} at ${game.startTime}`,
+      link: `/open-games?game=${id}`,
+    });
+
+    return NextResponse.json({ ok: true });
   }
 
   // ── DISPUTE SCORE ────────────────────────────────────────────────────────

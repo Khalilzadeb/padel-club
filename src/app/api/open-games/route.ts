@@ -3,6 +3,7 @@ import { getOpenGames, createOpenGame } from "@/lib/data/open-games";
 import { verifyToken } from "@/lib/auth";
 import { getPlayer, getPlayers } from "@/lib/data/players";
 import { createNotification } from "@/lib/data/notifications";
+import crypto from "crypto";
 
 function addMinutes(time: string, minutes: number): string {
   const [h, m] = time.split(":").map(Number);
@@ -16,7 +17,15 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") ?? undefined;
   const date = searchParams.get("date") ?? undefined;
+  const code = searchParams.get("code") ?? undefined;
   const games = await getOpenGames({ status, date });
+
+  // Join-by-code lookup: return the single matching game (bypasses private filter)
+  if (code) {
+    const match = games.find((g) => g.joinCode === code.toUpperCase() && g.status !== "cancelled" && g.status !== "completed");
+    if (!match) return NextResponse.json({ error: "Invalid or expired code" }, { status: 404 });
+    return NextResponse.json(match);
+  }
 
   // Determine current user's playerId (if authenticated)
   let currentPlayerId: string | null = null;
@@ -98,6 +107,7 @@ export async function POST(req: NextRequest) {
     courtBookingStatus: (courtBookingStatus as "booked" | "not_booked") ?? "not_booked",
     gameType: (gameType as "friendly" | "ranked") ?? "ranked",
     isPrivate: isPrivate === true,
+    joinCode: isPrivate === true ? crypto.randomBytes(3).toString("hex").toUpperCase() : undefined,
     invitedPlayerIds: Array.isArray(invitePlayerIds) ? invitePlayerIds : [],
     teams: { team1: [user.playerId], team2: [] },
   });

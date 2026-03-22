@@ -146,6 +146,7 @@ export interface OpenGame {
   gameType: "friendly" | "ranked";
   isPrivate: boolean;
   invitedPlayerIds?: string[];
+  joinCode?: string;
   teams?: { team1: string[]; team2: string[] };
   pendingScore?: PendingScore;
   submittedBy?: string;

@@ -4,7 +4,8 @@ import OpenGameCard from "@/components/open-games/OpenGameCard";
 import OpenGameForm from "@/components/open-games/OpenGameForm";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import { Plus, Users } from "lucide-react";
+import Avatar from "@/components/ui/Avatar";
+import { Plus, Users, KeyRound } from "lucide-react";
 import { OpenGame, Player, Court } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils/cn";
@@ -17,6 +18,10 @@ export default function OpenGamesPage() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeGame, setCodeGame] = useState<OpenGame | null>(null);
+  const [codeError, setCodeError] = useState("");
+  const [showCodeModal, setShowCodeModal] = useState(false);
 
   const currentPlayer = players.find((p) => user?.playerId ? p.id === user.playerId : false);
 
@@ -68,6 +73,15 @@ export default function OpenGamesPage() {
     }
   };
 
+  const handleJoinByCode = async () => {
+    if (!codeInput.trim()) return;
+    setCodeError("");
+    const res = await fetch(`/api/open-games?code=${codeInput.trim().toUpperCase()}`);
+    if (!res.ok) { setCodeError("Kod tapılmadı və ya artıq bitib"); return; }
+    const game = await res.json() as OpenGame;
+    setCodeGame(game);
+  };
+
   const handleAction = async (id: string, action: string, extra?: object) => {
     setActionLoading(true);
     try {
@@ -110,11 +124,18 @@ export default function OpenGamesPage() {
           <h1 className="text-3xl font-black text-gray-900">Games</h1>
           <p className="text-gray-500 mt-1">Join an open game or post your own</p>
         </div>
-        {user && (
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="w-4 h-4" /> Post Game
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {user && (
+            <Button variant="secondary" onClick={() => setShowCodeModal(true)}>
+              <KeyRound className="w-4 h-4" /> Join with code
+            </Button>
+          )}
+          {user && (
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="w-4 h-4" /> Post Game
+            </Button>
+          )}
+        </div>
       </div>
 
 
@@ -155,6 +176,7 @@ export default function OpenGamesPage() {
                   onConfirmScore={(id) => handleAction(id, "confirm_score")}
                   onDisputeScore={(id) => handleAction(id, "dispute_score")}
                   onUpdateBookingStatus={(id, status) => handleAction(id, "update_booking_status", { status })}
+                  onInvitePlayer={(id, playerId) => handleAction(id, "invite_player", { playerId })}
                   loading={actionLoading}
                 />
               </div>
@@ -173,6 +195,62 @@ export default function OpenGamesPage() {
           onSubmit={handleCreate}
           onClose={() => setShowForm(false)}
         />
+      </Modal>
+
+      <Modal isOpen={showCodeModal} onClose={() => { setShowCodeModal(false); setCodeGame(null); setCodeInput(""); setCodeError(""); }} title="Join with Code" size="sm">
+        <div className="space-y-4">
+          <div>
+            <input
+              value={codeInput}
+              onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && handleJoinByCode()}
+              placeholder="Enter 6-character code"
+              maxLength={6}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-mono tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            {codeError && <p className="text-xs text-red-500 mt-1">{codeError}</p>}
+          </div>
+          {!codeGame ? (
+            <Button className="w-full" onClick={handleJoinByCode}>Find Game</Button>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  {courts.find((c) => c.id === codeGame.courtId)?.name ?? codeGame.courtId}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{codeGame.date} · {codeGame.startTime} – {codeGame.endTime}</p>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  {codeGame.playerIds.map((pid) => {
+                    const p = players.find((pl) => pl.id === pid);
+                    if (!p) return null;
+                    return (
+                      <div key={pid} className="flex items-center gap-1">
+                        <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
+                        <span className="text-xs text-gray-600 dark:text-gray-300">{p.name.split(" ")[0]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {codeGame.teams ? (
+                  <>
+                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => { handleAction(codeGame.id, "join", { teamNumber: 1, joinCode: codeInput }); setShowCodeModal(false); setCodeGame(null); setCodeInput(""); }}>
+                      Join Team 1
+                    </Button>
+                    <Button className="flex-1 bg-orange-500 hover:bg-orange-600" onClick={() => { handleAction(codeGame.id, "join", { teamNumber: 2, joinCode: codeInput }); setShowCodeModal(false); setCodeGame(null); setCodeInput(""); }}>
+                      Join Team 2
+                    </Button>
+                  </>
+                ) : (
+                  <Button className="flex-1" onClick={() => { handleAction(codeGame.id, "join", { joinCode: codeInput }); setShowCodeModal(false); setCodeGame(null); setCodeInput(""); }}>
+                    Join Game
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </Modal>
     </div>
   );

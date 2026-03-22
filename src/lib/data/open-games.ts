@@ -20,6 +20,7 @@ function toModel(row: Record<string, unknown>): OpenGame {
     gameType: (row.game_type as OpenGame['gameType']) ?? 'ranked',
     isPrivate: (row.is_private as boolean) ?? false,
     invitedPlayerIds: (row.invited_player_ids as string[]) ?? [],
+    joinCode: row.join_code as string | undefined,
     teams: row.teams as OpenGame['teams'] ?? undefined,
     pendingScore: row.pending_score as OpenGame['pendingScore'],
     submittedBy: row.submitted_by as string | undefined,
@@ -61,6 +62,7 @@ export async function createOpenGame(game: Omit<OpenGame, 'createdAt'>): Promise
     game_type: game.gameType ?? 'ranked',
     is_private: game.isPrivate ?? false,
     invited_player_ids: game.invitedPlayerIds ?? [],
+    join_code: game.joinCode ?? null,
     teams: game.teams ?? null,
   }).select().single()
   if (error) throw error

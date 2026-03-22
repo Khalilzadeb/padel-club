@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import OpenGameScoreForm from "@/components/open-games/OpenGameScoreForm";
 import { OpenGame, Player, Court } from "@/lib/types";
-import { Clock, MapPin, Users, ChevronRight, Timer, CheckCircle, AlertTriangle, Trophy, X } from "lucide-react";
+import { Clock, MapPin, Users, ChevronRight, CheckCircle, AlertTriangle, Trophy, X, Copy, UserPlus } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
@@ -22,6 +22,7 @@ interface Props {
   onConfirmScore: (id: string) => void;
   onDisputeScore: (id: string) => void;
   onUpdateBookingStatus: (id: string, status: "booked" | "failed") => void;
+  onInvitePlayer: (id: string, playerId: string) => void;
   loading?: boolean;
 }
 
@@ -33,9 +34,11 @@ const statusBadge = (status: OpenGame["status"]) => {
   return null;
 };
 
-export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, onUpdateBookingStatus, loading }: Props) {
+export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, onUpdateBookingStatus, onInvitePlayer, loading }: Props) {
   const [showScoreForm, setShowScoreForm] = useState(false);
   const [showTeamPick, setShowTeamPick] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const court = courts.find((c) => c.id === game.courtId);
   const joinedPlayers = game.playerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean) as Player[];
   const spotsLeft = game.maxPlayers - game.playerIds.length;
@@ -182,6 +185,20 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
         </div>
       )}
 
+      {/* Join code — visible to host only */}
+      {isCreator && game.isPrivate && game.joinCode && (
+        <div className="mb-3 flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg px-3 py-2">
+          <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">Join code:</span>
+          <span className="font-mono font-bold text-purple-800 dark:text-purple-300 tracking-widest">{game.joinCode}</span>
+          <button
+            onClick={() => { navigator.clipboard.writeText(game.joinCode!); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000); }}
+            className="ml-auto text-purple-500 hover:text-purple-700 dark:hover:text-purple-300"
+          >
+            {codeCopied ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      )}
+
       {game.notes && (
         <p className="text-xs text-gray-500 dark:text-gray-400 italic mb-3 border-l-2 border-gray-200 dark:border-gray-600 pl-2">{game.notes}</p>
       )}
@@ -217,6 +234,14 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
       {/* Actions */}
       {currentPlayerId && !isCompleted && game.status !== "cancelled" && (
         <div className="flex gap-2 pt-2 border-t border-gray-50 dark:border-gray-700 flex-wrap">
+          {/* Host: invite more players */}
+          {isCreator && !isPending && !isCompleted && (
+            <Button size="sm" variant="ghost" onClick={() => setShowInvite(true)} disabled={loading}
+              className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+              <UserPlus className="w-3.5 h-3.5" /> Invite
+            </Button>
+          )}
+
           {/* Host booking status update */}
           {isCreator && game.courtBookingStatus === "not_booked" && (
             <div className="flex gap-2 w-full pb-2 border-b border-gray-100 dark:border-gray-700 mb-1 flex-wrap">
@@ -317,6 +342,32 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           onSubmit={(data) => onSubmitScore(game.id, data)}
           onClose={() => setShowScoreForm(false)}
         />
+      </Modal>
+
+      <Modal isOpen={showInvite} onClose={() => setShowInvite(false)} title="Invite a Player" size="sm">
+        <div className="space-y-2 max-h-72 overflow-y-auto">
+          {players
+            .filter((p) => !game.playerIds.includes(p.id) && p.id !== currentPlayerId)
+            .map((p) => {
+              const alreadyInvited = (game.invitedPlayerIds ?? []).includes(p.id);
+              return (
+                <div key={p.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{p.name}</p>
+                    <p className="text-xs text-gray-400">{p.stats.eloRating} ELO</p>
+                  </div>
+                  {alreadyInvited ? (
+                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">Invited</span>
+                  ) : (
+                    <Button size="sm" onClick={() => { onInvitePlayer(game.id, p.id); setShowInvite(false); }} disabled={loading}>
+                      Invite
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+        </div>
       </Modal>
     </Card>
   );
