@@ -30,6 +30,7 @@ export interface Player {
   memberSince: string;
   stats: PlayerStats;
   contact: { email: string; phone?: string };
+  onboardingDone?: boolean;
 }
 
 export interface LeaderboardEntry {

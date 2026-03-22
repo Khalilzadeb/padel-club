@@ -28,6 +28,7 @@ function toModel(row: Record<string, unknown>): Player {
       email: row.contact_email as string,
       phone: row.contact_phone as string | undefined,
     },
+    onboardingDone: row.onboarding_done as boolean | undefined,
   }
 }
 
@@ -63,6 +64,7 @@ export async function createPlayer(id: string, name: string, email: string): Pro
     current_streak: 0,
     tournaments_won: 0,
     contact_email: email,
+    onboarding_done: false,
   })
 }
 

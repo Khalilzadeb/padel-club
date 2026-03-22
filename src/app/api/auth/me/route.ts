@@ -14,12 +14,14 @@ export async function GET() {
   }
 
   let avatarUrl: string | null = null;
+  let onboardingDone = true;
   if (user.playerId) {
     const player = await getPlayer(user.playerId);
     avatarUrl = player?.avatarUrl ?? null;
+    onboardingDone = player?.onboardingDone ?? true;
   }
 
   return NextResponse.json({
-    user: { id: user.id, email: user.email, name: user.name, playerId: user.playerId, avatarUrl, role: user.role },
+    user: { id: user.id, email: user.email, name: user.name, playerId: user.playerId, avatarUrl, role: user.role, onboardingDone },
   });
 }

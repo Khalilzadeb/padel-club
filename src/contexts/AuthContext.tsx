@@ -8,6 +8,7 @@ interface AuthUser {
   playerId?: string;
   avatarUrl?: string | null;
   role?: string;
+  onboardingDone?: boolean;
 }
 
 interface AuthContextValue {

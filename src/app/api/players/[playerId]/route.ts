@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pl
   if (user?.playerId !== playerId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const allowed = ["hand", "position", "gender", "name"];
+  const allowed = ["hand", "position", "gender", "name", "level", "onboarding_done"];
   const updates: Record<string, string> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) updates[key] = body[key];
