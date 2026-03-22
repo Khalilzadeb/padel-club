@@ -25,6 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pl
 
   const body = await req.json();
   const allowed = ["hand", "position", "gender", "name", "level", "onboarding_done"];
+  // Allow setting initial ELO during onboarding only
+  if (body.onboarding_done === true) allowed.push("elo_rating");
   const updates: Record<string, string> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) updates[key] = body[key];
