@@ -5,7 +5,7 @@ import MatchForm from "@/components/matches/MatchForm";
 import OpenGameScoreForm from "@/components/open-games/OpenGameScoreForm";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import { Plus, Search, Trophy } from "lucide-react";
+import { Plus, Search, Trophy, User, X } from "lucide-react";
 import { Match, Player, Court, SetScore, OpenGame } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -18,6 +18,9 @@ export default function MatchesPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "casual" | "ranked" | "tournament">("all");
   const [loading, setLoading] = useState(true);
+  const [myMatchesOnly, setMyMatchesOnly] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [pendingGames, setPendingGames] = useState<OpenGame[]>([]);
   const [selectedGame, setSelectedGame] = useState<OpenGame | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -78,6 +81,9 @@ export default function MatchesPage() {
 
   const filtered = [...matches]
     .filter((m) => typeFilter === "all" || m.type === typeFilter)
+    .filter((m) => !myMatchesOnly || !user?.playerId || [...m.team1.playerIds, ...m.team2.playerIds].includes(user.playerId))
+    .filter((m) => !dateFrom || m.date >= dateFrom)
+    .filter((m) => !dateTo || m.date <= dateTo)
     .filter((m) => {
       if (!search) return true;
       const all = [...m.team1.playerIds, ...m.team2.playerIds]
@@ -153,29 +159,72 @@ export default function MatchesPage() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search players..."
-            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
-          />
-        </div>
+      <div className="space-y-3 mb-6">
+        {/* Row 1: search + my matches */}
         <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search players..."
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+            />
+          </div>
+          {user?.playerId && (
+            <button
+              onClick={() => setMyMatchesOnly(!myMatchesOnly)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors flex-shrink-0 ${
+                myMatchesOnly ? "bg-padel-green text-white border-padel-green" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              <User className="w-3.5 h-3.5" /> My Matches
+            </button>
+          )}
+        </div>
+
+        {/* Row 2: type + date filters */}
+        <div className="flex flex-wrap gap-2 items-center">
           {(["all", "casual", "ranked", "tournament"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium capitalize transition-colors ${
                 typeFilter === t ? "bg-padel-green text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
               }`}
             >
               {t}
             </button>
           ))}
+          <div className="flex items-center gap-1.5 ml-auto">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-600"
+            />
+            <span className="text-gray-400 text-xs">–</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-padel-green text-gray-600"
+            />
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(""); setDateTo(""); }} className="text-gray-400 hover:text-gray-600">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Result count */}
+        {!loading && (
+          <p className="text-xs text-gray-400">
+            {filtered.length} match{filtered.length !== 1 ? "es" : ""}
+            {(search || typeFilter !== "all" || myMatchesOnly || dateFrom || dateTo) && ` (filtered from ${matches.length})`}
+          </p>
+        )}
       </div>
 
       {loading ? (
