@@ -15,8 +15,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const spotsLeft = game.maxPlayers - game.playerIds.length;
   const title = `Open Game · ${courtName}`;
   const description = `${game.date} at ${game.startTime} · ${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left · ${game.gameType === "friendly" ? "Friendly 🤝" : "Ranked 🏆"}`;
-  const imageUrl = `/open-games/${id}/opengraph-image`;
-
   return {
     title,
     description,
@@ -24,13 +22,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title,
       description,
       type: "website",
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [imageUrl],
     },
   };
 }
