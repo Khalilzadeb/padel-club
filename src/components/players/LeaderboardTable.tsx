@@ -26,7 +26,6 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
             <th className="text-left py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Player</th>
             <th className="text-right py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">ELO</th>
             <th className="text-right py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Win Rate</th>
-            <th className="text-right py-3 px-2 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Points</th>
           </tr>
         </thead>
         <tbody>
@@ -78,9 +77,6 @@ export default function LeaderboardTable({ players }: LeaderboardTableProps) {
                     </div>
                     <span className="text-sm text-gray-700 w-10 text-right">{wr}%</span>
                   </div>
-                </td>
-                <td className="py-3 px-2 sm:px-4 text-right hidden md:table-cell">
-                  <span className="text-sm text-gray-700">{player.stats.rankingPoints}</span>
                 </td>
               </tr>
             );

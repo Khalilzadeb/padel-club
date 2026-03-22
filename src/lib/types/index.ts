@@ -14,7 +14,6 @@ export interface PlayerStats {
   gamesWon: number;
   gamesLost: number;
   eloRating: number;
-  rankingPoints: number;
   currentStreak: number;
   tournamentsWon: number;
 }

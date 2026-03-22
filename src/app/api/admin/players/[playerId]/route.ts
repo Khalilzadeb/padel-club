@@ -18,7 +18,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pl
 
   const updates: Record<string, unknown> = {};
   if (body.eloRating !== undefined) updates.elo_rating = body.eloRating;
-  if (body.rankingPoints !== undefined) updates.ranking_points = body.rankingPoints;
   if (body.level !== undefined) updates.level = body.level;
 
   if (Object.keys(updates).length === 0) {

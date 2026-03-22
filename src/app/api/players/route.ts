@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
   if (level) result = result.filter((p) => p.level === level);
 
   result.sort((a, b) => {
-    if (sort === "points") return b.stats.rankingPoints - a.stats.rankingPoints;
     if (sort === "wins") return b.stats.matchesWon - a.stats.matchesWon;
     return b.stats.eloRating - a.stats.eloRating;
   });

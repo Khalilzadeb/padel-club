@@ -107,7 +107,6 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
               {[
                 { label: "ELO Rating", value: s.eloRating, icon: <Target className="w-4 h-4" /> },
-                { label: "Ranking Points", value: s.rankingPoints, icon: <Trophy className="w-4 h-4" /> },
                 { label: "Win Rate", value: `${winRate}%`, icon: <TrendingUp className="w-4 h-4" /> },
                 { label: "Matches", value: s.matchesPlayed, icon: <Calendar className="w-4 h-4" /> },
               ].map(({ label, value, icon }) => (
