@@ -4,7 +4,6 @@ import QuickStats from "@/components/dashboard/QuickStats";
 import RecentMatches from "@/components/dashboard/RecentMatches";
 import ActiveTournaments from "@/components/dashboard/ActiveTournaments";
 import MyActivity from "@/components/dashboard/MyActivity";
-import TodaysGames from "@/components/dashboard/TodaysGames";
 
 function HeroSkeleton() {
   return (
@@ -26,7 +25,6 @@ export default function HomePage() {
       <Suspense fallback={<HeroSkeleton />}>
         <HeroSection />
       </Suspense>
-      <TodaysGames />
       <Suspense fallback={null}>
         <MyActivity />
       </Suspense>
