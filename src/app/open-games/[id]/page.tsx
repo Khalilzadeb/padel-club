@@ -12,12 +12,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!game) return { title: "Game not found" };
 
   const { data: court } = await supabase.from("courts").select("name, location").eq("id", game.courtId).single();
-  const { data: host } = await supabase.from("players").select("name").eq("id", game.createdBy).single();
+  const { data: hostPlayer } = await supabase.from("players").select("name").eq("id", game.createdBy).single();
   const courtName = court?.location ? `${court.location} · ${court.name}` : (court?.name ?? "Court");
   const spotsLeft = game.maxPlayers - game.playerIds.length;
   const title = `Open Game · ${courtName}`;
   const eloText = game.eloMin != null && game.eloMax != null ? ` · ELO ${game.eloMin}-${game.eloMax}` : "";
-  const hostText = host?.name ? ` · Hosted by ${host.name.split(" ")[0]}` : "";
+  const hostText = hostPlayer?.name ? ` · Hosted by ${hostPlayer.name.split(" ")[0]}` : "";
   const description = `Tap to join${eloText}${hostText}`;
 
   // Build absolute image URL from request headers (works in all environments)
