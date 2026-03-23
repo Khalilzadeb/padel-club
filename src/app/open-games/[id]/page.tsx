@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { MapPin, Clock, Users } from "lucide-react";
+import { eloToDisplayLevel } from "@/lib/elo";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -66,7 +67,7 @@ export default async function OpenGameSharePage({
   if (!game) notFound();
 
   const { data: court } = await supabase.from("courts").select("name, location").eq("id", game.courtId).single();
-  const { data: playerRows } = await supabase.from("players").select("name, avatar_url").in("id", game.playerIds);
+  const { data: playerRows } = await supabase.from("players").select("name, avatar_url, elo_rating").in("id", game.playerIds);
   const courtName = court?.location ? `${court.location} · ${court.name}` : (court?.name ?? game.courtId);
   const spotsLeft = game.maxPlayers - game.playerIds.length;
 
@@ -117,17 +118,47 @@ export default async function OpenGameSharePage({
             </div>
           </div>
 
-          {/* Players */}
-          {(playerRows ?? []).length > 0 && (
+          {/* Players / Teams */}
+          {game.teams ? (
+            <div className="grid grid-cols-2 gap-2">
+              {(["team1", "team2"] as const).map((teamKey, ti) => (
+                <div key={teamKey} className={`rounded-xl p-3 ${ti === 0 ? "bg-blue-50 dark:bg-blue-900/20" : "bg-orange-50 dark:bg-orange-900/20"}`}>
+                  <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${ti === 0 ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"}`}>Team {ti + 1}</p>
+                  <div className="space-y-1.5">
+                    {game.teams![teamKey].map((pid) => {
+                      const p = (playerRows ?? []).find((r: { name: string; avatar_url: string | null; elo_rating: number }) => {
+                        const idx = game.playerIds.indexOf(pid);
+                        return idx !== -1 && (playerRows ?? [])[idx]?.name === r.name;
+                      }) ?? (playerRows ?? [])[game.playerIds.indexOf(pid)];
+                      if (!p) return null;
+                      return (
+                        <div key={pid} className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 rounded-full bg-padel-green text-white flex items-center justify-center text-xs font-bold flex-shrink-0">{p.name.charAt(0)}</div>
+                          <div>
+                            <p className="text-xs font-medium text-gray-800 dark:text-gray-200">{p.name.split(" ")[0]}</p>
+                            <p className="text-[10px] text-gray-400">Lv {eloToDisplayLevel(p.elo_rating)} · {p.elo_rating}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {Array.from({ length: 2 - game.teams![teamKey].length }).map((_, i) => (
+                      <div key={i} className={`text-xs ${ti === 0 ? "text-blue-300" : "text-orange-300"}`}>— open</div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (playerRows ?? []).length > 0 && (
             <div>
               <p className="text-xs text-gray-400 mb-2">Players joined</p>
               <div className="flex gap-2 flex-wrap">
-                {(playerRows ?? []).map((p: { name: string; avatar_url: string | null }, i: number) => (
-                  <div key={i} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 rounded-full pl-1 pr-3 py-1">
-                    <div className="w-6 h-6 rounded-full bg-padel-green text-white flex items-center justify-center text-xs font-bold">
-                      {p.name.charAt(0)}
+                {(playerRows ?? []).map((p: { name: string; avatar_url: string | null; elo_rating: number }, i: number) => (
+                  <div key={i} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 rounded-xl px-2 py-1.5">
+                    <div className="w-6 h-6 rounded-full bg-padel-green text-white flex items-center justify-center text-xs font-bold">{p.name.charAt(0)}</div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300">{p.name.split(" ")[0]}</p>
+                      <p className="text-[10px] text-gray-400">Lv {eloToDisplayLevel(p.elo_rating)} · {p.elo_rating}</p>
                     </div>
-                    <span className="text-xs text-gray-700 dark:text-gray-300">{p.name.split(" ")[0]}</span>
                   </div>
                 ))}
               </div>
@@ -138,12 +169,24 @@ export default async function OpenGameSharePage({
             <p className="text-xs text-gray-500 dark:text-gray-400 italic border-l-2 border-gray-200 dark:border-gray-600 pl-2">{game.notes}</p>
           )}
 
-          <Link
-            href={joinHref}
-            className="block w-full text-center bg-padel-green hover:bg-green-700 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
-          >
-            {spotsLeft > 0 ? "Join This Game" : "View Game"}
-          </Link>
+          {/* Join buttons */}
+          {spotsLeft > 0 && game.teams ? (
+            <div className="grid grid-cols-2 gap-2">
+              <Link href={code ? `/open-games?game=${id}&team=1&joinCode=${code}` : `/open-games?game=${id}&team=1`}
+                className="text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl py-3 text-sm transition-colors">
+                Join Team 1
+              </Link>
+              <Link href={code ? `/open-games?game=${id}&team=2&joinCode=${code}` : `/open-games?game=${id}&team=2`}
+                className="text-center bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl py-3 text-sm transition-colors">
+                Join Team 2
+              </Link>
+            </div>
+          ) : (
+            <Link href={joinHref}
+              className="block w-full text-center bg-padel-green hover:bg-green-700 text-white font-semibold rounded-xl py-3 text-sm transition-colors">
+              {spotsLeft > 0 ? "Join This Game" : "View Game"}
+            </Link>
+          )}
         </div>
       </div>
     </div>

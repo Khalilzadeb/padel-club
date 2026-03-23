@@ -108,6 +108,8 @@ export default function OpenGamesPage() {
     const gameId = params.get("game");
     const joinCode = params.get("joinCode") ?? params.get("code");
 
+    const teamParam = params.get("team");
+
     if (joinCode && gameId) {
       // Load game by ID and open join modal with code pre-filled
       fetch(`/api/open-games/${gameId}`).then((r) => r.json()).then((g: OpenGame) => {
@@ -115,6 +117,12 @@ export default function OpenGamesPage() {
         setCodeInput(joinCode.toUpperCase());
         setShowCodeModal(true);
       }).catch(() => {});
+    } else if (!loading && gameId && teamParam) {
+      // Auto-join specific team from share page
+      const teamNumber = parseInt(teamParam) as 1 | 2;
+      if (teamNumber === 1 || teamNumber === 2) {
+        handleAction(gameId, "join", { teamNumber });
+      }
     } else if (!loading && filtered.length > 0 && gameId) {
       setTimeout(() => {
         const el = document.getElementById(`game-${gameId}`);

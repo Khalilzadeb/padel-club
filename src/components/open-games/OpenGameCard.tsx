@@ -9,6 +9,7 @@ import OpenGameScoreForm from "@/components/open-games/OpenGameScoreForm";
 import { OpenGame, Player, Court } from "@/lib/types";
 import { Clock, MapPin, Users, ChevronRight, CheckCircle, AlertTriangle, Trophy, X, Copy, UserPlus, Share2 } from "lucide-react";
 import Link from "next/link";
+import { eloToDisplayLevel } from "@/lib/elo";
 
 interface Props {
   game: OpenGame;
@@ -150,8 +151,13 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                 return (
                   <div key={id} className="flex items-center gap-2">
                     <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{p.name.split(" ")[0]}</span>
-                    {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-semibold">host</span>}
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{p.name.split(" ")[0]}</span>
+                        {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-semibold">host</span>}
+                      </div>
+                      <span className="text-[10px] text-gray-400">Lv {eloToDisplayLevel(p.stats.eloRating)} · {p.stats.eloRating}</span>
+                    </div>
                   </div>
                 );
               })}
@@ -175,7 +181,10 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                 return (
                   <div key={id} className="flex items-center gap-2">
                     <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{p.name.split(" ")[0]}</span>
+                    <div>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate block">{p.name.split(" ")[0]}</span>
+                      <span className="text-[10px] text-gray-400">Lv {eloToDisplayLevel(p.stats.eloRating)} · {p.stats.eloRating}</span>
+                    </div>
                   </div>
                 );
               })}
