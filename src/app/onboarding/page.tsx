@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { eloToDisplayLevel } from "@/lib/elo";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 
@@ -117,6 +118,7 @@ const POSITIONS: { value: Position; label: string; side: string; desc: string }[
 
 export default function OnboardingPage() {
   const { user, updateUser } = useAuth();
+  const { t } = useLocale();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -174,12 +176,12 @@ export default function OnboardingPage() {
   const progress = ((step - 1) / (TOTAL_STEPS - 1)) * 100;
 
   const phaseLabel = step === 1
-    ? "Profile setup"
+    ? t.onboarding.step1Title
     : inSurvey
-    ? `Level test · Question ${surveyIndex + 1} of ${SURVEY.length}`
+    ? `${t.onboarding.levelTestTitle} · ${t.onboarding.question} ${surveyIndex + 1} ${t.onboarding.of} ${SURVEY.length}`
     : step <= 11
-    ? "Profile setup"
-    : "Result";
+    ? t.profile.editProfile
+    : t.onboarding.yourLevel;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4 py-8">
@@ -203,16 +205,16 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Welcome! 👋</h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">First, tell us your name. Then we&apos;ll run a short level test to find your initial ELO.</p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.onboarding.welcomeTitle} 👋</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.onboarding.welcomeSubtitle}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Full name</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">{t.onboarding.step1Title}</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t.onboarding.step1Placeholder}
                   autoFocus
                   className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white dark:placeholder-gray-400"
                 />
@@ -257,7 +259,7 @@ export default function OnboardingPage() {
           {step === 9 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Court position</h2>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.profile.position}</h2>
                 <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Which side of the court do you prefer?</p>
               </div>
               <div className="space-y-2">
@@ -282,7 +284,7 @@ export default function OnboardingPage() {
           {step === 10 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Playing hand</h2>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.profile.hand}</h2>
                 <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Which hand do you play with?</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -290,7 +292,9 @@ export default function OnboardingPage() {
                   <button key={h} type="button" onClick={() => setHand(h)}
                     className={`py-8 rounded-xl border-2 text-center transition-all ${hand === h ? "border-padel-green bg-green-50 dark:bg-green-900/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"}`}>
                     <span className="text-3xl block mb-2">{h === "right" ? "🤜" : "🤛"}</span>
-                    <p className={`font-semibold text-sm ${hand === h ? "text-padel-green" : "text-gray-700 dark:text-gray-300"}`}>{h === "right" ? "Right-handed" : "Left-handed"}</p>
+                    <p className={`font-semibold text-sm ${hand === h ? "text-padel-green" : "text-gray-700 dark:text-gray-300"}`}>
+                      {h === "right" ? t.profile.right : t.profile.left}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -302,14 +306,14 @@ export default function OnboardingPage() {
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">One more thing</h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Gender <span className="text-gray-400">(optional — used for tournament categories)</span></p>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.profile.gender} <span className="text-gray-400">(optional — used for tournament categories)</span></p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {([
-                  { value: "male",   label: "Male",             emoji: "👨" },
-                  { value: "female", label: "Female",           emoji: "👩" },
-                  { value: "other",  label: "Other",            emoji: "🧑" },
-                  { value: "",       label: "Prefer not to say", emoji: "🤐" },
+                  { value: "male",   label: t.profile.male,             emoji: "👨" },
+                  { value: "female", label: t.profile.female,           emoji: "👩" },
+                  { value: "other",  label: "Other",                    emoji: "🧑" },
+                  { value: "",       label: "Prefer not to say",        emoji: "🤐" },
                 ] as const).map((g) => (
                   <button key={String(g.value)} type="button" onClick={() => setGender(g.value as Gender)}
                     className={`py-5 rounded-xl border-2 text-center transition-all ${gender === g.value ? "border-padel-green bg-green-50 dark:bg-green-900/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"}`}>
@@ -326,12 +330,12 @@ export default function OnboardingPage() {
             <div className="text-center space-y-5 py-2">
               <div>
                 <p className="text-5xl mb-3">{result.emoji}</p>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Your initial level</h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Based on your level test answers</p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.onboarding.yourLevel}</h2>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t.onboarding.levelTestSubtitle}</p>
               </div>
               <div className="bg-padel-green rounded-2xl py-6 px-8">
                 <p className="text-6xl font-black text-white">{eloToDisplayLevel(result.elo)}</p>
-                <p className="text-green-100 text-sm mt-1 font-medium">Level · {result.elo} ELO</p>
+                <p className="text-green-100 text-sm mt-1 font-medium">{t.profile.level} · {result.elo} ELO</p>
               </div>
               <p className="text-xs text-gray-400 leading-relaxed">
                 This is your starting level. It will automatically update after every ranked match. Max level is 7.0.
@@ -346,20 +350,20 @@ export default function OnboardingPage() {
           {step > 1 && (
             <button onClick={() => setStep((s) => s - 1)}
               className="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-              <ChevronLeft className="w-4 h-4" /> Back
+              <ChevronLeft className="w-4 h-4" /> {t.common.back}
             </button>
           )}
           {step < TOTAL_STEPS ? (
             <button onClick={() => setStep((s) => s + 1)} disabled={!canNext()}
               className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-padel-green text-white text-sm font-semibold hover:bg-green-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-              Continue <ChevronRight className="w-4 h-4" />
+              {t.onboarding.continue} <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button onClick={handleFinish} disabled={saving}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-padel-green text-white text-sm font-semibold hover:bg-green-600 transition-colors disabled:opacity-60">
               {saving
                 ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <><Check className="w-4 h-4" /> Start Playing</>}
+                : <><Check className="w-4 h-4" /> {t.onboarding.startPlaying}</>}
             </button>
           )}
         </div>

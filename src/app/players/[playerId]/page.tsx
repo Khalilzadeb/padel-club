@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { getPlayer, getPlayers } from "@/lib/data/players";
 import { getMatches } from "@/lib/data/matches";
 import { getCourts } from "@/lib/data/courts";
@@ -11,9 +12,14 @@ import EditProfileButton from "@/components/players/EditProfileButton";
 import ChallengeButton from "@/components/players/ChallengeButton";
 import EloChart from "@/components/players/EloChart";
 import { eloToDisplayLevel, eloToLevelVariant } from "@/lib/elo";
+import { getTranslations, LOCALE_COOKIE } from "@/lib/i18n";
 
 export default async function PlayerProfilePage({ params }: { params: Promise<{ playerId: string }> }) {
   const { playerId } = await params;
+  const cookieStore = await cookies();
+  const locale = cookieStore.get(LOCALE_COOKIE)?.value ?? "az";
+  const t = getTranslations(locale);
+
   const [player, allPlayers, myMatches, courts] = await Promise.all([
     getPlayer(playerId),
     getPlayers(),
@@ -94,7 +100,7 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             <p className="text-gray-500 dark:text-gray-400 mt-1 capitalize">
               {player.position} · {player.hand}-handed{player.gender ? ` · ${player.gender}` : ""}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">Member since {player.memberSince}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{t.profile.memberSince} {player.memberSince}</p>
             <div className="flex items-center gap-2 flex-wrap">
             <EditProfileButton player={player} />
             <ChallengeButton player={player} courts={courts} />
@@ -106,9 +112,9 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
               {[
-                { label: "ELO Rating", value: s.eloRating, icon: <Target className="w-4 h-4" /> },
-                { label: "Win Rate", value: `${winRate}%`, icon: <TrendingUp className="w-4 h-4" /> },
-                { label: "Matches", value: s.matchesPlayed, icon: <Calendar className="w-4 h-4" /> },
+                { label: t.profile.eloRating, value: s.eloRating, icon: <Target className="w-4 h-4" /> },
+                { label: t.profile.winRate, value: `${winRate}%`, icon: <TrendingUp className="w-4 h-4" /> },
+                { label: t.profile.matchesPlayed, value: s.matchesPlayed, icon: <Calendar className="w-4 h-4" /> },
               ].map(({ label, value, icon }) => (
                 <div key={label} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-center">
                   <div className="flex justify-center text-padel-green mb-1">{icon}</div>
@@ -124,10 +130,10 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-4">
           <Card className="p-5">
-            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Statistics</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">{t.profile.stats}</h2>
             <div className="space-y-4">
               {[
-                { label: "Matches Won", value: s.matchesWon, total: s.matchesPlayed, color: "bg-padel-green" },
+                { label: t.profile.matchesWon, value: s.matchesWon, total: s.matchesPlayed, color: "bg-padel-green" },
                 { label: "Sets Win Rate", value: s.setsWon, total: s.setsWon + s.setsLost, color: "bg-blue-500" },
               ].map(({ label, value, total, color }) => {
                 const pct = total > 0 ? Math.round((value / total) * 100) : 0;
@@ -219,9 +225,9 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
 
         <div className="lg:col-span-2">
           <Card className="p-5">
-            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Match History</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">{t.profile.recentMatches}</h2>
             {recentMatches.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No matches yet</p>
+              <p className="text-gray-400 text-center py-8">{t.profile.noRecentMatches}</p>
             ) : (
               <div className="space-y-2">
                 {recentMatches.map((match) => {

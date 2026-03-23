@@ -10,6 +10,7 @@ import { OpenGame, Player, Court } from "@/lib/types";
 import { Clock, MapPin, Users, ChevronRight, CheckCircle, AlertTriangle, Trophy, X, Copy, UserPlus, Share2 } from "lucide-react";
 import Link from "next/link";
 import { eloToDisplayLevel } from "@/lib/elo";
+import { useLocale } from "@/contexts/LocaleContext";
 
 interface Props {
   game: OpenGame;
@@ -27,15 +28,8 @@ interface Props {
   loading?: boolean;
 }
 
-const statusBadge = (status: OpenGame["status"]) => {
-  if (status === "full") return <Badge variant="red">Full</Badge>;
-  if (status === "pending_result") return <Badge variant="yellow">Pending result</Badge>;
-  if (status === "completed") return <Badge variant="gray">Completed</Badge>;
-  if (status === "cancelled") return <Badge variant="gray">Cancelled</Badge>;
-  return null;
-};
-
 export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, onUpdateBookingStatus, onInvitePlayer, loading }: Props) {
+  const { t } = useLocale();
   const [showScoreForm, setShowScoreForm] = useState(false);
   const [showTeamPick, setShowTeamPick] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -118,22 +112,28 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
             {shareCopied ? <CheckCircle className="w-4 h-4 text-padel-green" /> : <Share2 className="w-4 h-4" />}
           </button>
           {isPending || isCompleted || game.status === "cancelled"
-            ? statusBadge(game.status)
+            ? (
+              game.status === "pending_result"
+                ? <Badge variant="yellow">{t.games.pendingResult}</Badge>
+                : game.status === "completed"
+                  ? <Badge variant="gray">{t.matches.confirmed}</Badge>
+                  : <Badge variant="gray">{t.matches.filterAll}</Badge>
+              )
             : isFull
-              ? <Badge variant="red">Full</Badge>
-              : <Badge variant="green">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</Badge>
+              ? <Badge variant="red">{t.games.full}</Badge>
+              : <Badge variant="green">{t.games.spotsLeft.replace("{count}", String(spotsLeft))}</Badge>
           }
           {game.gameType === "friendly"
-            ? <Badge variant="gray">Friendly</Badge>
-            : <Badge variant="blue">Ranked</Badge>
+            ? <Badge variant="gray">{t.games.friendly}</Badge>
+            : <Badge variant="blue">{t.games.ranked}</Badge>
           }
-          {game.isPrivate && <Badge variant="purple">Private</Badge>}
+          {game.isPrivate && <Badge variant="purple">{t.games.private}</Badge>}
           {game.status !== "cancelled" && !isCompleted && (
             game.courtBookingStatus === "booked"
-              ? <Badge variant="green">Booked ✓</Badge>
+              ? <Badge variant="green">{t.games.booked} ✓</Badge>
               : game.courtBookingStatus === "failed"
-                ? <Badge variant="red">Book alınmadı</Badge>
-                : <Badge variant="yellow">Book edilməyib</Badge>
+                ? <Badge variant="red">{t.games.bookFailed}</Badge>
+                : <Badge variant="yellow">{t.games.notBooked}</Badge>
           )}
         </div>
       </div>
@@ -154,7 +154,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                     <div>
                       <div className="flex items-center gap-1">
                         <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{p.name.split(" ")[0]}</span>
-                        {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-semibold">host</span>}
+                        {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-semibold">{t.games.host}</span>}
                       </div>
                       <span className="text-[10px] text-gray-400">Lv {eloToDisplayLevel(p.stats.eloRating)} · {p.stats.eloRating}</span>
                     </div>
@@ -166,7 +166,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                   <div className="w-7 h-7 rounded-full border-2 border-dashed border-blue-200 dark:border-blue-700 flex items-center justify-center">
                     <span className="text-blue-300 dark:text-blue-500 text-sm">+</span>
                   </div>
-                  <span className="text-sm text-blue-300 dark:text-blue-500">open</span>
+                  <span className="text-sm text-blue-300 dark:text-blue-500">{t.games.open}</span>
                 </div>
               ))}
             </div>
@@ -193,7 +193,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                   <div className="w-7 h-7 rounded-full border-2 border-dashed border-orange-200 dark:border-orange-700 flex items-center justify-center">
                     <span className="text-orange-300 dark:text-orange-500 text-sm">+</span>
                   </div>
-                  <span className="text-sm text-orange-300 dark:text-orange-500">open</span>
+                  <span className="text-sm text-orange-300 dark:text-orange-500">{t.games.open}</span>
                 </div>
               ))}
             </div>
@@ -207,7 +207,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
               <div key={p.id} className="flex items-center gap-1">
                 <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
                 <span className="text-xs text-gray-700 dark:text-gray-300">{p.name.split(" ")[0]}</span>
-                {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-medium">(host)</span>}
+                {p.id === game.createdBy && <span className="text-[10px] text-padel-green font-medium">({t.games.host})</span>}
               </div>
             ))}
             {Array.from({ length: spotsLeft }).map((_, i) => (
@@ -272,21 +272,21 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           {isCreator && !isPending && !isCompleted && (
             <Button size="sm" variant="ghost" onClick={() => setShowInvite(true)} disabled={loading}
               className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20">
-              <UserPlus className="w-3.5 h-3.5" /> Invite
+              <UserPlus className="w-3.5 h-3.5" /> {t.games.invitePlayer}
             </Button>
           )}
 
           {/* Host booking status update */}
           {isCreator && game.courtBookingStatus === "not_booked" && (
             <div className="flex gap-2 w-full pb-2 border-b border-gray-100 dark:border-gray-700 mb-1 flex-wrap">
-              <span className="text-xs text-yellow-600 w-full">Kortu book etdinmi?</span>
+              <span className="text-xs text-yellow-600 w-full">{t.games.confirmBooking}</span>
               <Button size="sm" onClick={() => onUpdateBookingStatus(game.id, "booked")} disabled={loading}
                 className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white">
-                <CheckCircle className="w-3.5 h-3.5" /> Book edildi
+                <CheckCircle className="w-3.5 h-3.5" /> {t.games.markBooked}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setShowBookFailedConfirm(true)} disabled={loading}
                 className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
-                <AlertTriangle className="w-3.5 h-3.5" /> Alınmadı
+                <AlertTriangle className="w-3.5 h-3.5" /> {t.games.markBookFailed}
               </Button>
             </div>
           )}
@@ -296,11 +296,11 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
             <>
               <Button size="sm" onClick={() => onConfirmScore(game.id)} disabled={loading}
                 className="flex items-center gap-1 bg-green-600 hover:bg-green-700">
-                <CheckCircle className="w-3.5 h-3.5" /> Confirm
+                <CheckCircle className="w-3.5 h-3.5" /> {t.games.confirmScore}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => onDisputeScore(game.id)} disabled={loading}
                 className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
-                <AlertTriangle className="w-3.5 h-3.5" /> Dispute
+                <AlertTriangle className="w-3.5 h-3.5" /> {t.games.disputeScore}
               </Button>
             </>
           )}
@@ -308,7 +308,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           {/* Waiting for confirmation */}
           {isPending && isSubmitter && (
             <p className="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1 py-1">
-              <Clock className="w-3.5 h-3.5" /> Waiting for the other team to confirm...
+              <Clock className="w-3.5 h-3.5" /> {t.games.pendingResult}
             </p>
           )}
 
@@ -316,7 +316,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           {canEnterResult && !isPending && (
             <Button size="sm" onClick={() => setShowScoreForm(true)} disabled={loading}
               className="flex items-center gap-1">
-              <Trophy className="w-3.5 h-3.5" /> Enter Result
+              <Trophy className="w-3.5 h-3.5" /> {t.games.submitScore}
             </Button>
           )}
 
@@ -324,11 +324,11 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           {!isPending && (isFull || game.status === "open") && (
             isCreator ? (
               <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto" onClick={() => setShowCancelConfirm(true)} disabled={loading}>
-                Cancel Game
+                {t.games.cancelGame}
               </Button>
             ) : isJoined ? (
               <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 ml-auto" onClick={() => setShowLeaveConfirm(true)} disabled={loading}>
-                Leave
+                {t.games.leaveGame}
               </Button>
             ) : !isFull ? (
               showTeamPick ? (
@@ -340,7 +340,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                     disabled={loading || (game.teams ? game.teams.team1.length >= 2 : false)}
                     className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white"
                   >
-                    Team 1 {game.teams ? `(${game.teams.team1.length}/2)` : ""}
+                    {t.games.joinTeam1} {game.teams ? `(${game.teams.team1.length}/2)` : ""}
                   </Button>
                   <Button
                     size="sm"
@@ -348,7 +348,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                     disabled={loading || (game.teams ? game.teams.team2.length >= 2 : false)}
                     className="flex items-center gap-1 bg-orange-500 hover:bg-orange-600 text-white"
                   >
-                    Team 2 {game.teams ? `(${game.teams.team2.length}/2)` : ""}
+                    {t.games.joinTeam2} {game.teams ? `(${game.teams.team2.length}/2)` : ""}
                   </Button>
                   <button type="button" onClick={() => setShowTeamPick(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                     <X className="w-4 h-4" />
@@ -361,7 +361,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                   disabled={loading}
                   className="flex items-center gap-1"
                 >
-                  Join Game <ChevronRight className="w-3.5 h-3.5" />
+                  {t.games.joinGame} <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               )
             ) : null
@@ -369,7 +369,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
         </div>
       )}
 
-      <Modal isOpen={showScoreForm} onClose={() => setShowScoreForm(false)} title="Enter Match Result" size="md">
+      <Modal isOpen={showScoreForm} onClose={() => setShowScoreForm(false)} title={t.games.submitScore} size="md">
         <OpenGameScoreForm
           players={joinedPlayers}
           currentPlayerId={currentPlayerId!}
@@ -378,7 +378,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
         />
       </Modal>
 
-      <Modal isOpen={showInvite} onClose={() => setShowInvite(false)} title="Invite a Player" size="sm">
+      <Modal isOpen={showInvite} onClose={() => setShowInvite(false)} title={t.games.invitePlayer} size="sm">
         <div className="space-y-2 max-h-72 overflow-y-auto">
           {players
             .filter((p) => !game.playerIds.includes(p.id) && p.id !== currentPlayerId)
@@ -395,7 +395,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                     <span className="text-xs text-green-600 dark:text-green-400 font-medium">Invited</span>
                   ) : (
                     <Button size="sm" onClick={() => { onInvitePlayer(game.id, p.id); setShowInvite(false); }} disabled={loading}>
-                      Invite
+                      {t.games.invitePlayer}
                     </Button>
                   )}
                 </div>
@@ -403,37 +403,38 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
             })}
         </div>
       </Modal>
-      <Modal isOpen={showLeaveConfirm} onClose={() => setShowLeaveConfirm(false)} title="Leave Game?" size="sm">
+
+      <Modal isOpen={showLeaveConfirm} onClose={() => setShowLeaveConfirm(false)} title={t.games.leaveGame} size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to leave this game?</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t.games.confirmLeave}</p>
           <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" onClick={() => setShowLeaveConfirm(false)}>No, stay</Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowLeaveConfirm(false)}>{t.common.no}</Button>
             <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={() => { onLeave(game.id); setShowLeaveConfirm(false); }} disabled={loading}>
-              Yes, leave
+              {t.common.yes}
             </Button>
           </div>
         </div>
       </Modal>
 
-      <Modal isOpen={showCancelConfirm} onClose={() => setShowCancelConfirm(false)} title="Cancel Game?" size="sm">
+      <Modal isOpen={showCancelConfirm} onClose={() => setShowCancelConfirm(false)} title={t.games.cancelGame} size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to cancel this game? All players will be removed.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t.games.confirmCancel}</p>
           <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" onClick={() => setShowCancelConfirm(false)}>No, keep it</Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowCancelConfirm(false)}>{t.common.no}</Button>
             <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={() => { onCancel(game.id); setShowCancelConfirm(false); }} disabled={loading}>
-              Yes, cancel
+              {t.common.yes}
             </Button>
           </div>
         </div>
       </Modal>
 
-      <Modal isOpen={showBookFailedConfirm} onClose={() => setShowBookFailedConfirm(false)} title="Court Not Booked?" size="sm">
+      <Modal isOpen={showBookFailedConfirm} onClose={() => setShowBookFailedConfirm(false)} title={t.games.bookFailed} size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Marking as failed will automatically cancel this game. Are you sure?</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t.games.confirmBookFailed}</p>
           <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" onClick={() => setShowBookFailedConfirm(false)}>No, go back</Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowBookFailedConfirm(false)}>{t.common.no}</Button>
             <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={() => { onUpdateBookingStatus(game.id, "failed"); setShowBookFailedConfirm(false); }} disabled={loading}>
-              Yes, mark as failed
+              {t.common.yes}
             </Button>
           </div>
         </div>
