@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils/cn";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import LogoSvg from "@/components/ui/LogoSvg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -43,8 +44,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <img src="/logo.svg" alt="PadelOn" className="h-9" />
+          <Link href="/" className="flex items-center text-gray-900 dark:text-white">
+            <LogoSvg className="h-9" />
           </Link>
 
           {/* Desktop links */}
