@@ -1,5 +1,5 @@
 "use client";
-import { useState, FormEvent, Suspense } from "react";
+import { useState, useEffect, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,11 +26,17 @@ function GoogleIcon() {
 }
 
 function LoginForm() {
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? "/";
   const oauthError = searchParams.get("error");
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace(user.onboardingDone === false ? "/onboarding" : from);
+    }
+  }, [user, authLoading, from, router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
