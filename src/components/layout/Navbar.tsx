@@ -6,27 +6,30 @@ import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Se
 import { cn } from "@/lib/utils/cn";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import NotificationBell from "@/components/layout/NotificationBell";
-
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/open-games", label: "Games", icon: Search },
-  { href: "/players", label: "Players", icon: Users },
-  { href: "/matches", label: "Results", icon: Swords },
-  { href: "/tournaments", label: "Tournaments", icon: Trophy },
-  { href: "/messages", label: "Messages", icon: MessageCircle },
-  { href: "/challenges", label: "Challenges", icon: Target },
-];
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, loading } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const navLinks = [
+    { href: "/", label: t.nav.home },
+    { href: "/open-games", label: t.nav.games, icon: Search },
+    { href: "/players", label: t.nav.players, icon: Users },
+    { href: "/matches", label: t.nav.results, icon: Swords },
+    { href: "/tournaments", label: t.nav.tournaments, icon: Trophy },
+    { href: "/messages", label: t.nav.messages, icon: MessageCircle },
+    { href: "/challenges", label: t.nav.challenges, icon: Target },
+  ];
 
   const handleLogout = async () => {
     await logout();
@@ -67,6 +70,9 @@ export default function Navbar() {
 
           {/* Desktop right side */}
           <div className="hidden md:flex items-center gap-2">
+            {/* Language switcher */}
+            <LanguageSwitcher />
+
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
@@ -108,7 +114,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                           <User className="w-4 h-4 text-gray-400" />
-                          My Profile
+                          {t.nav.myProfile}
                         </Link>
                       )}
                       {user.role === "admin" && (
@@ -118,7 +124,7 @@ export default function Navbar() {
                           className="flex items-center gap-2.5 px-4 py-2 text-sm text-padel-green hover:bg-green-50 dark:hover:bg-green-900/30"
                         >
                           <Shield className="w-4 h-4" />
-                          Admin Panel
+                          {t.nav.adminPanel}
                         </Link>
                       )}
                       <button
@@ -126,7 +132,7 @@ export default function Navbar() {
                         className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         <LogOut className="w-4 h-4" />
-                        Sign out
+                        {t.nav.logout}
                       </button>
                     </div>
                   </>
@@ -135,10 +141,10 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-2">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm">Sign in</Button>
+                  <Button variant="ghost" size="sm">{t.nav.signIn}</Button>
                 </Link>
                 <Link href="/signup">
-                  <Button size="sm">Sign up</Button>
+                  <Button size="sm">{t.nav.signUp}</Button>
                 </Link>
               </div>
             )}
@@ -146,6 +152,7 @@ export default function Navbar() {
 
           {/* Mobile — theme toggle + notification + user */}
           <div className="md:hidden flex items-center gap-2">
+            <LanguageSwitcher />
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -168,7 +175,7 @@ export default function Navbar() {
             )}
             {!loading && !user && (
               <Link href="/login">
-                <Button size="sm">Sign in</Button>
+                <Button size="sm">{t.nav.signIn}</Button>
               </Link>
             )}
           </div>
@@ -208,27 +215,27 @@ export default function Navbar() {
                 {user.playerId && (
                   <Link href={`/players/${user.playerId}`} onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <User className="w-4 h-4" /> My Profile
+                    <User className="w-4 h-4" /> {t.nav.myProfile}
                   </Link>
                 )}
                 {user.role === "admin" && (
                   <Link href="/admin" onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-padel-green hover:bg-green-50 dark:hover:bg-green-900/30">
-                    <Shield className="w-4 h-4" /> Admin Panel
+                    <Shield className="w-4 h-4" /> {t.nav.adminPanel}
                   </Link>
                 )}
                 <button onClick={handleLogout}
                   className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                  <LogOut className="w-4 h-4" /> Sign out
+                  <LogOut className="w-4 h-4" /> {t.nav.logout}
                 </button>
               </>
             ) : (
               <div className="flex gap-2 mt-1">
                 <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1">
-                  <Button variant="secondary" className="w-full" size="sm">Sign in</Button>
+                  <Button variant="secondary" className="w-full" size="sm">{t.nav.signIn}</Button>
                 </Link>
                 <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex-1">
-                  <Button className="w-full" size="sm">Sign up</Button>
+                  <Button className="w-full" size="sm">{t.nav.signUp}</Button>
                 </Link>
               </div>
             )}

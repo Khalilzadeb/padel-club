@@ -7,9 +7,11 @@ import Button from "@/components/ui/Button";
 import { Search, Trophy, User, X } from "lucide-react";
 import { Match, Player, Court, OpenGame } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 
 export default function MatchesPage() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -93,14 +95,14 @@ export default function MatchesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Match Results</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">{matches.length} matches played</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">{t.matches.matchResults}</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{t.matches.matchesPlayed.replace('{count}', String(matches.length))}</p>
       </div>
 
       {pendingGames.length > 0 && (
         <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
           <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-400 mb-3 flex items-center gap-2">
-            <Trophy className="w-4 h-4" /> Open games ready for result entry
+            <Trophy className="w-4 h-4" /> {t.matches.openGamesReadyForResult}
           </p>
           <div className="space-y-2">
             {pendingGames.map((g) => {
@@ -115,7 +117,7 @@ export default function MatchesPage() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">{court?.name ?? g.courtId} · {g.date} at {g.startTime}</p>
                   </div>
                   <Button size="sm" onClick={() => setSelectedGame(g)} className="flex items-center gap-1">
-                    <Trophy className="w-3.5 h-3.5" /> Enter Result
+                    <Trophy className="w-3.5 h-3.5" /> {t.matches.enterResult}
                   </Button>
                 </div>
               );
@@ -131,7 +133,7 @@ export default function MatchesPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search players..."
+              placeholder={t.matches.searchPlayers}
               className="w-full pl-9 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400"
             />
           </div>
@@ -142,7 +144,7 @@ export default function MatchesPage() {
                 myMatchesOnly ? "bg-padel-green text-white border-padel-green" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
-              <User className="w-3.5 h-3.5" /> My Matches
+              <User className="w-3.5 h-3.5" /> {t.matches.myMatches}
             </button>
           )}
         </div>
@@ -195,8 +197,8 @@ export default function MatchesPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-lg">No matches found</p>
-          <p className="text-gray-300 dark:text-gray-600 text-sm mt-1">Results appear here after open games are completed</p>
+          <p className="text-gray-400 text-lg">{t.matches.noMatchesFound}</p>
+          <p className="text-gray-300 dark:text-gray-600 text-sm mt-1">{t.matches.resultsAppearAfterGames}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -206,7 +208,7 @@ export default function MatchesPage() {
         </div>
       )}
 
-      <Modal isOpen={!!selectedGame} onClose={() => setSelectedGame(null)} title="Enter Open Game Result" size="md">
+      <Modal isOpen={!!selectedGame} onClose={() => setSelectedGame(null)} title={t.matches.enterOpenGameResult} size="md">
         {selectedGame && user?.playerId && (
           <OpenGameScoreForm
             players={players.filter((p) => selectedGame.playerIds.includes(p.id))}

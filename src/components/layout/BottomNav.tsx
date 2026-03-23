@@ -3,17 +3,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Users, Swords, Trophy, MessageCircle, Search } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-
-const links = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/open-games", label: "Games", icon: Search },
-  { href: "/matches", label: "Results", icon: Swords },
-  { href: "/players", label: "Players", icon: Users },
-  { href: "/messages", label: "Messages", icon: MessageCircle },
-];
+import { useLocale } from "@/contexts/LocaleContext";
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { t } = useLocale();
+
+  const links = [
+    { href: "/", label: t.nav.home, icon: Home },
+    { href: "/open-games", label: t.nav.games, icon: Search },
+    { href: "/matches", label: t.nav.results, icon: Swords },
+    { href: "/players", label: t.nav.players, icon: Users },
+    { href: "/messages", label: t.nav.messages, icon: MessageCircle },
+  ];
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 shadow-lg">

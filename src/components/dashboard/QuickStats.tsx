@@ -4,8 +4,14 @@ import { getPlayers } from "@/lib/data/players";
 import { getCourts } from "@/lib/data/courts";
 import { getMatches } from "@/lib/data/matches";
 import { getTournaments } from "@/lib/data/tournaments";
+import { cookies } from "next/headers";
+import { getTranslations, LOCALE_COOKIE } from "@/lib/i18n";
 
 export default async function QuickStats() {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get(LOCALE_COOKIE)?.value ?? 'az';
+  const t = getTranslations(locale);
+
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const fromDate = sevenDaysAgo.toISOString().split("T")[0];
@@ -21,10 +27,10 @@ export default async function QuickStats() {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard label="Total Members" value={players.length} icon={<Users className="w-5 h-5" />} color="green" trend={{ value: "2 this month", up: true }} />
-      <StatCard label="Active Courts" value={courts.filter((c) => c.isActive).length} icon={<LayoutGrid className="w-5 h-5" />} color="blue" />
-      <StatCard label="Matches This Week" value={weekMatches.length} icon={<Swords className="w-5 h-5" />} color="purple" trend={{ value: "vs last week", up: true }} />
-      <StatCard label="Active Tournaments" value={activeTournaments} icon={<Trophy className="w-5 h-5" />} color="orange" />
+      <StatCard label={t.stats.totalMembers} value={players.length} icon={<Users className="w-5 h-5" />} color="green" trend={{ value: `2 ${t.stats.thisMonth}`, up: true }} />
+      <StatCard label={t.stats.activeCourts} value={courts.filter((c) => c.isActive).length} icon={<LayoutGrid className="w-5 h-5" />} color="blue" />
+      <StatCard label={t.stats.matchesThisWeek} value={weekMatches.length} icon={<Swords className="w-5 h-5" />} color="purple" trend={{ value: "vs last week", up: true }} />
+      <StatCard label={t.stats.activeTournaments} value={activeTournaments} icon={<Trophy className="w-5 h-5" />} color="orange" />
     </div>
   );
 }

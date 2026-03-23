@@ -10,8 +10,14 @@ import { getPlayers } from "@/lib/data/players";
 import { getCourts } from "@/lib/data/courts";
 import { OpenGame, Tournament, Player, Court } from "@/lib/types";
 import { Trophy, ChevronRight, Users } from "lucide-react";
+import { cookies } from "next/headers";
+import { getTranslations, LOCALE_COOKIE } from "@/lib/i18n";
 
 export default async function MyActivity() {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get(LOCALE_COOKIE)?.value ?? 'az';
+  const t = getTranslations(locale);
+
   const session = await getSession();
   if (!session?.userId) return null;
 
@@ -50,16 +56,16 @@ export default async function MyActivity() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white">Your Activity</h2>
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t.activity.title}</h2>
 
       {myGames.length > 0 && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-padel-green" /> Upcoming Games
+              <Users className="w-4 h-4 text-padel-green" /> {t.activity.upcomingGames}
             </p>
             <Link href="/open-games" className="text-xs text-padel-green hover:underline flex items-center gap-0.5">
-              View all <ChevronRight className="w-3 h-3" />
+              {t.activity.viewAll} <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="space-y-2">
@@ -117,10 +123,10 @@ export default async function MyActivity() {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              <Trophy className="w-4 h-4 text-amber-500" /> My Tournaments
+              <Trophy className="w-4 h-4 text-amber-500" /> {t.activity.myTournaments}
             </p>
             <Link href="/tournaments" className="text-xs text-padel-green hover:underline flex items-center gap-0.5">
-              View all <ChevronRight className="w-3 h-3" />
+              {t.activity.viewAll} <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="space-y-2">

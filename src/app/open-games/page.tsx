@@ -8,10 +8,12 @@ import Avatar from "@/components/ui/Avatar";
 import { Plus, Users, KeyRound } from "lucide-react";
 import { OpenGame, Player, Court } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { cn } from "@/lib/utils/cn";
 
 export default function OpenGamesPage() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const [games, setGames] = useState<OpenGame[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -77,7 +79,7 @@ export default function OpenGamesPage() {
     if (!codeInput.trim()) return;
     setCodeError("");
     const res = await fetch(`/api/open-games?code=${codeInput.trim().toUpperCase()}`);
-    if (!res.ok) { setCodeError("Kod tapılmadı və ya artıq bitib"); return; }
+    if (!res.ok) { setCodeError(t.games.codeNotFound); return; }
     const game = await res.json() as OpenGame;
     setCodeGame(game);
   };
@@ -136,18 +138,18 @@ export default function OpenGamesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">Games</h1>
-          <p className="text-gray-500 mt-1">Join an open game or post your own</p>
+          <h1 className="text-3xl font-black text-gray-900">{t.games.title}</h1>
+          <p className="text-gray-500 mt-1">{t.games.subtitle}</p>
         </div>
         <div className="flex gap-2">
           {user && (
             <Button variant="secondary" onClick={() => setShowCodeModal(true)}>
-              <KeyRound className="w-4 h-4" /> Join with code
+              <KeyRound className="w-4 h-4" /> {t.games.joinWithCode}
             </Button>
           )}
           {user && (
             <Button onClick={() => setShowForm(true)}>
-              <Plus className="w-4 h-4" /> Post Game
+              <Plus className="w-4 h-4" /> {t.games.postGame}
             </Button>
           )}
         </div>
@@ -161,16 +163,16 @@ export default function OpenGamesPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-400 text-lg">No open games right now</p>
+          <p className="text-gray-400 text-lg">{t.games.noGames}</p>
           {user ? (
             <>
-              <p className="text-gray-300 text-sm mt-1">Be the first — post a game and find players</p>
+              <p className="text-gray-300 text-sm mt-1">{t.games.beFirst}</p>
               <Button className="mt-4" onClick={() => setShowForm(true)}>
-                <Plus className="w-4 h-4" /> Post Game
+                <Plus className="w-4 h-4" /> {t.games.postGame}
               </Button>
             </>
           ) : (
-            <p className="text-gray-300 text-sm mt-1">Sign in to post a game</p>
+            <p className="text-gray-300 text-sm mt-1">{t.games.signInToPost}</p>
           )}
         </div>
       ) : (
@@ -200,7 +202,7 @@ export default function OpenGamesPage() {
         </div>
       )}
 
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Post a Game" size="xl">
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title={t.games.postGameTitle} size="xl">
         <OpenGameForm
           courts={courts}
           players={players}
@@ -212,21 +214,21 @@ export default function OpenGamesPage() {
         />
       </Modal>
 
-      <Modal isOpen={showCodeModal} onClose={() => { setShowCodeModal(false); setCodeGame(null); setCodeInput(""); setCodeError(""); }} title="Join with Code" size="sm">
+      <Modal isOpen={showCodeModal} onClose={() => { setShowCodeModal(false); setCodeGame(null); setCodeInput(""); setCodeError(""); }} title={t.games.joinWithCodeTitle} size="sm">
         <div className="space-y-4">
           <div>
             <input
               value={codeInput}
               onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && handleJoinByCode()}
-              placeholder="Enter 6-character code"
+              placeholder={t.games.enterCode}
               maxLength={6}
               className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-mono tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
             {codeError && <p className="text-xs text-red-500 mt-1">{codeError}</p>}
           </div>
           {!codeGame ? (
-            <Button className="w-full" onClick={handleJoinByCode}>Find Game</Button>
+            <Button className="w-full" onClick={handleJoinByCode}>{t.games.findByCode}</Button>
           ) : (
             <div className="space-y-3">
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3">
@@ -251,15 +253,15 @@ export default function OpenGamesPage() {
                 {codeGame.teams ? (
                   <>
                     <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => { handleAction(codeGame.id, "join", { teamNumber: 1, joinCode: codeInput }); setShowCodeModal(false); setCodeGame(null); setCodeInput(""); }}>
-                      Join Team 1
+                      {t.games.joinTeam1}
                     </Button>
                     <Button className="flex-1 bg-orange-500 hover:bg-orange-600" onClick={() => { handleAction(codeGame.id, "join", { teamNumber: 2, joinCode: codeInput }); setShowCodeModal(false); setCodeGame(null); setCodeInput(""); }}>
-                      Join Team 2
+                      {t.games.joinTeam2}
                     </Button>
                   </>
                 ) : (
                   <Button className="flex-1" onClick={() => { handleAction(codeGame.id, "join", { joinCode: codeInput }); setShowCodeModal(false); setCodeGame(null); setCodeInput(""); }}>
-                    Join Game
+                    {t.games.joinGame}
                   </Button>
                 )}
               </div>

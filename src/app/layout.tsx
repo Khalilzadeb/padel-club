@@ -6,7 +6,10 @@ import BottomNav from "@/components/layout/BottomNav";
 import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LocaleProvider } from "@/contexts/LocaleContext";
 import OnboardingGuard from "@/components/layout/OnboardingGuard";
+import { cookies } from "next/headers";
+import { type Locale, VALID_LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "@/lib/i18n";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,17 +22,25 @@ export const metadata: Metadata = {
   description: "Your premier padel sports club. Book courts, track matches, and compete in tournaments.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const rawLocale = cookieStore.get(LOCALE_COOKIE)?.value;
+  const initialLocale: Locale = (VALID_LOCALES as string[]).includes(rawLocale ?? '')
+    ? (rawLocale as Locale)
+    : DEFAULT_LOCALE;
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={initialLocale} suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900`}>
         <AuthProvider>
           <ThemeProvider>
-            <OnboardingGuard />
-            <Navbar />
-            <main className="flex-1 pb-16 md:pb-0">{children}</main>
-            <Footer className="hidden md:block" />
-            <BottomNav />
+            <LocaleProvider initialLocale={initialLocale}>
+              <OnboardingGuard />
+              <Navbar />
+              <main className="flex-1 pb-16 md:pb-0">{children}</main>
+              <Footer className="hidden md:block" />
+              <BottomNav />
+            </LocaleProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

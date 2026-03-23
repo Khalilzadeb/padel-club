@@ -5,20 +5,15 @@ import PlayerCard from "@/components/players/PlayerCard";
 import Card from "@/components/ui/Card";
 import { Player, PlayerLevel, PlayerPosition } from "@/lib/types";
 import { Search, X, SlidersHorizontal } from "lucide-react";
+import { useLocale } from "@/contexts/LocaleContext";
 
 const levels: PlayerLevel[] = ["pro", "advanced", "intermediate", "beginner"];
 const positions: PlayerPosition[] = ["drive", "revés", "flexible"];
 
 type SortKey = "elo" | "winRate" | "matches" | "name";
 
-const sortOptions: { key: SortKey; label: string }[] = [
-  { key: "elo", label: "ELO" },
-  { key: "winRate", label: "Win Rate" },
-  { key: "matches", label: "Matches" },
-  { key: "name", label: "Name" },
-];
-
 export default function PlayersPage() {
+  const { t } = useLocale();
   const [tab, setTab] = useState<"leaderboard" | "all">("leaderboard");
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +26,13 @@ export default function PlayersPage() {
   const [eloMax, setEloMax] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("elo");
   const [showFilters, setShowFilters] = useState(false);
+
+  const sortOptions: { key: SortKey; label: string }[] = [
+    { key: "elo", label: t.players.elo },
+    { key: "winRate", label: t.players.winRate },
+    { key: "matches", label: t.players.matches },
+    { key: "name", label: "Name" },
+  ];
 
   useEffect(() => {
     fetch("/api/players")
@@ -71,8 +73,8 @@ export default function PlayersPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Players</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">{players.length} members · Rankings updated after every match</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white">{t.players.title}</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{t.players.membersCount.replace('{count}', String(players.length))}</p>
       </div>
 
       {/* Search + filter toggle */}
@@ -82,7 +84,7 @@ export default function PlayersPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search players..."
+            placeholder={t.players.search}
             className="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400"
           />
           {search && (
@@ -100,7 +102,7 @@ export default function PlayersPage() {
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
-          Filters
+          {t.players.filters}
           {hasActiveFilters && !showFilters && (
             <span className="w-1.5 h-1.5 rounded-full bg-white" />
           )}
@@ -178,7 +180,7 @@ export default function PlayersPage() {
 
           {hasActiveFilters && (
             <button onClick={clearFilters} className="text-xs text-red-500 hover:text-red-600 font-medium flex items-center gap-1">
-              <X className="w-3 h-3" /> Clear all filters
+              <X className="w-3 h-3" /> {t.players.clearFilters}
             </button>
           )}
         </div>
@@ -187,15 +189,15 @@ export default function PlayersPage() {
       {/* Tabs */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex gap-2">
-          {(["leaderboard", "all"] as const).map((t) => (
+          {(["leaderboard", "all"] as const).map((tabVal) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabVal}
+              onClick={() => setTab(tabVal)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                tab === t ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                tab === tabVal ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
-              {t === "leaderboard" ? "Leaderboard" : "All Players"}
+              {tabVal === "leaderboard" ? t.players.leaderboard : t.players.allPlayers}
             </button>
           ))}
         </div>
@@ -203,7 +205,7 @@ export default function PlayersPage() {
         {/* Sort (only for All Players tab) */}
         {tab === "all" && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Sort:</span>
+            <span className="text-xs text-gray-400">{t.players.sortBy}</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortKey)}
@@ -234,9 +236,9 @@ export default function PlayersPage() {
         </Card>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400">No players found</p>
+          <p className="text-gray-400">{t.players.noPlayersFound}</p>
           {hasActiveFilters && (
-            <button onClick={clearFilters} className="mt-2 text-sm text-padel-green hover:underline">Clear filters</button>
+            <button onClick={clearFilters} className="mt-2 text-sm text-padel-green hover:underline">{t.players.clearFilters}</button>
           )}
         </div>
       ) : (

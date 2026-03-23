@@ -6,8 +6,14 @@ import { findUserById } from "@/lib/data/users";
 import { getPlayer } from "@/lib/data/players";
 import { eloToDisplayLevel } from "@/lib/elo";
 import GreetingLine from "./GreetingLine";
+import { cookies } from "next/headers";
+import { getTranslations, getLocaleFromCookieString, LOCALE_COOKIE } from "@/lib/i18n";
 
 export default async function HeroSection() {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get(LOCALE_COOKIE)?.value ?? 'az';
+  const t = getTranslations(locale);
+
   const session = await getSession();
   let playerStats: { eloRating: number; matchesPlayed: number; matchesWon: number } | null = null;
   let firstName: string | null = null;
@@ -47,23 +53,23 @@ export default async function HeroSection() {
           <p className="text-green-100 text-base mb-6 min-h-[1.5rem]">
             {firstName
               ? <GreetingLine firstName={firstName} />
-              : "Find a game, track your matches, compete."}
+              : t.hero.tagline}
           </p>
 
           <div className="flex flex-wrap gap-3">
             <Link href="/open-games">
               <Button className="bg-white !text-padel-green hover:bg-green-50 shadow-md" size="lg">
-                <Users className="w-5 h-5" /> Find a Game
+                <Users className="w-5 h-5" /> {t.hero.findGame}
               </Button>
             </Link>
             <Link href="/players">
               <Button variant="ghost" className="!text-white hover:!bg-white/20" size="lg">
-                <Trophy className="w-5 h-5" /> Rankings
+                <Trophy className="w-5 h-5" /> {t.hero.rankings}
               </Button>
             </Link>
             <Link href="/tournaments">
               <Button variant="ghost" className="!text-white hover:!bg-white/20" size="lg">
-                <CalendarDays className="w-5 h-5" /> Tournaments
+                <CalendarDays className="w-5 h-5" /> {t.hero.tournaments}
               </Button>
             </Link>
           </div>
@@ -72,15 +78,15 @@ export default async function HeroSection() {
         {playerStats && (
           <div className="flex gap-3 flex-shrink-0">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
-              <p className="text-green-200 text-xs font-medium mb-1">ELO</p>
+              <p className="text-green-200 text-xs font-medium mb-1">{t.profile.eloRating}</p>
               <p className="text-3xl font-black">{playerStats.eloRating}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
-              <p className="text-green-200 text-xs font-medium mb-1">Level</p>
+              <p className="text-green-200 text-xs font-medium mb-1">{t.profile.level}</p>
               <p className="text-3xl font-black">{eloToDisplayLevel(playerStats.eloRating)}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
-              <p className="text-green-200 text-xs font-medium mb-1">Win Rate</p>
+              <p className="text-green-200 text-xs font-medium mb-1">{t.profile.winRate}</p>
               <p className="text-3xl font-black">{winRate}</p>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { useState, useEffect, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -27,6 +28,7 @@ function GoogleIcon() {
 
 function LoginForm() {
   const { login, user, loading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? "/";
@@ -70,13 +72,13 @@ function LoginForm() {
           <div className="inline-flex w-14 h-14 bg-padel-green rounded-2xl items-center justify-center mb-4 shadow-lg">
             <span className="text-white font-black text-2xl">P</span>
           </div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Welcome back</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Sign in to your PadelOn account</p>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.auth.welcomeBack}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.auth.signInToAccount}</p>
         </div>
 
         {/* Demo credentials */}
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6 text-sm">
-          <p className="font-semibold text-blue-800 dark:text-blue-300 mb-1">Demo credentials</p>
+          <p className="font-semibold text-blue-800 dark:text-blue-300 mb-1">{t.auth.demoCredentials}</p>
           <p className="text-blue-600 dark:text-blue-400">Email: <span className="font-mono">demo@padel.club</span></p>
           <p className="text-blue-600 dark:text-blue-400">Password: <span className="font-mono">password123</span></p>
         </div>
@@ -95,18 +97,18 @@ function LoginForm() {
             className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
           >
             <GoogleIcon />
-            Continue with Google
+            {t.auth.continueWithGoogle}
           </button>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
-            <span className="text-xs text-gray-400 font-medium">or sign in with email</span>
+            <span className="text-xs text-gray-400 font-medium">{t.auth.orSignInWithEmail}</span>
             <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t.auth.email}</label>
               <input
                 type="email"
                 value={email}
@@ -119,7 +121,7 @@ function LoginForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t.auth.password}</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -149,14 +151,14 @@ function LoginForm() {
               ) : (
                 <LogIn className="w-4 h-4" />
               )}
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? t.auth.signingIn : t.auth.signIn}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Don&apos;t have an account?{" "}
+            {t.auth.noAccount}{" "}
             <Link href="/signup" className="text-padel-green font-medium hover:underline">
-              Create one
+              {t.auth.createOne}
             </Link>
           </p>
         </div>

@@ -3,6 +3,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 
 function GoogleIcon() {
@@ -18,6 +19,7 @@ function GoogleIcon() {
 
 export default function SignupPage() {
   const { signup } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -60,8 +62,8 @@ export default function SignupPage() {
           <div className="inline-flex w-14 h-14 bg-padel-green rounded-2xl items-center justify-center mb-4 shadow-lg">
             <span className="text-white font-black text-2xl">P</span>
           </div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Join PadelOn</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Create your account and start playing</p>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.auth.joinPadelOn}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.auth.createAccountAndStart}</p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-card border border-gray-100 dark:border-gray-700 p-8 space-y-5">
@@ -78,18 +80,18 @@ export default function SignupPage() {
             className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors shadow-sm"
           >
             <GoogleIcon />
-            Continue with Google
+            {t.auth.continueWithGoogle}
           </button>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
-            <span className="text-xs text-gray-400 font-medium">or sign up with email</span>
+            <span className="text-xs text-gray-400 font-medium">{t.auth.orSignUpWithEmail}</span>
             <div className="flex-1 h-px bg-gray-100 dark:bg-gray-700" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t.auth.fullName}</label>
             <input
               type="text"
               value={name}
@@ -102,7 +104,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t.auth.email}</label>
             <input
               type="email"
               value={email}
@@ -114,7 +116,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t.auth.password}</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -145,7 +147,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Confirm Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t.auth.confirmPassword}</label>
             <input
               type={showPassword ? "text" : "password"}
               value={confirmPassword}
@@ -170,13 +172,13 @@ export default function SignupPage() {
             ) : (
               <UserPlus className="w-4 h-4" />
             )}
-            {loading ? "Creating account..." : "Create account"}
+            {loading ? t.auth.creatingAccount : t.auth.createAccount}
           </button>
 
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Already have an account?{" "}
+            {t.auth.alreadyHaveAccount}{" "}
             <Link href="/login" className="text-padel-green font-medium hover:underline">
-              Sign in
+              {t.auth.signIn}
             </Link>
           </p>
           </form>
