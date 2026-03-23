@@ -109,7 +109,11 @@
     "enterResult": "Enter Result",
     "myMatches": "My Matches",
     "searchPlayers": "Search players...",
-    "enterOpenGameResult": "Enter Open Game Result"
+    "enterOpenGameResult": "Enter Open Game Result",
+    "filterAll": "All",
+    "filterCasual": "Casual",
+    "filterRanked": "Ranked",
+    "filterTournament": "Tournament"
   },
   "tournaments": {
     "title": "Tournaments",

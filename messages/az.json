@@ -109,7 +109,11 @@
     "enterResult": "Nəticə daxil et",
     "myMatches": "Mənim oyunlarım",
     "searchPlayers": "Oyunçu axtar...",
-    "enterOpenGameResult": "Açıq oyun nəticəsini daxil et"
+    "enterOpenGameResult": "Açıq oyun nəticəsini daxil et",
+    "filterAll": "Hamısı",
+    "filterCasual": "Dostluq",
+    "filterRanked": "Reytinq",
+    "filterTournament": "Turnir"
   },
   "tournaments": {
     "title": "Turnir",

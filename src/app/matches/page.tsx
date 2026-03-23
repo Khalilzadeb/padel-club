@@ -150,15 +150,18 @@ export default function MatchesPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 items-center">
-          {(["all", "casual", "ranked", "tournament"] as const).map((t) => (
+          {(["all", "casual", "ranked", "tournament"] as const).map((filter) => (
             <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1.5 rounded-xl text-sm font-medium capitalize transition-colors ${
-                typeFilter === t ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              key={filter}
+              onClick={() => setTypeFilter(filter)}
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
+                typeFilter === filter ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
-              {t}
+              {filter === "all" ? t.matches.filterAll
+                : filter === "casual" ? t.matches.filterCasual
+                : filter === "ranked" ? t.matches.filterRanked
+                : t.matches.filterTournament}
             </button>
           ))}
           <div className="flex items-center gap-1.5 ml-auto">

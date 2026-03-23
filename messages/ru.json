@@ -109,7 +109,11 @@
     "enterResult": "Ввести результат",
     "myMatches": "Мои матчи",
     "searchPlayers": "Поиск игроков...",
-    "enterOpenGameResult": "Ввести результат открытой игры"
+    "enterOpenGameResult": "Ввести результат открытой игры",
+    "filterAll": "Все",
+    "filterCasual": "Дружеский",
+    "filterRanked": "Рейтинговый",
+    "filterTournament": "Турнир"
   },
   "tournaments": {
     "title": "Турниры",
