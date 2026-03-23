@@ -9,8 +9,8 @@ import { Player } from "@/lib/types";
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
+  if (h >= 5 && h < 12) return "Good morning";
+  if (h >= 12 && h < 18) return "Good afternoon";
   return "Good evening";
 }
 
@@ -31,7 +31,8 @@ export default function HeroSection() {
       .catch(() => {});
   }, [user?.playerId]);
 
-  const isPersonalized = !loading && user && player;
+  const hasUser = !loading && !!user;
+  const isPersonalized = hasUser && !!player;
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-padel-green-dark via-padel-green to-padel-green-light text-white p-8 md:p-10">
@@ -47,10 +48,10 @@ export default function HeroSection() {
             PadelOn
           </p>
 
-          {isPersonalized ? (
+          {hasUser ? (
             <>
               <p className="text-green-200 text-sm font-medium mb-1">{greeting},</p>
-              <h1 className="text-3xl md:text-4xl font-black mb-6">{user.name.split(" ")[0]} 👋</h1>
+              <h1 className="text-3xl md:text-4xl font-black mb-6">{user!.name.split(" ")[0]} 👋</h1>
             </>
           ) : (
             <>
