@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     end: game.endTime,
     spots: String(spotsLeft),
     type: game.gameType,
+    ...(game.eloMin != null && game.eloMax != null ? { elo: `${game.eloMin}-${game.eloMax}` } : {}),
   });
   const imageUrl = `${proto}://${host}/api/og?${ogParams.toString()}`;
 

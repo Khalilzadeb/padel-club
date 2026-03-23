@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   const end = searchParams.get("end") ?? "";
   const spots = parseInt(searchParams.get("spots") ?? "1", 10);
   const type = searchParams.get("type") ?? "ranked";
+  const elo = searchParams.get("elo") ?? "";
   const isFull = spots <= 0;
 
   const spotColor = isFull ? "rgba(239,68,68,0.25)" : "rgba(74,222,128,0.25)";
@@ -59,6 +60,13 @@ export async function GET(req: NextRequest) {
           color: "white", fontSize: "26px", fontWeight: 700, display: "flex", alignItems: "center",
         },
       }, type === "ranked" ? "RANKED" : "FRIENDLY"),
+      elo ? h("div", {
+        style: {
+          background: "rgba(251,191,36,0.2)", border: "2px solid rgba(251,191,36,0.6)",
+          borderRadius: "12px", padding: "12px 28px",
+          color: "white", fontSize: "26px", fontWeight: 700, display: "flex", alignItems: "center",
+        },
+      }, `ELO ${elo}`) : null,
     ),
     // Bottom bar
     h("div", { style: { height: "10px", marginTop: "auto", background: "linear-gradient(90deg, #4ade80, #16a34a, #4ade80)" } }),
