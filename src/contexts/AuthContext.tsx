@@ -23,27 +23,58 @@ interface AuthContextValue {
   updateUser: (patch: Partial<AuthUser>) => void;
 }
 
+const CACHE_KEY = "padel_user_cache";
+
+function readCache(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(user: AuthUser | null) {
+  try {
+    if (user) localStorage.setItem(CACHE_KEY, JSON.stringify(user));
+    else localStorage.removeItem(CACHE_KEY);
+  } catch {}
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Start with cached user → no loading flash on repeat visits
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    if (typeof window === "undefined") return null;
+    return readCache();
+  });
+  // loading=false if we have a cache hit, so UI shows immediately
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return readCache() === null;
+  });
+
+  const setAndCache = useCallback((u: AuthUser | null) => {
+    setUser(u);
+    writeCache(u);
+  }, []);
 
   const fetchMe = useCallback(async () => {
     try {
       const res = await fetch("/api/auth/me");
       if (res.ok) {
         const data = await res.json();
-        setUser(data.user);
+        setAndCache(data.user);
       } else {
-        setUser(null);
+        setAndCache(null);
       }
     } catch {
-      setUser(null);
+      // network error — keep cached user, don't blank the screen
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setAndCache]);
 
   useEffect(() => { fetchMe(); }, [fetchMe]);
 
@@ -56,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) return { error: data.error ?? "Login failed" };
-      setUser(data.user);
+      setAndCache(data.user);
       return {};
     } catch {
       return { error: "Something went wrong. Please try again." };
@@ -72,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) return { error: data.error ?? "Signup failed" };
-      setUser({ ...data.user, playerId: data.user.playerId });
+      setAndCache({ ...data.user, playerId: data.user.playerId });
       return {};
     } catch {
       return { error: "Something went wrong. Please try again." };
@@ -81,11 +112,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
+    setAndCache(null);
   };
 
   const updateUser = (patch: Partial<AuthUser>) => {
-    setUser((prev) => (prev ? { ...prev, ...patch } : prev));
+    setUser((prev) => {
+      const next = prev ? { ...prev, ...patch } : prev;
+      writeCache(next);
+      return next;
+    });
   };
 
   return (
