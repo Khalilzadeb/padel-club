@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { Users, Trophy, TrendingUp, Zap } from "lucide-react";
+import { Users, Trophy, Zap, CalendarDays } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { eloToDisplayLevel } from "@/lib/elo";
@@ -30,11 +30,18 @@ export default function HeroSection() {
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-padel-green-dark via-padel-green to-padel-green-light text-white p-8 md:p-10">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
+      {/* Background blobs */}
+      <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-36 translate-x-36" />
+      <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/5 rounded-full translate-y-28 -translate-x-28" />
+      <div className="absolute top-1/2 right-1/4 w-32 h-32 bg-white/3 rounded-full -translate-y-1/2" />
 
       <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
+          {/* Brand — always visible */}
+          <p className="text-green-300/80 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+            PadelOn
+          </p>
+
           {isPersonalized ? (
             <>
               <p className="text-green-200 text-sm font-medium mb-1">{getGreeting()},</p>
@@ -42,22 +49,17 @@ export default function HeroSection() {
             </>
           ) : (
             <>
-              <p className="text-green-200 text-sm font-medium uppercase tracking-wider mb-2">Welcome to</p>
-              <h1 className="text-3xl md:text-5xl font-black mb-3">PadelOn</h1>
-              <p className="text-green-100 text-lg mb-6 max-w-md">
-                Find a game, track your matches, and compete in tournaments.
+              <h1 className="text-3xl md:text-5xl font-black mb-3">Find your game.</h1>
+              <p className="text-green-100 text-base mb-6 max-w-md">
+                Join open games, track your matches, and compete in tournaments.
               </p>
             </>
           )}
+
           <div className="flex flex-wrap gap-3">
             <Link href="/open-games">
-              <Button className="bg-white !text-padel-green hover:bg-green-50" size="lg">
+              <Button className="bg-white !text-padel-green hover:bg-green-50 shadow-md" size="lg">
                 <Users className="w-5 h-5" /> Find a Game
-              </Button>
-            </Link>
-            <Link href="/matches">
-              <Button variant="ghost" className="!text-white hover:!bg-white/20" size="lg">
-                <TrendingUp className="w-5 h-5" /> Enter Score
               </Button>
             </Link>
             <Link href="/players">
@@ -65,22 +67,27 @@ export default function HeroSection() {
                 <Trophy className="w-5 h-5" /> Rankings
               </Button>
             </Link>
+            <Link href="/tournaments">
+              <Button variant="ghost" className="!text-white hover:!bg-white/20" size="lg">
+                <CalendarDays className="w-5 h-5" /> Tournaments
+              </Button>
+            </Link>
           </div>
         </div>
 
         {isPersonalized && player && (
           <div className="flex gap-3 flex-shrink-0">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
               <p className="text-green-200 text-xs font-medium mb-1">ELO</p>
               <p className="text-3xl font-black">{player.stats.eloRating}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
               <p className="text-green-200 text-xs font-medium mb-1 flex items-center justify-center gap-1">
                 <Zap className="w-3 h-3" /> Level
               </p>
               <p className="text-3xl font-black">{eloToDisplayLevel(player.stats.eloRating)}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
               <p className="text-green-200 text-xs font-medium mb-1">Win Rate</p>
               <p className="text-3xl font-black">
                 {player.stats.matchesPlayed > 0
