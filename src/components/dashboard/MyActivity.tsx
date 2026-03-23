@@ -1,56 +1,51 @@
-"use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
-import { useAuth } from "@/contexts/AuthContext";
+import { getSession } from "@/lib/auth";
+import { findUserById } from "@/lib/data/users";
+import { getOpenGames } from "@/lib/data/open-games";
+import { getTournaments } from "@/lib/data/tournaments";
+import { getPlayers } from "@/lib/data/players";
+import { getCourts } from "@/lib/data/courts";
 import { OpenGame, Tournament, Player, Court } from "@/lib/types";
-import { Calendar, MapPin, Trophy, ChevronRight, Users } from "lucide-react";
+import { Trophy, ChevronRight, Users } from "lucide-react";
 
-export default function MyActivity() {
-  const { user, loading: authLoading } = useAuth();
-  const [myGames, setMyGames] = useState<OpenGame[]>([]);
-  const [myTournaments, setMyTournaments] = useState<Tournament[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [courts, setCourts] = useState<Court[]>([]);
-  const [loaded, setLoaded] = useState(false);
+export default async function MyActivity() {
+  const session = await getSession();
+  if (!session?.userId) return null;
 
-  useEffect(() => {
-    if (authLoading || !user?.playerId) return;
+  const user = await findUserById(session.userId);
+  if (!user?.playerId) return null;
 
-    Promise.all([
-      fetch("/api/open-games").then((r) => r.json()),
-      fetch("/api/tournaments").then((r) => r.json()),
-      fetch("/api/players").then((r) => r.json()),
-      fetch("/api/courts").then((r) => r.json()),
-    ]).then(([gamesData, tournamentsData, playersData, courtsData]) => {
-      const today = new Date().toISOString().split("T")[0];
+  const playerId = user.playerId;
+  const today = new Date().toISOString().split("T")[0];
 
-      const games: OpenGame[] = Array.isArray(gamesData) ? gamesData : [];
-      const mine = games.filter(
-        (g) =>
-          g.playerIds.includes(user.playerId!) &&
-          (g.status === "open" || g.status === "full") &&
-          g.date >= today
-      ).sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
-      setMyGames(mine.slice(0, 3));
+  const [games, tournaments, players, courts] = await Promise.all([
+    getOpenGames(),
+    getTournaments(),
+    getPlayers(),
+    getCourts(),
+  ]);
 
-      const tournaments: Tournament[] = Array.isArray(tournamentsData) ? tournamentsData : [];
-      const myT = tournaments.filter(
-        (t) =>
-          t.registeredTeams.some((team) => team.includes(user.playerId!)) &&
-          t.status !== "completed"
-      );
-      setMyTournaments(myT.slice(0, 2));
+  const myGames: OpenGame[] = games
+    .filter(
+      (g) =>
+        g.playerIds.includes(playerId) &&
+        (g.status === "open" || g.status === "full") &&
+        g.date >= today
+    )
+    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
+    .slice(0, 3);
 
-      setPlayers((playersData ?? []).map((d: { player: Player }) => d.player));
-      setCourts(courtsData ?? []);
-      setLoaded(true);
-    });
-  }, [user, authLoading]);
+  const myTournaments: Tournament[] = tournaments
+    .filter(
+      (t) =>
+        t.registeredTeams.some((team) => team.includes(playerId)) &&
+        t.status !== "completed"
+    )
+    .slice(0, 2);
 
-  if (authLoading || !user?.playerId || !loaded) return null;
   if (myGames.length === 0 && myTournaments.length === 0) return null;
 
   return (
@@ -71,7 +66,7 @@ export default function MyActivity() {
             {myGames.map((game) => {
               const court = courts.find((c) => c.id === game.courtId);
               const gamePlayers = game.playerIds
-                .filter((id) => id !== user.playerId)
+                .filter((id) => id !== playerId)
                 .map((id) => players.find((p) => p.id === id))
                 .filter(Boolean) as Player[];
               const spotsLeft = game.maxPlayers - game.playerIds.length;
@@ -130,9 +125,9 @@ export default function MyActivity() {
           </div>
           <div className="space-y-2">
             {myTournaments.map((t) => {
-              const myTeam = t.registeredTeams.find((team) => team.includes(user.playerId!));
+              const myTeam = t.registeredTeams.find((team) => team.includes(playerId));
               const partner = myTeam
-                ? players.find((p) => p.id !== user.playerId && myTeam.includes(p.id))
+                ? players.find((p) => p.id !== playerId && myTeam.includes(p.id))
                 : null;
 
               return (

@@ -27,7 +27,9 @@ export default function HomePage() {
         <HeroSection />
       </Suspense>
       <TodaysGames />
-      <MyActivity />
+      <Suspense fallback={null}>
+        <MyActivity />
+      </Suspense>
       <QuickStats />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
