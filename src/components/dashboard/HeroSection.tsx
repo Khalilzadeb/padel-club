@@ -1,32 +1,37 @@
-"use client";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { Users, Trophy, Zap, CalendarDays } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { Users, Trophy, CalendarDays } from "lucide-react";
+import { getSession } from "@/lib/auth";
+import { findUserById } from "@/lib/data/users";
+import { getPlayer } from "@/lib/data/players";
 import { eloToDisplayLevel } from "@/lib/elo";
+import GreetingLine from "./GreetingLine";
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return "Good morning";
-  if (h >= 12 && h < 18) return "Good afternoon";
-  return "Good evening";
-}
+export default async function HeroSection() {
+  const session = await getSession();
+  let playerStats: { eloRating: number; matchesPlayed: number; matchesWon: number } | null = null;
+  let firstName: string | null = null;
 
-export default function HeroSection() {
-  const { user, loading } = useAuth();
-  const [greeting, setGreeting] = useState("");
-
-  useEffect(() => {
-    setGreeting(getGreeting());
-  }, []);
-
-  const hasUser = !loading && !!user;
-  const hasStats = hasUser && user!.eloRating != null;
+  if (session?.userId) {
+    const user = await findUserById(session.userId);
+    if (user) {
+      firstName = user.name.split(" ")[0];
+      if (user.playerId) {
+        const player = await getPlayer(user.playerId);
+        if (player) {
+          playerStats = {
+            eloRating: player.stats.eloRating,
+            matchesPlayed: player.stats.matchesPlayed,
+            matchesWon: player.stats.matchesWon,
+          };
+        }
+      }
+    }
+  }
 
   const winRate =
-    hasStats && user!.matchesPlayed! > 0
-      ? `${Math.round((user!.matchesWon! / user!.matchesPlayed!) * 100)}%`
+    playerStats && playerStats.matchesPlayed > 0
+      ? `${Math.round((playerStats.matchesWon / playerStats.matchesPlayed) * 100)}%`
       : "—";
 
   return (
@@ -38,9 +43,10 @@ export default function HeroSection() {
         <div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">PadelOn</h1>
 
+          {/* Greeting — client component (needs browser clock for timezone) */}
           <p className="text-green-100 text-base mb-6 min-h-[1.5rem]">
-            {hasUser
-              ? `${greeting}, ${user!.name.split(" ")[0]} 👋`
+            {firstName
+              ? <GreetingLine firstName={firstName} />
               : "Find a game, track your matches, compete."}
           </p>
 
@@ -63,17 +69,15 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {hasStats && (
+        {playerStats && (
           <div className="flex gap-3 flex-shrink-0">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
               <p className="text-green-200 text-xs font-medium mb-1">ELO</p>
-              <p className="text-3xl font-black">{user!.eloRating}</p>
+              <p className="text-3xl font-black">{playerStats.eloRating}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
-              <p className="text-green-200 text-xs font-medium mb-1 flex items-center justify-center gap-1">
-                <Zap className="w-3 h-3" /> Level
-              </p>
-              <p className="text-3xl font-black">{eloToDisplayLevel(user!.eloRating!)}</p>
+              <p className="text-green-200 text-xs font-medium mb-1">Level</p>
+              <p className="text-3xl font-black">{eloToDisplayLevel(playerStats.eloRating)}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-center min-w-[80px]">
               <p className="text-green-200 text-xs font-medium mb-1">Win Rate</p>
