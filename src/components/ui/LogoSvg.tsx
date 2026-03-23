@@ -1,52 +1,57 @@
 export default function LogoSvg({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 210 48"
+      viewBox="0 0 212 58"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-label="PadelOn"
     >
-      {/* Racket head */}
-      <rect x="4" y="2" width="28" height="33" rx="14" fill="#16a34a" />
-      {/* Strings */}
-      <line x1="4"  y1="12" x2="32" y2="12" stroke="white" strokeWidth="1.3" opacity="0.5" />
-      <line x1="4"  y1="18" x2="32" y2="18" stroke="white" strokeWidth="1.3" opacity="0.5" />
-      <line x1="4"  y1="24" x2="32" y2="24" stroke="white" strokeWidth="1.3" opacity="0.5" />
-      <line x1="12" y1="2"  x2="12" y2="35" stroke="white" strokeWidth="1.3" opacity="0.5" />
-      <line x1="18" y1="2"  x2="18" y2="35" stroke="white" strokeWidth="1.3" opacity="0.5" />
-      <line x1="24" y1="2"  x2="24" y2="35" stroke="white" strokeWidth="1.3" opacity="0.5" />
+      {/* ── RACKET ── */}
+      {/* Head outline — stroke only, adapts to dark/light via currentColor */}
+      <ellipse cx="21" cy="21" rx="16" ry="19" stroke="currentColor" strokeWidth="2.8" fill="none"/>
+      {/* Green ball inside racket head */}
+      <circle cx="21" cy="19" r="11" fill="#16a34a"/>
+      {/* Ball holes */}
+      <circle cx="16" cy="15" r="2.2" fill="rgba(0,0,0,0.35)"/>
+      <circle cx="25" cy="16" r="1.9" fill="rgba(0,0,0,0.3)"/>
+      <circle cx="16" cy="22" r="1.8" fill="rgba(0,0,0,0.28)"/>
+      <circle cx="25" cy="23" r="1.5" fill="rgba(0,0,0,0.22)"/>
       {/* Handle */}
-      <rect x="14" y="34" width="8" height="12" rx="4" fill="#15803d" />
-      {/* Ball — white with green tint */}
-      <circle cx="35" cy="8" r="6" fill="white" opacity="0.9" />
-      <circle cx="35" cy="8" r="6" fill="#16a34a" opacity="0.15" />
+      <line x1="17" y1="39" x2="7" y2="54" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
 
-      {/* "Padel" — currentColor → black in light mode, white in dark mode */}
+      {/* ── PADEL (currentColor → black light / white dark) ── */}
       <text
-        x="48"
-        y="35"
-        fontFamily="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+        x="44" y="43"
+        fontFamily="'Arial Black','Helvetica Neue',Arial,sans-serif"
         fontWeight="900"
-        fontSize="30"
-        letterSpacing="-1"
+        fontSize="36"
         fill="currentColor"
-      >
-        Padel
-      </text>
+        letterSpacing="0.5"
+      >PADEL</text>
 
-      {/* "On" — always green */}
+      {/* ── POWER-BUTTON "O" ── */}
+      {/* circle center (167, 29) r=13 — matches cap height of 36px text */}
+      {/* Arc: full circle minus ~65° gap at top */}
+      <path
+        d="M 174.5,18.4 A 13,13 0 1 1 159.5,18.4"
+        stroke="#16a34a"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Vertical power line through the gap */}
+      <line x1="167" y1="12" x2="167" y2="27" stroke="#16a34a" strokeWidth="3.2" strokeLinecap="round"/>
+
+      {/* ── N (green) ── */}
       <text
-        x="144"
-        y="35"
-        fontFamily="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+        x="183" y="43"
+        fontFamily="'Arial Black','Helvetica Neue',Arial,sans-serif"
         fontWeight="900"
-        fontSize="30"
-        letterSpacing="-1"
+        fontSize="36"
         fill="#16a34a"
-      >
-        On
-      </text>
+        letterSpacing="0.5"
+      >N</text>
     </svg>
   );
 }
