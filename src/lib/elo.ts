@@ -12,12 +12,14 @@ export function eloToDisplayLevel(elo: number): string {
   return (Math.round(raw * 2) / 2).toFixed(1);
 }
 
-/** Returns badge color variant based on ELO */
-export function eloToLevelVariant(elo: number): "green" | "blue" | "purple" | "gray" {
-  if (elo >= 1538) return "purple";
-  if (elo >= 1250) return "blue";
-  if (elo >= 962)  return "green";
-  return "gray";
+/** Returns badge color variant based on ELO (blue → sky → green → yellow → orange → red) */
+export function eloToLevelVariant(elo: number): "blue" | "sky" | "green" | "yellow" | "orange" | "red" {
+  if (elo >= 1717) return "red";
+  if (elo >= 1433) return "orange";
+  if (elo >= 1150) return "yellow";
+  if (elo >= 867)  return "green";
+  if (elo >= 567)  return "sky";
+  return "blue";
 }
 
 export function calculateEloChanges(
