@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- Racket head -->
+  <ellipse cx="30" cy="24" rx="18" ry="20" fill="#16a34a" rx="18"/>
+  <!-- Racket strings horizontal -->
+  <line x1="13" y1="18" x2="47" y2="18" stroke="white" stroke-width="1.2" opacity="0.5"/>
+  <line x1="12" y1="24" x2="48" y2="24" stroke="white" stroke-width="1.2" opacity="0.5"/>
+  <line x1="13" y1="30" x2="47" y2="30" stroke="white" stroke-width="1.2" opacity="0.5"/>
+  <!-- Racket strings vertical -->
+  <line x1="22" y1="5" x2="22" y2="43" stroke="white" stroke-width="1.2" opacity="0.5"/>
+  <line x1="30" y1="4" x2="30" y2="44" stroke="white" stroke-width="1.2" opacity="0.5"/>
+  <line x1="38" y1="5" x2="38" y2="43" stroke="white" stroke-width="1.2" opacity="0.5"/>
+  <!-- Racket handle -->
+  <rect x="26" y="43" width="8" height="14" rx="4" fill="#15803d"/>
+  <!-- Ball -->
+  <circle cx="50" cy="44" r="7" fill="#facc15"/>
+  <path d="M44 42 Q50 38 56 42" stroke="white" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M44 46 Q50 50 56 46" stroke="white" stroke-width="1" fill="none" opacity="0.6"/>
+  <!-- Wordmark -->
+  <text x="64" y="38" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-weight="900" font-size="26" fill="#16a34a" letter-spacing="-0.5">Padel</text>
+  <text x="136" y="38" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-weight="900" font-size="26" fill="#facc15" letter-spacing="-0.5">On</text>
+</svg>

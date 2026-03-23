@@ -44,10 +44,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-padel-green rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-sm">P</span>
-            </div>
-            <span className="font-bold text-gray-900 dark:text-white text-lg hidden sm:block">PadelOn</span>
+            <img src="/favicon.svg" alt="PadelOn" className="w-8 h-8" />
+            <img src="/logo.svg" alt="PadelOn" className="h-7 hidden sm:block" />
           </Link>
 
           {/* Desktop links */}

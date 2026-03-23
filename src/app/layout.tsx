@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "PadelOn - Book Courts, Track Matches & Tournaments",
   description: "Your premier padel sports club. Book courts, track matches, and compete in tournaments.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
