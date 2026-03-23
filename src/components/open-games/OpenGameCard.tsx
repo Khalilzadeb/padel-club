@@ -42,6 +42,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
   const [shareCopied, setShareCopied] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showBookFailedConfirm, setShowBookFailedConfirm] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const handleShare = () => {
     const base = typeof window !== "undefined" ? window.location.origin : "";
@@ -317,7 +318,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                 Cancel Game
               </Button>
             ) : isJoined ? (
-              <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 ml-auto" onClick={() => onLeave(game.id)} disabled={loading}>
+              <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 ml-auto" onClick={() => setShowLeaveConfirm(true)} disabled={loading}>
                 Leave
               </Button>
             ) : !isFull ? (
@@ -393,6 +394,18 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
             })}
         </div>
       </Modal>
+      <Modal isOpen={showLeaveConfirm} onClose={() => setShowLeaveConfirm(false)} title="Leave Game?" size="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to leave this game?</p>
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setShowLeaveConfirm(false)}>No, stay</Button>
+            <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={() => { onLeave(game.id); setShowLeaveConfirm(false); }} disabled={loading}>
+              Yes, leave
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal isOpen={showCancelConfirm} onClose={() => setShowCancelConfirm(false)} title="Cancel Game?" size="sm">
         <div className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to cancel this game? All players will be removed.</p>
