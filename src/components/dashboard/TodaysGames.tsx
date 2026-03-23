@@ -17,10 +17,10 @@ export default function TodaysGames() {
       fetch(`/api/open-games?status=open`).then((r) => r.json()),
       fetch("/api/courts").then((r) => r.json()),
     ]).then(([gamesData, courtsData]) => {
-      const todayGames: OpenGame[] = (Array.isArray(gamesData) ? gamesData : [])
-        .filter((g: OpenGame) => g.date === today && (g.status === "open" || g.status === "full"))
-        .sort((a: OpenGame, b: OpenGame) => a.startTime.localeCompare(b.startTime));
-      setGames(todayGames.slice(0, 4));
+      const upcoming: OpenGame[] = (Array.isArray(gamesData) ? gamesData : [])
+        .filter((g: OpenGame) => g.date >= today && (g.status === "open" || g.status === "full"))
+        .sort((a: OpenGame, b: OpenGame) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+      setGames(upcoming.slice(0, 4));
       setCourts(courtsData ?? []);
       setLoaded(true);
     });
@@ -33,7 +33,7 @@ export default function TodaysGames() {
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
-          Today&apos;s Games
+          Upcoming Games
         </p>
         <Link href="/open-games" className="text-xs text-padel-green hover:underline flex items-center gap-0.5">
           View all <ChevronRight className="w-3 h-3" />
@@ -57,7 +57,9 @@ export default function TodaysGames() {
                   </div>
                   <div className="flex items-center gap-3 mt-0.5">
                     <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                      <Clock className="w-3 h-3" /> {game.startTime} – {game.endTime}
+                      <Clock className="w-3 h-3" />
+                      {new Date(game.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      {" · "}{game.startTime} – {game.endTime}
                     </div>
                     <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                       <Users className="w-3 h-3" /> {game.playerIds.length}/{game.maxPlayers}
