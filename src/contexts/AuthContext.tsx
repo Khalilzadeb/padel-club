@@ -9,6 +9,9 @@ interface AuthUser {
   avatarUrl?: string | null;
   role?: string;
   onboardingDone?: boolean;
+  eloRating?: number | null;
+  matchesPlayed?: number | null;
+  matchesWon?: number | null;
 }
 
 interface AuthContextValue {

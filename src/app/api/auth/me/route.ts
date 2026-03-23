@@ -15,13 +15,31 @@ export async function GET() {
 
   let avatarUrl: string | null = null;
   let onboardingDone = true;
+  let eloRating: number | null = null;
+  let matchesPlayed: number | null = null;
+  let matchesWon: number | null = null;
+
   if (user.playerId) {
     const player = await getPlayer(user.playerId);
     avatarUrl = player?.avatarUrl ?? null;
     onboardingDone = player?.onboardingDone ?? true;
+    eloRating = player?.stats.eloRating ?? null;
+    matchesPlayed = player?.stats.matchesPlayed ?? null;
+    matchesWon = player?.stats.matchesWon ?? null;
   }
 
   return NextResponse.json({
-    user: { id: user.id, email: user.email, name: user.name, playerId: user.playerId, avatarUrl, role: user.role, onboardingDone },
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      playerId: user.playerId,
+      avatarUrl,
+      role: user.role,
+      onboardingDone,
+      eloRating,
+      matchesPlayed,
+      matchesWon,
+    },
   });
 }
