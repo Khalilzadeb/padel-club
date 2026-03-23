@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { eloToDisplayLevel } from "@/lib/elo";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
@@ -118,7 +117,6 @@ const POSITIONS: { value: Position; label: string; side: string; desc: string }[
 
 export default function OnboardingPage() {
   const { user, updateUser } = useAuth();
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -167,7 +165,7 @@ export default function OnboardingPage() {
       }
       // Update cached user immediately so OnboardingGuard doesn't re-trigger
       updateUser({ onboardingDone: true, name: name.trim() });
-      router.replace("/");
+      window.location.href = "/";
     } finally {
       setSaving(false);
     }
