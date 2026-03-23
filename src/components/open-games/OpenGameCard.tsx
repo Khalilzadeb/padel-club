@@ -40,6 +40,8 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
   const [showInvite, setShowInvite] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showBookFailedConfirm, setShowBookFailedConfirm] = useState(false);
 
   const handleShare = () => {
     const base = typeof window !== "undefined" ? window.location.origin : "";
@@ -272,7 +274,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                 className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white">
                 <CheckCircle className="w-3.5 h-3.5" /> Book edildi
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => onUpdateBookingStatus(game.id, "failed")} disabled={loading}
+              <Button size="sm" variant="ghost" onClick={() => setShowBookFailedConfirm(true)} disabled={loading}
                 className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
                 <AlertTriangle className="w-3.5 h-3.5" /> Alınmadı
               </Button>
@@ -311,7 +313,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
           {/* Leave / Cancel / Join (only when open or full, not pending) */}
           {!isPending && (isFull || game.status === "open") && (
             isCreator ? (
-              <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto" onClick={() => onCancel(game.id)} disabled={loading}>
+              <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto" onClick={() => setShowCancelConfirm(true)} disabled={loading}>
                 Cancel Game
               </Button>
             ) : isJoined ? (
@@ -389,6 +391,29 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                 </div>
               );
             })}
+        </div>
+      </Modal>
+      <Modal isOpen={showCancelConfirm} onClose={() => setShowCancelConfirm(false)} title="Cancel Game?" size="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300">Are you sure you want to cancel this game? All players will be removed.</p>
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setShowCancelConfirm(false)}>No, keep it</Button>
+            <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={() => { onCancel(game.id); setShowCancelConfirm(false); }} disabled={loading}>
+              Yes, cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={showBookFailedConfirm} onClose={() => setShowBookFailedConfirm(false)} title="Court Not Booked?" size="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300">Marking as failed will automatically cancel this game. Are you sure?</p>
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setShowBookFailedConfirm(false)}>No, go back</Button>
+            <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={() => { onUpdateBookingStatus(game.id, "failed"); setShowBookFailedConfirm(false); }} disabled={loading}>
+              Yes, mark as failed
+            </Button>
+          </div>
         </div>
       </Modal>
     </Card>
