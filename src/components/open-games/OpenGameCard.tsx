@@ -50,7 +50,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
       ? `${base}/open-games/${game.id}?code=${game.joinCode}`
       : `${base}/open-games/${game.id}`;
     if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({ title: "PadelClub · Open Game", url });
+      navigator.share({ title: "PadelOn · Open Game", url });
     } else {
       navigator.clipboard.writeText(url);
       setShareCopied(true);

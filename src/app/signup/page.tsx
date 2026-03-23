@@ -61,7 +61,7 @@ export default function SignupPage() {
           <div className="inline-flex w-14 h-14 bg-padel-green rounded-2xl items-center justify-center mb-4 shadow-lg">
             <span className="text-white font-black text-2xl">P</span>
           </div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Join PadelClub</h1>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Join PadelOn</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Create your account and start playing</p>
         </div>
 

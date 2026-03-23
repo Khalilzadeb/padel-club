@@ -44,7 +44,7 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-padel-green rounded-lg flex items-center justify-center">
               <span className="text-white font-black text-sm">P</span>
             </div>
-            <span className="font-bold text-gray-900 dark:text-white text-lg hidden sm:block">PadelClub</span>
+            <span className="font-bold text-gray-900 dark:text-white text-lg hidden sm:block">PadelOn</span>
           </Link>
 
           {/* Desktop links */}

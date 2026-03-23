@@ -10,7 +10,7 @@ export default function Footer({ className }: { className?: string }) {
               <div className="w-7 h-7 bg-padel-green rounded-lg flex items-center justify-center">
                 <span className="text-white font-black text-xs">P</span>
               </div>
-              <span className="text-white font-bold">PadelClub</span>
+              <span className="text-white font-bold">PadelOn</span>
             </div>
             <p className="text-sm">Your premium padel experience. Book courts, track matches, and compete in tournaments.</p>
           </div>
@@ -34,7 +34,7 @@ export default function Footer({ className }: { className?: string }) {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-6 text-sm text-center">
-          © {new Date().getFullYear()} PadelClub. All rights reserved.
+          © {new Date().getFullYear()} PadelOn. All rights reserved.
         </div>
       </div>
     </footer>

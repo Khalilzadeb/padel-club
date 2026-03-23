@@ -15,7 +15,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "PadelClub - Book Courts, Track Matches & Tournaments",
+  title: "PadelOn - Book Courts, Track Matches & Tournaments",
   description: "Your premier padel sports club. Book courts, track matches, and compete in tournaments.",
 };
 

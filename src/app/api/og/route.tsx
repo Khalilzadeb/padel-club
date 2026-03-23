@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
           display: "flex", alignItems: "center", justifyContent: "center",
         },
       }, h("span", { style: { fontSize: "30px", fontWeight: 900, color: "#14532d" } }, "P")),
-      h("span", { style: { fontSize: "30px", fontWeight: 800, color: "#4ade80", letterSpacing: "2px" } }, "PADELCLUB"),
+      h("span", { style: { fontSize: "30px", fontWeight: 800, color: "#4ade80", letterSpacing: "2px" } }, "PADELON"),
       h("span", { style: { fontSize: "20px", color: "rgba(255,255,255,0.4)", marginLeft: "8px" } }, "Open Game"),
     ),
     // Court name

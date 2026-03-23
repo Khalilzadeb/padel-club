@@ -65,7 +65,7 @@ function LoginForm() {
             <span className="text-white font-black text-2xl">P</span>
           </div>
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">Welcome back</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Sign in to your PadelClub account</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Sign in to your PadelOn account</p>
         </div>
 
         {/* Demo credentials */}

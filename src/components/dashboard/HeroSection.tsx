@@ -11,7 +11,7 @@ export default function HeroSection() {
 
       <div className="relative">
         <p className="text-green-200 text-sm font-medium uppercase tracking-wider mb-2">Welcome to</p>
-        <h1 className="text-3xl md:text-5xl font-black mb-3">PadelClub</h1>
+        <h1 className="text-3xl md:text-5xl font-black mb-3">PadelOn</h1>
         <p className="text-green-100 text-lg mb-8 max-w-md">
           Find a game, track your matches, and compete in tournaments.
         </p>

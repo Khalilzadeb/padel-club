@@ -79,7 +79,7 @@ export default async function OpenGameSharePage({
       <div className="max-w-sm w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
         {/* Green header */}
         <div className="bg-gradient-to-br from-green-700 to-padel-green px-6 py-8 text-white">
-          <p className="text-green-200 text-xs font-semibold uppercase tracking-widest mb-2">PadelClub · Open Game</p>
+          <p className="text-green-200 text-xs font-semibold uppercase tracking-widest mb-2">PadelOn · Open Game</p>
           <div className="flex items-center gap-2 mb-1">
             <MapPin className="w-4 h-4 text-green-300 flex-shrink-0" />
             <h1 className="text-xl font-black">{courtName}</h1>
