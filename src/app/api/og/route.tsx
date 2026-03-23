@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const court = searchParams.get("court") ?? "Open Game";
   const date = searchParams.get("date") ?? "";
   const time = searchParams.get("time") ?? "";
-  const endTime = searchParams.get("end") ?? "";
+  const end = searchParams.get("end") ?? "";
   const spots = parseInt(searchParams.get("spots") ?? "1", 10);
   const type = searchParams.get("type") ?? "ranked";
   const isFull = spots <= 0;
@@ -23,56 +23,72 @@ export async function GET(req: NextRequest) {
           flexDirection: "column",
           background: "linear-gradient(135deg, #14532d 0%, #166534 55%, #15803d 100%)",
           fontFamily: "sans-serif",
+          position: "relative",
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", padding: "40px 60px 0", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", padding: "44px 64px 0", gap: "18px" }}>
           <div style={{
-            width: "56px", height: "56px", borderRadius: "50%",
+            width: "60px", height: "60px", borderRadius: "50%",
             background: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <span style={{ fontSize: "28px", fontWeight: 900, color: "#14532d" }}>P</span>
+            <span style={{ fontSize: "30px", fontWeight: 900, color: "#14532d" }}>P</span>
           </div>
-          <span style={{ fontSize: "28px", fontWeight: 800, color: "#4ade80", letterSpacing: "0.08em" }}>
-            PadelClub
+          <span style={{ fontSize: "30px", fontWeight: 800, color: "#4ade80", letterSpacing: "2px" }}>
+            PADELCLUB
           </span>
-          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.45)", marginLeft: "8px" }}>
-            · Open Game
+          <span style={{ fontSize: "20px", color: "rgba(255,255,255,0.4)", marginLeft: "4px" }}>
+            Open Game
           </span>
         </div>
 
-        {/* Main */}
-        <div style={{ display: "flex", flexDirection: "column", padding: "36px 60px 0", flex: 1 }}>
-          <div style={{ fontSize: "56px", fontWeight: 900, color: "white", lineHeight: "1.1", marginBottom: "16px" }}>
-            {court}
-          </div>
-          {date && (
-            <div style={{ fontSize: "30px", color: "#86efac", marginBottom: "40px" }}>
-              {date}{time ? `  ·  ${time}${endTime ? ` – ${endTime}` : ""}` : ""}
-            </div>
-          )}
+        {/* Court name */}
+        <div style={{
+          fontSize: "62px", fontWeight: 900, color: "white",
+          padding: "32px 64px 0", lineHeight: "1.1",
+        }}>
+          {court}
+        </div>
 
-          <div style={{ display: "flex", gap: "16px", marginTop: "auto", paddingBottom: "52px" }}>
-            <div style={{
-              background: isFull ? "rgba(239,68,68,0.2)" : "rgba(74,222,128,0.2)",
-              border: `2px solid ${isFull ? "rgba(239,68,68,0.5)" : "rgba(74,222,128,0.5)"}`,
-              borderRadius: "14px", padding: "14px 28px",
-              color: "white", fontSize: "26px", fontWeight: 600, display: "flex", alignItems: "center",
-            }}>
-              {isFull ? "⛔ Full" : `✅ ${spots} spot${spots !== 1 ? "s" : ""} left`}
-            </div>
-            <div style={{
-              background: type === "ranked" ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.1)",
-              border: `2px solid ${type === "ranked" ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.25)"}`,
-              borderRadius: "14px", padding: "14px 28px",
-              color: "white", fontSize: "26px", fontWeight: 600, display: "flex", alignItems: "center",
-            }}>
-              {type === "ranked" ? "🏆 Ranked" : "🤝 Friendly"}
-            </div>
+        {/* Date & time */}
+        <div style={{
+          fontSize: "32px", color: "#86efac",
+          padding: "16px 64px 0",
+        }}>
+          {date}{time ? `  /  ${time}${end ? ` - ${end}` : ""}` : ""}
+        </div>
+
+        {/* Chips */}
+        <div style={{
+          display: "flex", gap: "16px",
+          padding: "40px 64px 0",
+          marginTop: "auto",
+        }}>
+          <div style={{
+            background: isFull ? "rgba(239,68,68,0.25)" : "rgba(74,222,128,0.25)",
+            border: `2px solid ${isFull ? "rgba(239,68,68,0.6)" : "rgba(74,222,128,0.6)"}`,
+            borderRadius: "12px", padding: "12px 28px",
+            color: "white", fontSize: "26px", fontWeight: 700,
+            display: "flex", alignItems: "center",
+          }}>
+            {isFull ? "FULL" : `${spots} spot${spots !== 1 ? "s" : ""} left`}
+          </div>
+          <div style={{
+            background: type === "ranked" ? "rgba(59,130,246,0.25)" : "rgba(255,255,255,0.12)",
+            border: `2px solid ${type === "ranked" ? "rgba(59,130,246,0.6)" : "rgba(255,255,255,0.3)"}`,
+            borderRadius: "12px", padding: "12px 28px",
+            color: "white", fontSize: "26px", fontWeight: 700,
+            display: "flex", alignItems: "center",
+          }}>
+            {type === "ranked" ? "RANKED" : "FRIENDLY"}
           </div>
         </div>
 
-        <div style={{ height: "8px", background: "linear-gradient(90deg, #4ade80, #16a34a, #4ade80)" }} />
+        {/* Bottom bar */}
+        <div style={{
+          height: "10px", marginTop: "auto",
+          background: "linear-gradient(90deg, #4ade80, #16a34a, #4ade80)",
+        }} />
       </div>
     ),
     { width: 1200, height: 630 }
