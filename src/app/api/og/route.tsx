@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   const type = searchParams.get("type") ?? "ranked";
   const elo = searchParams.get("elo") ?? "";
   const isFull = spots <= 0;
+  const formattedDate = date ? new Date(date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" }) : "";
 
   const spotColor = isFull ? "rgba(239,68,68,0.25)" : "rgba(74,222,128,0.25)";
   const spotBorder = isFull ? "rgba(239,68,68,0.6)" : "rgba(74,222,128,0.6)";
@@ -41,8 +42,8 @@ export async function GET(req: NextRequest) {
     // Court name
     h("div", { style: { fontSize: "60px", fontWeight: 900, color: "white", padding: "32px 64px 0", lineHeight: "1.1" } }, court),
     // Date
-    date && h("div", { style: { fontSize: "30px", color: "#86efac", padding: "14px 64px 0" } },
-      `${date}${time ? "  /  " + time + (end ? " - " + end : "") : ""}`
+    formattedDate && h("div", { style: { fontSize: "30px", color: "#86efac", padding: "14px 64px 0" } },
+      `${formattedDate}${time ? "  /  " + time + (end ? " - " + end : "") : ""}`
     ),
     // Chips
     h("div", { style: { display: "flex", gap: "16px", padding: "36px 64px 0", marginTop: "auto" } },
