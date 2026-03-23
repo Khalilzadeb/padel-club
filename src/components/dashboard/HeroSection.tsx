@@ -17,6 +17,11 @@ function getGreeting() {
 export default function HeroSection() {
   const { user, loading } = useAuth();
   const [player, setPlayer] = useState<Player | null>(null);
+  const [greeting, setGreeting] = useState("");
+
+  useEffect(() => {
+    setGreeting(getGreeting());
+  }, []);
 
   useEffect(() => {
     if (!user?.playerId) return;
@@ -38,13 +43,13 @@ export default function HeroSection() {
       <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
           {/* Brand — always visible */}
-          <p className="text-green-300/80 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+          <p className="text-green-300/80 text-xs font-bold tracking-[0.2em] mb-3">
             PadelOn
           </p>
 
           {isPersonalized ? (
             <>
-              <p className="text-green-200 text-sm font-medium mb-1">{getGreeting()},</p>
+              <p className="text-green-200 text-sm font-medium mb-1">{greeting},</p>
               <h1 className="text-3xl md:text-4xl font-black mb-6">{user.name.split(" ")[0]} 👋</h1>
             </>
           ) : (
