@@ -21,7 +21,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const headersList = await headers();
   const host = headersList.get("host") ?? "localhost:3000";
   const proto = headersList.get("x-forwarded-proto") ?? "https";
-  const imageUrl = `${proto}://${host}/api/og?id=${id}`;
+  const ogParams = new URLSearchParams({
+    court: courtName,
+    date: game.date,
+    time: game.startTime,
+    end: game.endTime,
+    spots: String(spotsLeft),
+    type: game.gameType,
+  });
+  const imageUrl = `${proto}://${host}/api/og?${ogParams.toString()}`;
 
   return {
     title,
