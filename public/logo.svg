@@ -1,21 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
-  <!-- Racket head -->
-  <ellipse cx="30" cy="24" rx="18" ry="20" fill="#16a34a" rx="18"/>
-  <!-- Racket strings horizontal -->
-  <line x1="13" y1="18" x2="47" y2="18" stroke="white" stroke-width="1.2" opacity="0.5"/>
-  <line x1="12" y1="24" x2="48" y2="24" stroke="white" stroke-width="1.2" opacity="0.5"/>
-  <line x1="13" y1="30" x2="47" y2="30" stroke="white" stroke-width="1.2" opacity="0.5"/>
-  <!-- Racket strings vertical -->
-  <line x1="22" y1="5" x2="22" y2="43" stroke="white" stroke-width="1.2" opacity="0.5"/>
-  <line x1="30" y1="4" x2="30" y2="44" stroke="white" stroke-width="1.2" opacity="0.5"/>
-  <line x1="38" y1="5" x2="38" y2="43" stroke="white" stroke-width="1.2" opacity="0.5"/>
-  <!-- Racket handle -->
-  <rect x="26" y="43" width="8" height="14" rx="4" fill="#15803d"/>
-  <!-- Ball -->
-  <circle cx="50" cy="44" r="7" fill="#facc15"/>
-  <path d="M44 42 Q50 38 56 42" stroke="white" stroke-width="1" fill="none" opacity="0.6"/>
-  <path d="M44 46 Q50 50 56 46" stroke="white" stroke-width="1" fill="none" opacity="0.6"/>
-  <!-- Wordmark -->
-  <text x="64" y="38" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-weight="900" font-size="26" fill="#16a34a" letter-spacing="-0.5">Padel</text>
-  <text x="136" y="38" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-weight="900" font-size="26" fill="#facc15" letter-spacing="-0.5">On</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" fill="none">
+  <!-- Racket head - clean outline style, no circle wrapper -->
+  <rect x="4" y="3" width="28" height="32" rx="14" fill="#16a34a"/>
+  <!-- String grid -->
+  <line x1="4"  y1="13" x2="32" y2="13" stroke="white" stroke-width="1.3" opacity="0.55"/>
+  <line x1="4"  y1="19" x2="32" y2="19" stroke="white" stroke-width="1.3" opacity="0.55"/>
+  <line x1="4"  y1="25" x2="32" y2="25" stroke="white" stroke-width="1.3" opacity="0.55"/>
+  <line x1="12" y1="3"  x2="12" y2="35" stroke="white" stroke-width="1.3" opacity="0.55"/>
+  <line x1="18" y1="3"  x2="18" y2="35" stroke="white" stroke-width="1.3" opacity="0.55"/>
+  <line x1="24" y1="3"  x2="24" y2="35" stroke="white" stroke-width="1.3" opacity="0.55"/>
+  <!-- Handle -->
+  <rect x="14" y="34" width="8" height="12" rx="4" fill="#15803d"/>
+  <!-- Ball (yellow, top-right of racket) -->
+  <circle cx="35" cy="7" r="5.5" fill="#fbbf24"/>
+  <path d="M30.5 5.5 Q35 2.5 39.5 5.5" stroke="white" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M30.5 8.5 Q35 11.5 39.5 8.5" stroke="white" stroke-width="1" fill="none" opacity="0.5"/>
+
+  <!-- Wordmark: "Padel" bold green -->
+  <text
+    x="50" y="34"
+    font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+    font-weight="900"
+    font-size="30"
+    letter-spacing="-1"
+    fill="#16a34a">Padel</text>
+  <!-- Wordmark: "On" yellow-green accent -->
+  <text
+    x="148" y="34"
+    font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+    font-weight="900"
+    font-size="30"
+    letter-spacing="-1"
+    fill="#fbbf24">On</text>
+  <!-- Thin accent line under "On" -->
+  <rect x="148" y="37" width="34" height="3" rx="1.5" fill="#fbbf24" opacity="0.4"/>
 </svg>
