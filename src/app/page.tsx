@@ -3,11 +3,13 @@ import QuickStats from "@/components/dashboard/QuickStats";
 import RecentMatches from "@/components/dashboard/RecentMatches";
 import ActiveTournaments from "@/components/dashboard/ActiveTournaments";
 import MyActivity from "@/components/dashboard/MyActivity";
+import TodaysGames from "@/components/dashboard/TodaysGames";
 
 export default function HomePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <HeroSection />
+      <TodaysGames />
       <MyActivity />
       <QuickStats />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
