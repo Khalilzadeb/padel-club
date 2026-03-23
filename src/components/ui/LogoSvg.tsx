@@ -1,7 +1,7 @@
 export default function LogoSvg({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 212 58"
+      viewBox="0 0 222 58"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
@@ -31,21 +31,21 @@ export default function LogoSvg({ className }: { className?: string }) {
       >PADEL</text>
 
       {/* ── POWER-BUTTON "O" ── */}
-      {/* circle center (167, 29) r=13 — matches cap height of 36px text */}
+      {/* Sits after PADEL (~157px wide from x=44). Center x=175, y=29, r=13 */}
       {/* Arc: full circle minus ~65° gap at top */}
       <path
-        d="M 174.5,18.4 A 13,13 0 1 1 159.5,18.4"
+        d="M 182.5,18.4 A 13,13 0 1 1 167.5,18.4"
         stroke="#16a34a"
-        strokeWidth="3.2"
+        strokeWidth="5.5"
         strokeLinecap="round"
         fill="none"
       />
       {/* Vertical power line through the gap */}
-      <line x1="167" y1="12" x2="167" y2="27" stroke="#16a34a" strokeWidth="3.2" strokeLinecap="round"/>
+      <line x1="175" y1="11" x2="175" y2="27" stroke="#16a34a" strokeWidth="5.5" strokeLinecap="round"/>
 
       {/* ── N (green) ── */}
       <text
-        x="183" y="43"
+        x="191" y="43"
         fontFamily="'Arial Black','Helvetica Neue',Arial,sans-serif"
         fontWeight="900"
         fontSize="36"
