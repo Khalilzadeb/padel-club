@@ -239,11 +239,220 @@
     "nextQuestion": "Next question",
     "finish": "Finish",
     "yourLevel": "Your level",
-    "startPlaying": "Start playing"
+    "startPlaying": "Start playing",
+    "startingLevelNote": "This is your starting level. It will automatically update after every ranked match. Max level is 7.0.",
+    "levelTestResult": "Level Test Result",
+    "questions": [
+      {
+        "id": "self",
+        "question": "On the following scale, where would you place yourself?",
+        "options": [
+          {
+            "label": "Initiation",
+            "pts": 0
+          },
+          {
+            "label": "Intermediate",
+            "pts": 1
+          },
+          {
+            "label": "Advanced",
+            "pts": 2
+          },
+          {
+            "label": "Professional",
+            "pts": 3
+          }
+        ]
+      },
+      {
+        "id": "exp",
+        "question": "How many years have you been practicing padel or any racket sport?",
+        "options": [
+          {
+            "label": "I have never played before",
+            "pts": 0
+          },
+          {
+            "label": "Less than a year",
+            "pts": 1
+          },
+          {
+            "label": "Between 1 and 3 years",
+            "pts": 2
+          },
+          {
+            "label": "Between 3 and 5 years",
+            "pts": 3
+          },
+          {
+            "label": "More than 5 years",
+            "pts": 4
+          }
+        ]
+      },
+      {
+        "id": "training",
+        "question": "Have you received or are you receiving training in padel?",
+        "options": [
+          {
+            "label": "No",
+            "pts": 0
+          },
+          {
+            "label": "Yes, in the past",
+            "pts": 1
+          },
+          {
+            "label": "Yes, currently",
+            "pts": 2
+          }
+        ]
+      },
+      {
+        "id": "age",
+        "question": "How old are you?",
+        "options": [
+          {
+            "label": "Between 18 and 30 years",
+            "pts": 0
+          },
+          {
+            "label": "Between 31 and 40 years",
+            "pts": 0
+          },
+          {
+            "label": "Between 41 and 50 years",
+            "pts": 0
+          },
+          {
+            "label": "Over 50",
+            "pts": 0
+          }
+        ]
+      },
+      {
+        "id": "competition",
+        "question": "What is the level at which you compete when playing competitive matches?",
+        "options": [
+          {
+            "label": "Only games between friends",
+            "pts": 0
+          },
+          {
+            "label": "Friendly tournaments",
+            "pts": 1
+          },
+          {
+            "label": "Amateur leagues",
+            "pts": 2
+          },
+          {
+            "label": "Federated competitions",
+            "pts": 3
+          }
+        ]
+      },
+      {
+        "id": "volley",
+        "question": "On the volley…",
+        "options": [
+          {
+            "label": "I hardly go to the net",
+            "pts": 0
+          },
+          {
+            "label": "I don't feel safe at the net, I make too many mistakes",
+            "pts": 1
+          },
+          {
+            "label": "I can volley forehand and backhand with some difficulties",
+            "pts": 2
+          },
+          {
+            "label": "I have good positioning at the net and I volley confidently",
+            "pts": 3
+          },
+          {
+            "label": "I volley with depth and power",
+            "pts": 4
+          }
+        ]
+      },
+      {
+        "id": "rebounds",
+        "question": "On the rebounds…",
+        "options": [
+          {
+            "label": "I don't know how to read the rebounds, I hit before it rebounds",
+            "pts": 0
+          },
+          {
+            "label": "I try, with difficulty, to hit the rebounds on the back wall",
+            "pts": 1
+          },
+          {
+            "label": "I return rebounds on the back wall, it is difficult for me to return the double-wall ones",
+            "pts": 2
+          },
+          {
+            "label": "I return double-wall rebounds and reach for quick rebounds",
+            "pts": 3
+          },
+          {
+            "label": "I perform powerful wall descent shots with forehand and backhand",
+            "pts": 4
+          }
+        ]
+      }
+    ]
   },
   "language": {
     "az": "AZ",
     "ru": "RU",
     "en": "EN"
+  },
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "dashboard": {
+    "recentMatches": "Recent Matches",
+    "tournaments": "Tournaments",
+    "viewAll": "View all",
+    "noMatches": "No matches yet",
+    "vsLastWeek": "vs last week",
+    "thisWeek": "this week"
+  },
+  "messages": {
+    "title": "Messages",
+    "noConversations": "No conversations yet",
+    "goToProfile": "Go to a player's profile and send them a message",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "you": "You"
+  },
+  "challenges": {
+    "title": "Challenges",
+    "incoming": "Incoming",
+    "outgoing": "Outgoing",
+    "noIncoming": "No challenges received yet",
+    "noOutgoing": "No outgoing challenges",
+    "accept": "Accept",
+    "decline": "Decline",
+    "pending": "Pending",
+    "challenge": "Challenge"
+  },
+  "footer": {
+    "tagline": "Your premium padel experience. Book courts, track matches, and compete in tournaments.",
+    "quickLinks": "Quick Links",
+    "bookCourt": "Book a Court",
+    "leaderboard": "Leaderboard",
+    "matchResults": "Match Results",
+    "clubInfo": "Club Info",
+    "courts": "Professional Courts",
+    "openHours": "Open 8:00 – 22:00 daily",
+    "rights": "All rights reserved"
   }
 }

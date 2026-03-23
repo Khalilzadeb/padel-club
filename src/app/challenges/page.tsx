@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { Challenge, Player, Court } from "@/lib/types";
 
 function timeAgo(dateStr: string): string {
@@ -17,13 +18,6 @@ function timeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24);
   return days < 7 ? `${days}d ago` : new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
-
-const statusBadge: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" },
-  accepted: { label: "Accepted", className: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" },
-  declined: { label: "Declined", className: "bg-red-50 dark:bg-red-900/20 text-red-500" },
-  expired: { label: "Cancelled", className: "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
-};
 
 function PlayerSnippet({ player }: { player: Player }) {
   const s = player.stats;
@@ -49,6 +43,7 @@ function PlayerSnippet({ player }: { player: Player }) {
 
 export default function ChallengesPage() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -84,6 +79,13 @@ export default function ChallengesPage() {
     setActionLoading(null);
   };
 
+  const statusBadge: Record<string, { label: string; className: string }> = {
+    pending: { label: t.challenges.pending, className: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" },
+    accepted: { label: t.matches.confirmed, className: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" },
+    declined: { label: t.matches.lost, className: "bg-red-50 dark:bg-red-900/20 text-red-500" },
+    expired: { label: t.games.cancel, className: "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400" },
+  };
+
   const incoming = challenges.filter((c) => c.challengedId === user?.playerId);
   const outgoing = challenges.filter((c) => c.challengerId === user?.playerId);
   const displayed = tab === "incoming" ? incoming : outgoing;
@@ -93,21 +95,21 @@ export default function ChallengesPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center gap-3 mb-6">
         <Target className="w-6 h-6 text-padel-green" />
-        <h1 className="text-2xl font-black text-gray-900 dark:text-white">Challenges</h1>
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.challenges.title}</h1>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
-        {(["incoming", "outgoing"] as const).map((t) => (
+        {(["incoming", "outgoing"] as const).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition-colors relative ${
-              tab === t ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              tab === tabKey ? "bg-padel-green text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
-            {t === "incoming" ? "Incoming" : "Outgoing"}
-            {t === "incoming" && incomingPending > 0 && (
+            {tabKey === "incoming" ? t.challenges.incoming : t.challenges.outgoing}
+            {tabKey === "incoming" && incomingPending > 0 && (
               <span className="ml-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full inline-flex items-center justify-center">
                 {incomingPending}
               </span>
@@ -123,7 +125,7 @@ export default function ChallengesPage() {
       ) : displayed.length === 0 ? (
         <Card className="p-12 text-center">
           <Target className="w-10 h-10 text-gray-200 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-400">{tab === "incoming" ? "No challenges received yet" : "You haven't challenged anyone yet"}</p>
+          <p className="text-gray-400">{tab === "incoming" ? t.challenges.noIncoming : t.challenges.noOutgoing}</p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -169,7 +171,7 @@ export default function ChallengesPage() {
                         onClick={() => handleAction(c.id, "accept")}
                         disabled={!!actionLoading}
                         className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 flex items-center justify-center transition-colors disabled:opacity-50"
-                        title="Accept"
+                        title={t.challenges.accept}
                       >
                         <Check className="w-4 h-4" />
                       </button>
@@ -177,7 +179,7 @@ export default function ChallengesPage() {
                         onClick={() => handleAction(c.id, "decline")}
                         disabled={!!actionLoading}
                         className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 flex items-center justify-center transition-colors disabled:opacity-50"
-                        title="Decline"
+                        title={t.challenges.decline}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -189,7 +191,7 @@ export default function ChallengesPage() {
                       disabled={!!actionLoading}
                       className="flex-shrink-0 text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
                     >
-                      Cancel
+                      {t.common.cancel}
                     </button>
                   )}
                 </div>

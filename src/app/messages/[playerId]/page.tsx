@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { useRouter, useParams } from "next/navigation";
 import Avatar from "@/components/ui/Avatar";
 import { ArrowLeft, Send } from "lucide-react";
@@ -18,6 +19,7 @@ interface Message {
 
 export default function ChatPage() {
   const { user, loading: authLoading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const params = useParams();
   const otherPlayerId = params.playerId as string;
@@ -115,7 +117,7 @@ export default function ChatPage() {
 
       <div className="flex-1 overflow-y-auto py-4 space-y-2">
         {messages.length === 0 && (
-          <p className="text-center text-gray-300 dark:text-gray-600 text-sm py-8">No messages yet. Say hello!</p>
+          <p className="text-center text-gray-300 dark:text-gray-600 text-sm py-8">{t.messages.noConversations}</p>
         )}
         {messages.map((msg) => {
           const isMine = msg.fromPlayerId === user?.playerId;
@@ -140,7 +142,7 @@ export default function ChatPage() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Write a message... (Enter to send)"
+          placeholder={t.messages.typeMessage}
           rows={1}
           className="flex-1 resize-none border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400"
         />
@@ -148,6 +150,7 @@ export default function ChatPage() {
           type="submit"
           disabled={!input.trim() || sending}
           className="w-10 h-10 self-end bg-padel-green text-white rounded-xl flex items-center justify-center disabled:opacity-40 hover:bg-green-600 transition-colors flex-shrink-0"
+          title={t.messages.send}
         >
           <Send className="w-4 h-4" />
         </button>

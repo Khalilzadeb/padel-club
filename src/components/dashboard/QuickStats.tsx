@@ -29,7 +29,7 @@ export default async function QuickStats() {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard label={t.stats.totalMembers} value={players.length} icon={<Users className="w-5 h-5" />} color="green" trend={{ value: `2 ${t.stats.thisMonth}`, up: true }} />
       <StatCard label={t.stats.activeCourts} value={courts.filter((c) => c.isActive).length} icon={<LayoutGrid className="w-5 h-5" />} color="blue" />
-      <StatCard label={t.stats.matchesThisWeek} value={weekMatches.length} icon={<Swords className="w-5 h-5" />} color="purple" trend={{ value: "vs last week", up: true }} />
+      <StatCard label={t.stats.matchesThisWeek} value={weekMatches.length} icon={<Swords className="w-5 h-5" />} color="purple" trend={{ value: t.dashboard.vsLastWeek, up: true }} />
       <StatCard label={t.stats.activeTournaments} value={activeTournaments} icon={<Trophy className="w-5 h-5" />} color="orange" />
     </div>
   );

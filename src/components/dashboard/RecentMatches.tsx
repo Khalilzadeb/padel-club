@@ -6,8 +6,14 @@ import { getMatches } from "@/lib/data/matches";
 import { getPlayers } from "@/lib/data/players";
 import { getCourts } from "@/lib/data/courts";
 import { ArrowRight } from "lucide-react";
+import { cookies } from "next/headers";
+import { getTranslations, LOCALE_COOKIE } from "@/lib/i18n";
 
 export default async function RecentMatches() {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get(LOCALE_COOKIE)?.value ?? "az";
+  const t = getTranslations(locale);
+
   const [recent, players, courts] = await Promise.all([
     getMatches(),
     getPlayers(),
@@ -18,13 +24,15 @@ export default async function RecentMatches() {
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-gray-900 dark:text-white text-lg">Recent Matches</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-white text-lg">{t.dashboard.recentMatches}</h2>
         <Link href="/matches" className="text-sm text-padel-green hover:underline flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          {t.dashboard.viewAll} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
       <div className="space-y-3">
-        {top5.map((match) => {
+        {top5.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-4">{t.dashboard.noMatches}</p>
+        ) : top5.map((match) => {
           const t1 = match.team1.playerIds.map((id) => players.find((p) => p.id === id));
           const t2 = match.team2.playerIds.map((id) => players.find((p) => p.id === id));
           const court = courts.find((c) => c.id === match.courtId);

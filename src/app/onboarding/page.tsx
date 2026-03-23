@@ -9,87 +9,6 @@ type Position = "drive" | "revés" | "flexible";
 type Hand = "right" | "left";
 type Gender = "male" | "female" | "other" | "";
 
-// ─── Survey questions ─────────────────────────────────────────────────────────
-
-const SURVEY: {
-  id: string;
-  question: string;
-  options: { label: string; pts: number }[];
-}[] = [
-  {
-    id: "self",
-    question: "On the following scale, where would you place yourself?",
-    options: [
-      { label: "Initiation", pts: 0 },
-      { label: "Intermediate", pts: 1 },
-      { label: "Advanced", pts: 2 },
-      { label: "Professional", pts: 3 },
-    ],
-  },
-  {
-    id: "exp",
-    question: "How many years have you been practicing padel or any racket sport?",
-    options: [
-      { label: "I have never played before", pts: 0 },
-      { label: "Less than a year", pts: 1 },
-      { label: "Between 1 and 3 years", pts: 2 },
-      { label: "Between 3 and 5 years", pts: 3 },
-      { label: "More than 5 years", pts: 4 },
-    ],
-  },
-  {
-    id: "training",
-    question: "Have you received or are you receiving training in padel?",
-    options: [
-      { label: "No", pts: 0 },
-      { label: "Yes, in the past", pts: 1 },
-      { label: "Yes, currently", pts: 2 },
-    ],
-  },
-  {
-    id: "age",
-    question: "How old are you?",
-    options: [
-      { label: "Between 18 and 30 years", pts: 0 },
-      { label: "Between 31 and 40 years", pts: 0 },
-      { label: "Between 41 and 50 years", pts: 0 },
-      { label: "Over 50", pts: 0 },
-    ],
-  },
-  {
-    id: "competition",
-    question: "What is the level at which you compete when playing competitive matches?",
-    options: [
-      { label: "Only games between friends", pts: 0 },
-      { label: "Friendly tournaments", pts: 1 },
-      { label: "Amateur leagues", pts: 2 },
-      { label: "Federated competitions", pts: 3 },
-    ],
-  },
-  {
-    id: "volley",
-    question: "On the volley…",
-    options: [
-      { label: "I hardly go to the net", pts: 0 },
-      { label: "I don't feel safe at the net, I make too many mistakes", pts: 1 },
-      { label: "I can volley forehand and backhand with some difficulties", pts: 2 },
-      { label: "I have good positioning at the net and I volley confidently", pts: 3 },
-      { label: "I volley with depth and power", pts: 4 },
-    ],
-  },
-  {
-    id: "rebounds",
-    question: "On the rebounds…",
-    options: [
-      { label: "I don't know how to read the rebounds, I hit before it rebounds", pts: 0 },
-      { label: "I try, with difficulty, to hit the rebounds on the back wall", pts: 1 },
-      { label: "I return rebounds on the back wall, it is difficult for me to return the double-wall ones", pts: 2 },
-      { label: "I return double-wall rebounds and reach for quick rebounds", pts: 3 },
-      { label: "I perform powerful wall descent shots with forehand and backhand", pts: 4 },
-    ],
-  },
-];
-
 // Max pts = 3+4+2+0+3+4+4 = 20
 // Linear ELO range: 600 (0 pts) → 1400 (20 pts)
 function calcElo(pts: number): { elo: number; dbLevel: string; emoji: string } {
@@ -127,6 +46,9 @@ export default function OnboardingPage() {
   const [position, setPosition] = useState<Position>("flexible");
   const [hand, setHand] = useState<Hand>("right");
   const [gender, setGender] = useState<Gender>("");
+
+  // Use translated questions from i18n
+  const SURVEY = t.onboarding.questions;
 
   const surveyIndex = step - SURVEY_START; // 0-6 when in survey
   const inSurvey = step >= SURVEY_START && step <= SURVEY_END;
@@ -228,10 +150,6 @@ export default function OnboardingPage() {
               <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-snug">{currentQ.question}</h2>
               <div className="space-y-2">
                 {currentQ.options.map((opt, i) => {
-                  const selected = surveyAnswers[currentQ.id] === opt.pts && surveyAnswers[currentQ.id] !== undefined
-                    // handle ties: store index instead of pts for uniqueness
-                    ;
-                  // Use index as key for selection since pts can repeat (age has all 0)
                   const isSelected = surveyAnswers[currentQ.id + "_idx"] === i;
                   return (
                     <button
@@ -338,7 +256,7 @@ export default function OnboardingPage() {
                 <p className="text-green-100 text-sm mt-1 font-medium">{t.profile.level} · {result.elo} ELO</p>
               </div>
               <p className="text-xs text-gray-400 leading-relaxed">
-                This is your starting level. It will automatically update after every ranked match. Max level is 7.0.
+                {t.onboarding.startingLevelNote}
               </p>
             </div>
           )}

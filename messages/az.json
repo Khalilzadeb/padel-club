@@ -239,11 +239,220 @@
     "nextQuestion": "Növbəti sual",
     "finish": "Bitir",
     "yourLevel": "Sizin səviyyəniz",
-    "startPlaying": "Oynamağa başla"
+    "startPlaying": "Oynamağa başla",
+    "startingLevelNote": "Bu sizin başlanğıc səviyyənizdir. Hər reytinq oyunundan sonra avtomatik yenilənəcək. Maksimum səviyyə 7.0-dır.",
+    "levelTestResult": "Səviyyə Testi Nəticəsi",
+    "questions": [
+      {
+        "id": "self",
+        "question": "Aşağıdakı şkala üzrə özünüzü harada yerləşdirərdiniz?",
+        "options": [
+          {
+            "label": "Başlanğıc",
+            "pts": 0
+          },
+          {
+            "label": "Orta",
+            "pts": 1
+          },
+          {
+            "label": "İrəliləmiş",
+            "pts": 2
+          },
+          {
+            "label": "Professional",
+            "pts": 3
+          }
+        ]
+      },
+      {
+        "id": "exp",
+        "question": "Padel və ya raket idmanı ilə neçə ildir məşğul olursunuz?",
+        "options": [
+          {
+            "label": "Heç vaxt oynamadım",
+            "pts": 0
+          },
+          {
+            "label": "Bir ildən az",
+            "pts": 1
+          },
+          {
+            "label": "1 ilden 3 ilə qədər",
+            "pts": 2
+          },
+          {
+            "label": "3 ilden 5 ilə qədər",
+            "pts": 3
+          },
+          {
+            "label": "5 ildən artıq",
+            "pts": 4
+          }
+        ]
+      },
+      {
+        "id": "training",
+        "question": "Padel üzrə məşq aldınızmı və ya alırsınızmı?",
+        "options": [
+          {
+            "label": "Xeyr",
+            "pts": 0
+          },
+          {
+            "label": "Bəli, keçmişdə",
+            "pts": 1
+          },
+          {
+            "label": "Bəli, hal-hazırda",
+            "pts": 2
+          }
+        ]
+      },
+      {
+        "id": "age",
+        "question": "Neçə yaşınız var?",
+        "options": [
+          {
+            "label": "18-30 yaş",
+            "pts": 0
+          },
+          {
+            "label": "31-40 yaş",
+            "pts": 0
+          },
+          {
+            "label": "41-50 yaş",
+            "pts": 0
+          },
+          {
+            "label": "50-dən yuxarı",
+            "pts": 0
+          }
+        ]
+      },
+      {
+        "id": "competition",
+        "question": "Müsabiqə oyunlarında hansı səviyyədə iştirak edirsiniz?",
+        "options": [
+          {
+            "label": "Yalnız dostlarla oyunlar",
+            "pts": 0
+          },
+          {
+            "label": "Dostluq turnirləri",
+            "pts": 1
+          },
+          {
+            "label": "Amateur liqalar",
+            "pts": 2
+          },
+          {
+            "label": "Federasiya yarışları",
+            "pts": 3
+          }
+        ]
+      },
+      {
+        "id": "volley",
+        "question": "Vole zərbəsi zamanı…",
+        "options": [
+          {
+            "label": "Tora demək olar ki, çıxmıram",
+            "pts": 0
+          },
+          {
+            "label": "Torda özümü güvənli hiss etmirəm, çox xəta edirəm",
+            "pts": 1
+          },
+          {
+            "label": "Hər iki tərəfdən vole edə bilirəm, amma çətinliklə",
+            "pts": 2
+          },
+          {
+            "label": "Torda yaxşı mövqeyim var və etibarlı vole edirəm",
+            "pts": 3
+          },
+          {
+            "label": "Dərinlik və güclə vole edirəm",
+            "pts": 4
+          }
+        ]
+      },
+      {
+        "id": "rebounds",
+        "question": "Divar top zərbələri zamanı…",
+        "options": [
+          {
+            "label": "Topu necə oxuyacağımı bilmirəm, divardan sıçramadan vururum",
+            "pts": 0
+          },
+          {
+            "label": "Çətinliklə arxa divardan zərbə etməyə çalışıram",
+            "pts": 1
+          },
+          {
+            "label": "Arxa divardan qayıdan topu qaytarıram, ikiqat divar zərbəsi çətindir",
+            "pts": 2
+          },
+          {
+            "label": "İkiqat divar zərbələrini qaytarıram və sürətli topları tuturam",
+            "pts": 3
+          },
+          {
+            "label": "Hər iki tərəfdən güclü divar eniş zərbələri edirəm",
+            "pts": 4
+          }
+        ]
+      }
+    ]
   },
   "language": {
     "az": "AZ",
     "ru": "RU",
     "en": "EN"
+  },
+  "greeting": {
+    "morning": "Sabahınız xeyir",
+    "afternoon": "Günortanız xeyir",
+    "evening": "Axşamınız xeyir"
+  },
+  "dashboard": {
+    "recentMatches": "Son Oyunlar",
+    "tournaments": "Turnir",
+    "viewAll": "Hamısına bax",
+    "noMatches": "Hələ oyun yoxdur",
+    "vsLastWeek": "həftəyə nisbətən",
+    "thisWeek": "bu həftə"
+  },
+  "messages": {
+    "title": "Mesajlar",
+    "noConversations": "Hələ söhbət yoxdur",
+    "goToProfile": "Mesaj göndərmək üçün oyunçunun profilinə keçin",
+    "typeMessage": "Mesaj yazın...",
+    "send": "Göndər",
+    "you": "Siz"
+  },
+  "challenges": {
+    "title": "Çağırışlar",
+    "incoming": "Daxil olan",
+    "outgoing": "Göndərilən",
+    "noIncoming": "Hələ çağırış yoxdur",
+    "noOutgoing": "Göndərilən çağırış yoxdur",
+    "accept": "Qəbul et",
+    "decline": "Rədd et",
+    "pending": "Gözlənilir",
+    "challenge": "Çağırış göndər"
+  },
+  "footer": {
+    "tagline": "Premium padel təcrübəniz. Kort rezerv edin, oyunları izləyin, turnirlərdə yarışın.",
+    "quickLinks": "Sürətli keçidlər",
+    "bookCourt": "Kort rezerv et",
+    "leaderboard": "Reytinq",
+    "matchResults": "Oyun nəticələri",
+    "clubInfo": "Klub haqqında",
+    "courts": "Professional kortlar",
+    "openHours": "Hər gün 8:00 – 22:00 açıqdır",
+    "rights": "Bütün hüquqlar qorunur"
   }
 }
