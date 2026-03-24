@@ -43,10 +43,13 @@ export async function GET(req: NextRequest) {
 
   const now = new Date();
   const upcoming = games.filter((g) => {
-    if (new Date(`${g.date}T${g.startTime}:00+04:00`) <= now) return false;
+    const started = new Date(`${g.date}T${g.startTime}:00+04:00`) <= now;
+    const isParticipant = currentPlayerId !== null && g.playerIds.includes(currentPlayerId);
+    // Hide past games from non-participants; participants always see their own games
+    if (started && !isParticipant) return false;
     if (g.isPrivate) {
       if (currentPlayerId === null) return false;
-      return g.playerIds.includes(currentPlayerId) || (g.invitedPlayerIds ?? []).includes(currentPlayerId);
+      return isParticipant || (g.invitedPlayerIds ?? []).includes(currentPlayerId);
     }
     return true;
   });
