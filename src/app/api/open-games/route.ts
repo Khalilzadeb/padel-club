@@ -18,17 +18,6 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") ?? undefined;
   const date = searchParams.get("date") ?? undefined;
   const code = searchParams.get("code") ?? undefined;
-  // "open" and "mine" fetch all statuses; specific status values filter directly
-  const statusFilter = (status === "open" || status === "mine") ? undefined : status;
-  const games = await getOpenGames({ status: statusFilter, date });
-
-  // Join-by-code lookup: return the single matching game (bypasses private filter)
-  if (code) {
-    const match = games.find((g) => g.joinCode === code.toUpperCase() && g.status !== "cancelled" && g.status !== "completed");
-    if (!match) return NextResponse.json({ error: "Invalid or expired code" }, { status: 404 });
-    return NextResponse.json(match);
-  }
-
   // Determine current user's playerId (if authenticated)
   let currentPlayerId: string | null = null;
   const token = req.cookies.get("padel_session")?.value;
@@ -41,24 +30,39 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // "mine" tab: return only completed/cancelled games where current user participated
+  // "mine" tab: all statuses (including completed/cancelled) where user participated or game has started
   if (status === "mine") {
     if (!currentPlayerId) return NextResponse.json([]);
-    const mine = games.filter((g) =>
-      (g.status === "completed" || g.status === "cancelled") &&
-      g.playerIds.includes(currentPlayerId!)
-    ).sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime));
+    const allGames = await getOpenGames({ includeAll: true, date });
+    const now = new Date();
+    const mine = allGames.filter((g) => {
+      if (!g.playerIds.includes(currentPlayerId!)) return false;
+      if (g.status === "completed" || g.status === "cancelled") return true;
+      // Also include games whose start time has already passed (pending score etc.)
+      const started = new Date(`${g.date}T${g.startTime}:00+04:00`) <= now;
+      return started;
+    }).sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime));
     return NextResponse.json(mine);
+  }
+
+  // Active games: only fetch non-completed/cancelled
+  const games = await getOpenGames({ status: status === "open" ? undefined : status, date });
+
+  // Join-by-code lookup: return the single matching game (bypasses private filter)
+  if (code) {
+    const match = games.find((g) => g.joinCode === code.toUpperCase() && g.status !== "cancelled" && g.status !== "completed");
+    if (!match) return NextResponse.json({ error: "Invalid or expired code" }, { status: 404 });
+    return NextResponse.json(match);
   }
 
   const now = new Date();
   const upcoming = games.filter((g) => {
+    // Hide ALL games whose start time has passed from active tab
     const started = new Date(`${g.date}T${g.startTime}:00+04:00`) <= now;
-    const isParticipant = currentPlayerId !== null && g.playerIds.includes(currentPlayerId);
-    // Hide past games from non-participants; participants always see their own games
-    if (started && !isParticipant) return false;
+    if (started) return false;
     if (g.isPrivate) {
       if (currentPlayerId === null) return false;
+      const isParticipant = g.playerIds.includes(currentPlayerId);
       return isParticipant || (g.invitedPlayerIds ?? []).includes(currentPlayerId);
     }
     return true;

@@ -29,11 +29,11 @@ function toModel(row: Record<string, unknown>): OpenGame {
   }
 }
 
-export async function getOpenGames(filters?: { status?: string; date?: string }): Promise<OpenGame[]> {
+export async function getOpenGames(filters?: { status?: string; date?: string; includeAll?: boolean }): Promise<OpenGame[]> {
   let query = supabase.from('open_games').select('*').order('date', { ascending: false }).order('start_time', { ascending: false })
   if (filters?.status) {
     query = query.eq('status', filters.status)
-  } else {
+  } else if (!filters?.includeAll) {
     query = query.not('status', 'in', '("cancelled","completed")')
   }
   if (filters?.date) query = query.eq('date', filters.date)
