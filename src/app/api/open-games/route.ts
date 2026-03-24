@@ -38,9 +38,9 @@ export async function GET(req: NextRequest) {
     const mine = allGames.filter((g) => {
       if (!g.playerIds.includes(currentPlayerId!)) return false;
       if (g.status === "completed" || g.status === "cancelled") return true;
-      // Also include games whose start time has already passed (pending score etc.)
+      // Include started games only if they were full (game actually happened)
       const started = new Date(`${g.date}T${g.startTime}:00+04:00`) <= now;
-      return started;
+      return started && g.playerIds.length >= g.maxPlayers;
     }).sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime));
     return NextResponse.json(mine);
   }
