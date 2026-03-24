@@ -14,11 +14,14 @@ import { cn } from "@/lib/utils/cn";
 export default function OpenGamesPage() {
   const { user } = useAuth();
   const { t } = useLocale();
+  const [activeTab, setActiveTab] = useState<"active" | "mine">("active");
   const [games, setGames] = useState<OpenGame[]>([]);
+  const [myGames, setMyGames] = useState<OpenGame[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [myGamesLoading, setMyGamesLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeGame, setCodeGame] = useState<OpenGame | null>(null);
@@ -42,10 +45,26 @@ export default function OpenGamesPage() {
     fetch("/api/open-games?status=open").then((r) => r.json()).then(setGames);
   };
 
+  const loadMyGames = () => {
+    if (!user) return;
+    setMyGamesLoading(true);
+    fetch("/api/open-games?status=mine").then((r) => r.json()).then((data) => {
+      setMyGames(data);
+      setMyGamesLoading(false);
+    });
+  };
+
   useEffect(() => {
     loadGames();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "mine" && user) {
+      loadMyGames();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, user]);
 
   const handleCreate = async (data: {
     courtId: string;
@@ -104,6 +123,10 @@ export default function OpenGamesPage() {
 
   const filtered = games.filter((g) => g.status === "open" || g.status === "full" || g.status === "pending_result");
 
+  const handleTabChange = (tab: "active" | "mine") => {
+    setActiveTab(tab);
+  };
+
   // Handle ?game= scroll and ?joinCode= auto-join modal
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -156,31 +179,94 @@ export default function OpenGamesPage() {
       </div>
 
 
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
+      {/* Tab switcher */}
+      {user && (
+        <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit">
+          <button
+            onClick={() => handleTabChange("active")}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+              activeTab === "active"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            )}
+          >
+            {t.games.activeGames}
+          </button>
+          <button
+            onClick={() => handleTabChange("mine")}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+              activeTab === "mine"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            )}
+          >
+            {t.games.myGames}
+          </button>
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-400 text-lg">{t.games.noGames}</p>
-          {user ? (
-            <>
-              <p className="text-gray-300 text-sm mt-1">{t.games.beFirst}</p>
-              <Button className="mt-4" onClick={() => setShowForm(true)}>
-                <Plus className="w-4 h-4" /> {t.games.postGame}
-              </Button>
-            </>
-          ) : (
-            <p className="text-gray-300 text-sm mt-1">{t.games.signInToPost}</p>
-          )}
-        </div>
+      )}
+
+      {activeTab === "active" ? (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+            <p className="text-gray-400 text-lg">{t.games.noGames}</p>
+            {user ? (
+              <>
+                <p className="text-gray-300 text-sm mt-1">{t.games.beFirst}</p>
+                <Button className="mt-4" onClick={() => setShowForm(true)}>
+                  <Plus className="w-4 h-4" /> {t.games.postGame}
+                </Button>
+              </>
+            ) : (
+              <p className="text-gray-300 text-sm mt-1">{t.games.signInToPost}</p>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((g) => {
+              const isHighlighted = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("game") === g.id;
+              return (
+                <div key={g.id} id={`game-${g.id}`} className={cn("rounded-xl transition-all", isHighlighted && "ring-2 ring-padel-green ring-offset-2")}>
+                  <OpenGameCard
+                    game={g}
+                    players={players}
+                    courts={courts}
+                    currentPlayerId={currentPlayer?.id}
+                    onJoin={(id, teamNumber) => handleAction(id, "join", { teamNumber })}
+                    onLeave={(id) => handleAction(id, "leave")}
+                    onCancel={(id) => handleAction(id, "cancel")}
+                    onSubmitScore={(id, data) => handleAction(id, "submit_score", data)}
+                    onConfirmScore={(id) => handleAction(id, "confirm_score")}
+                    onDisputeScore={(id) => handleAction(id, "dispute_score")}
+                    onUpdateBookingStatus={(id, status) => handleAction(id, "update_booking_status", { status })}
+                    onInvitePlayer={(id, playerId) => handleAction(id, "invite_player", { playerId })}
+                    loading={actionLoading}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((g) => {
-            const isHighlighted = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("game") === g.id;
-            return (
-              <div key={g.id} id={`game-${g.id}`} className={cn("rounded-xl transition-all", isHighlighted && "ring-2 ring-padel-green ring-offset-2")}>
+        myGamesLoading ? (
+          <div className="flex justify-center py-16">
+            <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : myGames.length === 0 ? (
+          <div className="text-center py-16">
+            <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+            <p className="text-gray-400 text-lg">{t.games.noCompletedGames}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {myGames.map((g) => (
+              <div key={g.id} id={`game-${g.id}`}>
                 <OpenGameCard
                   game={g}
                   players={players}
@@ -197,9 +283,9 @@ export default function OpenGamesPage() {
                   loading={actionLoading}
                 />
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )
       )}
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} title={t.games.postGameTitle} size="xl">

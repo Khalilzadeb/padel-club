@@ -73,7 +73,14 @@
     "invitePlayer": "Пригласить игрока",
     "privateGame": "Приватная игра",
     "noPlayers": "Нет игроков",
-    "open": "Открыто"
+    "open": "Открыто",
+    "activeGames": "Активные игры",
+    "myGames": "Мои игры",
+    "completedGames": "Завершённые игры",
+    "noCompletedGames": "Завершённых игр пока нет",
+    "won": "Победа",
+    "lost": "Поражение",
+    "draw": "Ничья"
   },
   "players": {
     "title": "Игроки",

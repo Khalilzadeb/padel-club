@@ -73,7 +73,14 @@
     "invitePlayer": "Oyunçu dəvət et",
     "privateGame": "Şəxsi oyun",
     "noPlayers": "Oyunçu yoxdur",
-    "open": "Açıq"
+    "open": "Açıq",
+    "activeGames": "Aktiv oyunlar",
+    "myGames": "Mənim oyunlarım",
+    "completedGames": "Tamamlanmış oyunlar",
+    "noCompletedGames": "Hələ tamamlanmış oyun yoxdur",
+    "won": "Qalib",
+    "lost": "Məğlub",
+    "draw": "Bərabər"
   },
   "players": {
     "title": "Oyunçular",

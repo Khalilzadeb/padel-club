@@ -73,7 +73,14 @@
     "invitePlayer": "Invite player",
     "privateGame": "Private",
     "noPlayers": "No players",
-    "open": "Open"
+    "open": "Open",
+    "activeGames": "Active games",
+    "myGames": "My games",
+    "completedGames": "Completed games",
+    "noCompletedGames": "No completed games yet",
+    "won": "Won",
+    "lost": "Lost",
+    "draw": "Draw"
   },
   "players": {
     "title": "Players",

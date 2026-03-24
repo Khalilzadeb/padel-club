@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") ?? undefined;
   const date = searchParams.get("date") ?? undefined;
   const code = searchParams.get("code") ?? undefined;
-  // "open" means all active states: open + full + pending_result
-  const statusFilter = status === "open" ? undefined : status;
+  // "open" and "mine" fetch all statuses; specific status values filter directly
+  const statusFilter = (status === "open" || status === "mine") ? undefined : status;
   const games = await getOpenGames({ status: statusFilter, date });
 
   // Join-by-code lookup: return the single matching game (bypasses private filter)
@@ -39,6 +39,16 @@ export async function GET(req: NextRequest) {
       const user = await findUserById(payload.userId);
       currentPlayerId = user?.playerId ?? null;
     }
+  }
+
+  // "mine" tab: return only completed/cancelled games where current user participated
+  if (status === "mine") {
+    if (!currentPlayerId) return NextResponse.json([]);
+    const mine = games.filter((g) =>
+      (g.status === "completed" || g.status === "cancelled") &&
+      g.playerIds.includes(currentPlayerId!)
+    ).sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime));
+    return NextResponse.json(mine);
   }
 
   const now = new Date();
