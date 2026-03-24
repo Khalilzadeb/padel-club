@@ -6,6 +6,8 @@ import {
   linkGoogleId,
 } from "@/lib/data/users";
 import { signToken, getSessionCookieOptions } from "@/lib/auth";
+import { createPlayer } from "@/lib/data/players";
+import { supabase } from "@/lib/supabase";
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -90,6 +92,7 @@ export async function GET(req: NextRequest) {
   }
 
   let user = await findUserByGoogleId(googleUser.sub);
+  let isNewUser = false;
 
   if (!user) {
     const existing = await findUserByEmail(googleUser.email);
@@ -98,12 +101,23 @@ export async function GET(req: NextRequest) {
       user = existing;
     } else {
       user = await createGoogleUser(googleUser.email, googleUser.name, googleUser.sub, googleUser.picture);
+      isNewUser = true;
     }
+  }
+
+  // New Google user: create player profile + link, then send to onboarding
+  if (isNewUser || !user.playerId) {
+    const playerId = `p${crypto.randomUUID().slice(0, 8)}`;
+    await createPlayer(playerId, user.name, user.email);
+    await supabase.from("users").update({ player_id: playerId }).eq("id", user.id);
+    user = { ...user, playerId };
   }
 
   const token = await signToken({ userId: user.id, email: user.email, name: user.name, role: user.role });
 
-  const redirectUrl = new URL(from.startsWith("/") ? from : "/", req.url);
+  // New users → onboarding, returning users → original destination
+  const destination = (isNewUser || !user.playerId) ? "/onboarding" : (from.startsWith("/") ? from : "/");
+  const redirectUrl = new URL(destination, req.url);
   const res = NextResponse.redirect(redirectUrl);
   res.cookies.set({ ...getSessionCookieOptions(), value: token });
   res.cookies.set("oauth_state", "", { maxAge: 0, path: "/" });
