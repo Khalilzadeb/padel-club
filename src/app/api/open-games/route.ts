@@ -18,7 +18,9 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") ?? undefined;
   const date = searchParams.get("date") ?? undefined;
   const code = searchParams.get("code") ?? undefined;
-  const games = await getOpenGames({ status, date });
+  // "open" means all active states: open + full + pending_result
+  const statusFilter = status === "open" ? undefined : status;
+  const games = await getOpenGames({ status: statusFilter, date });
 
   // Join-by-code lookup: return the single matching game (bypasses private filter)
   if (code) {
