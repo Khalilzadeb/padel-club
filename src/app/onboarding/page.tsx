@@ -89,6 +89,7 @@ export default function OnboardingPage() {
       }
       // Update cached user immediately so OnboardingGuard doesn't re-trigger
       updateUser({ onboardingDone: true, name: name.trim() });
+      localStorage.setItem("padelon_tour_pending", "1");
       window.location.href = "/";
     } finally {
       setSaving(false);

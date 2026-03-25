@@ -462,6 +462,33 @@
     "openHours": "Open 8:00 – 22:00 daily",
     "rights": "All rights reserved"
   },
+  "tour": {
+    "next": "Next",
+    "back": "Back",
+    "done": "Let's go!",
+    "steps": [
+      {
+        "icon": "🎾",
+        "title": "How to create a game?",
+        "desc": "Go to \"Games\" → tap \"Post a game\" → choose court, date and time → share. Players who want to join will come to you."
+      },
+      {
+        "icon": "📊",
+        "title": "How to enter score after a game?",
+        "desc": "When the game ends, an \"Enter Score\" button appears on the card → enter the result → opponent confirms → your ELO updates automatically."
+      },
+      {
+        "icon": "👤",
+        "title": "How to view your profile?",
+        "desc": "Tap your name in the top right → select \"My Profile\" → see your ELO rating, wins, recent matches and progress over time."
+      },
+      {
+        "icon": "🏆",
+        "title": "You're all set!",
+        "desc": "Now you can find games, send challenges or post your own. Good luck! 🎉"
+      }
+    ]
+  },
   "guide": {
     "title": "Welcome to PadelOn! 👋",
     "subtitle": "Here's what you can do to get started:",

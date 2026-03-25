@@ -3,20 +3,23 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 
 const STORAGE_KEY = "padelon_guide_seen";
 
 export default function WelcomeGuide() {
   const { t } = useLocale();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem(STORAGE_KEY)) {
+    // Only show for guests (not logged in) and only once
+    if (!loading && !user && !localStorage.getItem(STORAGE_KEY)) {
       setOpen(true);
     }
-  }, []);
+  }, [loading, user]);
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, "1");

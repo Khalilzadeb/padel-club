@@ -462,6 +462,33 @@
     "openHours": "Hər gün 8:00 – 22:00 açıqdır",
     "rights": "Bütün hüquqlar qorunur"
   },
+  "tour": {
+    "next": "Növbəti",
+    "back": "Geri",
+    "done": "Başla!",
+    "steps": [
+      {
+        "icon": "🎾",
+        "title": "Oyun necə yaradılır?",
+        "desc": "\"Oyunlar\" bölməsinə keç → \"Oyun paylaş\" düyməsinə bas → Kort, tarix və vaxtı seç → Paylaş. Oyuna qoşulmaq istəyən oyunçular sənə gəlir."
+      },
+      {
+        "icon": "📊",
+        "title": "Oyun bitdikdən sonra score?",
+        "desc": "Oyun başa çatdıqda kartda \"Score daxil et\" düyməsi görünür → Nəticəni daxil et → Rəqib təsdiq edir → ELO reytinqin avtomatik yenilənir."
+      },
+      {
+        "icon": "👤",
+        "title": "Öz hesabına necə baxırsan?",
+        "desc": "Sağ yuxarıda adına bas → \"Profilim\" seç → ELO reytinqini, qazandığın oyunları, son matçları və irəliləyişini görə bilərsən."
+      },
+      {
+        "icon": "🏆",
+        "title": "Hazırsın!",
+        "desc": "İndi oyun tapa, çağırış göndərə və ya öz oyununu paylaşa bilərsən. Uğurlar! 🎉"
+      }
+    ]
+  },
   "guide": {
     "title": "PadelOn-a xoş gəldin! 👋",
     "subtitle": "Başlamaq üçün nə edə bilərsən:",
