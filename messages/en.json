@@ -461,5 +461,33 @@
     "courts": "Professional Courts",
     "openHours": "Open 8:00 – 22:00 daily",
     "rights": "All rights reserved"
+  },
+  "guide": {
+    "title": "Welcome to PadelOn! 👋",
+    "subtitle": "Here's what you can do to get started:",
+    "start": "Let's go",
+    "skip": "Close",
+    "steps": [
+      {
+        "icon": "🎾",
+        "title": "Find a Game",
+        "desc": "Browse active games, join one or post your own"
+      },
+      {
+        "icon": "⚔️",
+        "title": "Challenge a Player",
+        "desc": "Send a challenge to any player and play 1v1"
+      },
+      {
+        "icon": "🏆",
+        "title": "Tournaments",
+        "desc": "Register for tournaments and compete with others"
+      },
+      {
+        "icon": "📊",
+        "title": "Track Stats",
+        "desc": "Follow your ELO rating, wins and progress over time"
+      }
+    ]
   }
 }

@@ -461,5 +461,33 @@
     "courts": "Professional kortlar",
     "openHours": "Hər gün 8:00 – 22:00 açıqdır",
     "rights": "Bütün hüquqlar qorunur"
+  },
+  "guide": {
+    "title": "PadelOn-a xoş gəldin! 👋",
+    "subtitle": "Başlamaq üçün nə edə bilərsən:",
+    "start": "Başla",
+    "skip": "Bağla",
+    "steps": [
+      {
+        "icon": "🎾",
+        "title": "Oyun tap",
+        "desc": "Aktiv oyunlara bax, qoşul və ya öz oyununu paylaş"
+      },
+      {
+        "icon": "⚔️",
+        "title": "Rəqib tap",
+        "desc": "İstədiyın oyunçuya çağırış göndər, 1v1 oyna"
+      },
+      {
+        "icon": "🏆",
+        "title": "Turnir",
+        "desc": "Turnirə qeydiyyatdan keç, digər oyunçularla yarış"
+      },
+      {
+        "icon": "📊",
+        "title": "Statistika",
+        "desc": "ELO reytinqini, qazandığın oyunları və irəliləyişini izlə"
+      }
+    ]
   }
 }

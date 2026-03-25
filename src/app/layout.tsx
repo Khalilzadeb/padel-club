@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import OnboardingGuard from "@/components/layout/OnboardingGuard";
+import WelcomeGuide from "@/components/layout/WelcomeGuide";
 import { cookies } from "next/headers";
 import { type Locale, VALID_LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "@/lib/i18n";
 
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ThemeProvider>
             <LocaleProvider initialLocale={initialLocale}>
               <OnboardingGuard />
+              <WelcomeGuide />
               <Navbar />
               <main className="flex-1 pb-16 md:pb-0">{children}</main>
               <Footer className="hidden md:block" />
