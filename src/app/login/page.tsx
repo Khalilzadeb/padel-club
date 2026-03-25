@@ -76,13 +76,6 @@ function LoginForm() {
           <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.auth.signInToAccount}</p>
         </div>
 
-        {/* Demo credentials */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6 text-sm">
-          <p className="font-semibold text-blue-800 dark:text-blue-300 mb-1">{t.auth.demoCredentials}</p>
-          <p className="text-blue-600 dark:text-blue-400">Email: <span className="font-mono">demo@padel.club</span></p>
-          <p className="text-blue-600 dark:text-blue-400">Password: <span className="font-mono">password123</span></p>
-        </div>
-
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-card border border-gray-100 dark:border-gray-700 p-8 space-y-5">
           {(error || oauthError) && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 text-sm px-4 py-3 rounded-lg">
