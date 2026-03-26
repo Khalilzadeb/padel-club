@@ -10,6 +10,7 @@ import { LocaleProvider } from "@/contexts/LocaleContext";
 import OnboardingGuard from "@/components/layout/OnboardingGuard";
 import WelcomeGuide from "@/components/layout/WelcomeGuide";
 import SiteTour from "@/components/layout/SiteTour";
+import AppRefresh from "@/components/layout/AppRefresh";
 import { cookies } from "next/headers";
 import { type Locale, VALID_LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "@/lib/i18n";
 
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AuthProvider>
           <ThemeProvider>
             <LocaleProvider initialLocale={initialLocale}>
+              <AppRefresh />
               <OnboardingGuard />
               <WelcomeGuide />
               <SiteTour />
