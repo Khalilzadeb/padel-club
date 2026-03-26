@@ -21,12 +21,18 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "PadelOn - Book Courts, Track Matches & Tournaments",
-  description: "Your premier padel sports club. Book courts, track matches, and compete in tournaments.",
+  title: "PadelOn",
+  description: "Padel oyunları, turnirler və reytinq",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
     apple: "/favicon.svg",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PadelOn",
   },
 };
 

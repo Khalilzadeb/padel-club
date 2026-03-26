@@ -1,0 +1,18 @@
+{
+  "name": "PadelOn",
+  "short_name": "PadelOn",
+  "description": "Padel oyunları, turnirler və reytinq",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
