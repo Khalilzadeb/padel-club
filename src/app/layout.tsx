@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
@@ -18,6 +18,11 @@ const inter = Inter({ subsets: ["latin"] });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  themeColor: "#16a34a",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

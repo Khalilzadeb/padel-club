@@ -24,7 +24,13 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }: { addUtilities: (utils: Record<string, Record<string, string>>) => void }) {
+      addUtilities({
+        ".pb-safe": { paddingBottom: "env(safe-area-inset-bottom)" },
+      });
+    },
+  ],
 };
 
 export default config;
