@@ -59,8 +59,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <WelcomeGuide />
               <SiteTour />
               <Navbar />
-              <main className="flex-1 pb-16 md:pb-0">{children}</main>
-              <Footer className="hidden md:block" />
+              <main className="flex-1 pb-20 md:pb-0">{children}</main>
+              <Footer />
               <BottomNav />
             </LocaleProvider>
           </ThemeProvider>
