@@ -17,7 +17,7 @@ export default async function Footer({ className }: { className?: string }) {
 
   return (
     <footer className={`bg-gray-900 text-gray-400 mt-auto ${className ?? ""}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-20 md:pb-5">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
           <span>© {new Date().getFullYear()} PadelOn. {t.footer.rights}</span>
           <a
