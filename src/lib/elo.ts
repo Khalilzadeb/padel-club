@@ -2,7 +2,7 @@ const K = 32;
 
 export const ELO_MIN = 300;
 export const ELO_MAX = 2000;
-export const ELO_ONBOARDING_MIN = 600;
+export const ELO_ONBOARDING_MIN = 442;
 export const ELO_ONBOARDING_MAX = 1400;
 
 /** Returns display level as "1.0"–"7.0" (rounded to nearest 0.5) */

@@ -10,9 +10,9 @@ type Hand = "right" | "left";
 type Gender = "male" | "female" | "other" | "";
 
 // Max pts = 4+4+3+3+4+4+3+4+4+3+4+4+3+3+4 = 54
-// Linear ELO range: 600 (0 pts) → 1400 (54 pts)
+// Linear ELO range: 442 (0 pts) → 1400 (54 pts)  →  display 1.5 → 5.0
 function calcElo(pts: number): { elo: number; dbLevel: string; emoji: string } {
-  const elo = Math.round(600 + (pts / 54) * 800);
+  const elo = Math.round(442 + (pts / 54) * 958);
   const dbLevel =
     elo < 800  ? "beginner" :
     elo < 1050 ? "intermediate" :
