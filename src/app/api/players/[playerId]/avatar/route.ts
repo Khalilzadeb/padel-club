@@ -28,8 +28,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pla
   if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
 
   const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+  const bustUrl = `${publicUrl}?t=${Date.now()}`;
 
-  await supabase.from("players").update({ avatar_url: publicUrl }).eq("id", playerId);
+  await supabase.from("players").update({ avatar_url: bustUrl }).eq("id", playerId);
 
-  return NextResponse.json({ avatarUrl: publicUrl });
+  return NextResponse.json({ avatarUrl: bustUrl });
 }
