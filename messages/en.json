@@ -251,165 +251,163 @@
     "levelTestResult": "Level Test Result",
     "questions": [
       {
-        "id": "self",
-        "question": "On the following scale, where would you place yourself?",
+        "id": "exp_years",
+        "question": "How many years have you been playing padel?",
+        "skip_if_zero": true,
         "options": [
-          {
-            "label": "Initiation",
-            "pts": 0
-          },
-          {
-            "label": "Intermediate",
-            "pts": 1
-          },
-          {
-            "label": "Advanced",
-            "pts": 2
-          },
-          {
-            "label": "Professional",
-            "pts": 3
-          }
+          { "label": "Never played", "pts": 0 },
+          { "label": "Less than 1 year", "pts": 1 },
+          { "label": "1–3 years", "pts": 2 },
+          { "label": "3–5 years", "pts": 3 },
+          { "label": "More than 5 years", "pts": 4 }
         ]
       },
       {
-        "id": "exp",
-        "question": "How many years have you been practicing padel or any racket sport?",
+        "id": "freq",
+        "question": "How often do you play per week on average?",
         "options": [
-          {
-            "label": "I have never played before",
-            "pts": 0
-          },
-          {
-            "label": "Less than a year",
-            "pts": 1
-          },
-          {
-            "label": "Between 1 and 3 years",
-            "pts": 2
-          },
-          {
-            "label": "Between 3 and 5 years",
-            "pts": 3
-          },
-          {
-            "label": "More than 5 years",
-            "pts": 4
-          }
+          { "label": "Rarely", "pts": 0 },
+          { "label": "1–2 times per month", "pts": 1 },
+          { "label": "Once a week", "pts": 2 },
+          { "label": "2–3 times a week", "pts": 3 },
+          { "label": "4+ times a week", "pts": 4 }
         ]
       },
       {
-        "id": "training",
-        "question": "Have you received or are you receiving training in padel?",
+        "id": "coaching",
+        "question": "Have you taken lessons from a professional coach?",
         "options": [
-          {
-            "label": "No",
-            "pts": 0
-          },
-          {
-            "label": "Yes, in the past",
-            "pts": 1
-          },
-          {
-            "label": "Yes, currently",
-            "pts": 2
-          }
+          { "label": "No", "pts": 0 },
+          { "label": "A few lessons", "pts": 1 },
+          { "label": "Regular lessons in the past", "pts": 2 },
+          { "label": "Currently training with a coach", "pts": 3 }
         ]
       },
       {
-        "id": "age",
-        "question": "How old are you?",
+        "id": "service",
+        "question": "How would you rate your serve?",
         "options": [
-          {
-            "label": "Between 18 and 30 years",
-            "pts": 0
-          },
-          {
-            "label": "Between 31 and 40 years",
-            "pts": 0
-          },
-          {
-            "label": "Between 41 and 50 years",
-            "pts": 0
-          },
-          {
-            "label": "Over 50",
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "id": "competition",
-        "question": "What is the level at which you compete when playing competitive matches?",
-        "options": [
-          {
-            "label": "Only games between friends",
-            "pts": 0
-          },
-          {
-            "label": "Friendly tournaments",
-            "pts": 1
-          },
-          {
-            "label": "Amateur leagues",
-            "pts": 2
-          },
-          {
-            "label": "Federated competitions",
-            "pts": 3
-          }
+          { "label": "I can do a basic serve", "pts": 0 },
+          { "label": "Consistent, occasional errors", "pts": 1 },
+          { "label": "I use spin or pace", "pts": 2 },
+          { "label": "I vary my serve to trouble opponents", "pts": 3 }
         ]
       },
       {
         "id": "volley",
-        "question": "On the volley…",
+        "question": "Volley (at the net):",
         "options": [
-          {
-            "label": "I hardly go to the net",
-            "pts": 0
-          },
-          {
-            "label": "I don't feel safe at the net, I make too many mistakes",
-            "pts": 1
-          },
-          {
-            "label": "I can volley forehand and backhand with some difficulties",
-            "pts": 2
-          },
-          {
-            "label": "I have good positioning at the net and I volley confidently",
-            "pts": 3
-          },
-          {
-            "label": "I volley with depth and power",
-            "pts": 4
-          }
+          { "label": "I rarely come to the net", "pts": 0 },
+          { "label": "I come up but mostly defend", "pts": 1 },
+          { "label": "I volley consistently", "pts": 2 },
+          { "label": "I attack with volleys and win points", "pts": 3 },
+          { "label": "Strong volleys on both sides", "pts": 4 }
         ]
       },
       {
-        "id": "rebounds",
-        "question": "On the rebounds…",
+        "id": "bandeja",
+        "question": "The bandeja shot...",
         "options": [
-          {
-            "label": "I don't know how to read the rebounds, I hit before it rebounds",
-            "pts": 0
-          },
-          {
-            "label": "I try, with difficulty, to hit the rebounds on the back wall",
-            "pts": 1
-          },
-          {
-            "label": "I return rebounds on the back wall, it is difficult for me to return the double-wall ones",
-            "pts": 2
-          },
-          {
-            "label": "I return double-wall rebounds and reach for quick rebounds",
-            "pts": 3
-          },
-          {
-            "label": "I perform powerful wall descent shots with forehand and backhand",
-            "pts": 4
-          }
+          { "label": "I don't know what that is", "pts": 0 },
+          { "label": "I know it but can't do it", "pts": 1 },
+          { "label": "I do it sometimes, not consistent", "pts": 2 },
+          { "label": "I do it consistently", "pts": 3 },
+          { "label": "I hit it powerfully and accurately", "pts": 4 }
+        ]
+      },
+      {
+        "id": "vibora",
+        "question": "The vibora shot...",
+        "options": [
+          { "label": "I don't know what that is", "pts": 0 },
+          { "label": "I know it but can't do it", "pts": 1 },
+          { "label": "I do it sometimes", "pts": 2 },
+          { "label": "I do it consistently", "pts": 3 }
+        ]
+      },
+      {
+        "id": "wall",
+        "question": "Defending balls off the wall:",
+        "options": [
+          { "label": "I can't reach the back wall", "pts": 0 },
+          { "label": "I return simple wall balls", "pts": 1 },
+          { "label": "I return wall balls consistently", "pts": 2 },
+          { "label": "I handle corner (double wall) balls too", "pts": 3 },
+          { "label": "I use the wall to attack", "pts": 4 }
+        ]
+      },
+      {
+        "id": "smash",
+        "question": "Smash (overhead shot):",
+        "options": [
+          { "label": "I can't smash", "pts": 0 },
+          { "label": "Basic smash", "pts": 1 },
+          { "label": "Powerful smash", "pts": 2 },
+          { "label": "I smash fast balls too", "pts": 3 },
+          { "label": "Aggressive smashes that win points", "pts": 4 }
+        ]
+      },
+      {
+        "id": "lob",
+        "question": "Lob (defensive shot):",
+        "options": [
+          { "label": "I don't know how to lob", "pts": 0 },
+          { "label": "Basic lob", "pts": 1 },
+          { "label": "Consistent lob, pushes opponent back", "pts": 2 },
+          { "label": "Accurate lob that wins position", "pts": 3 }
+        ]
+      },
+      {
+        "id": "tactics",
+        "question": "Tactical understanding:",
+        "options": [
+          { "label": "I just try to return the ball", "pts": 0 },
+          { "label": "I sometimes aim at the opponent's weak side", "pts": 1 },
+          { "label": "I understand court positioning", "pts": 2 },
+          { "label": "I coordinate with my partner tactically", "pts": 3 },
+          { "label": "I adapt tactics throughout the match", "pts": 4 }
+        ]
+      },
+      {
+        "id": "competition",
+        "question": "Tournament / competitive experience:",
+        "options": [
+          { "label": "Never competed", "pts": 0 },
+          { "label": "Friendly tournaments", "pts": 1 },
+          { "label": "Amateur leagues", "pts": 2 },
+          { "label": "Federation competitions", "pts": 3 },
+          { "label": "National / international events", "pts": 4 }
+        ]
+      },
+      {
+        "id": "fitness",
+        "question": "Physical fitness during a match:",
+        "options": [
+          { "label": "I get tired quickly", "pts": 0 },
+          { "label": "I can play for a moderate time", "pts": 1 },
+          { "label": "I stay consistent in long matches", "pts": 2 },
+          { "label": "I'm strong even at high pace", "pts": 3 }
+        ]
+      },
+      {
+        "id": "terms",
+        "question": "Do you know these terms? (bandeja, vibora, bajada, globo, chiquita)",
+        "options": [
+          { "label": "None of them", "pts": 0 },
+          { "label": "1–2 of them", "pts": 1 },
+          { "label": "Most of them", "pts": 2 },
+          { "label": "All of them and I use them", "pts": 3 }
+        ]
+      },
+      {
+        "id": "self",
+        "question": "How would you rate yourself overall?",
+        "options": [
+          { "label": "Beginner", "pts": 0 },
+          { "label": "Low-intermediate", "pts": 1 },
+          { "label": "Intermediate", "pts": 2 },
+          { "label": "Upper-intermediate", "pts": 3 },
+          { "label": "Advanced", "pts": 4 }
         ]
       }
     ]

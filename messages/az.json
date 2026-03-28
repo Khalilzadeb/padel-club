@@ -251,165 +251,163 @@
     "levelTestResult": "Səviyyə Testi Nəticəsi",
     "questions": [
       {
-        "id": "self",
-        "question": "Aşağıdakı şkala üzrə özünüzü harada yerləşdirərdiniz?",
+        "id": "exp_years",
+        "question": "Padel ilə neçə ildir məşğulsunuz?",
+        "skip_if_zero": true,
         "options": [
-          {
-            "label": "Başlanğıc",
-            "pts": 0
-          },
-          {
-            "label": "Orta",
-            "pts": 1
-          },
-          {
-            "label": "İrəliləmiş",
-            "pts": 2
-          },
-          {
-            "label": "Professional",
-            "pts": 3
-          }
+          { "label": "Heç oynamadım", "pts": 0 },
+          { "label": "1 ildən az", "pts": 1 },
+          { "label": "1–3 il", "pts": 2 },
+          { "label": "3–5 il", "pts": 3 },
+          { "label": "5 ildən çox", "pts": 4 }
         ]
       },
       {
-        "id": "exp",
-        "question": "Padel və ya raket idmanı ilə neçə ildir məşğul olursunuz?",
+        "id": "freq",
+        "question": "Həftədə orta hesabla neçə dəfə oynayırsınız?",
         "options": [
-          {
-            "label": "Heç vaxt oynamadım",
-            "pts": 0
-          },
-          {
-            "label": "Bir ildən az",
-            "pts": 1
-          },
-          {
-            "label": "1 ilden 3 ilə qədər",
-            "pts": 2
-          },
-          {
-            "label": "3 ilden 5 ilə qədər",
-            "pts": 3
-          },
-          {
-            "label": "5 ildən artıq",
-            "pts": 4
-          }
+          { "label": "Nadir hallarda", "pts": 0 },
+          { "label": "Ayda 1–2 dəfə", "pts": 1 },
+          { "label": "Həftədə 1 dəfə", "pts": 2 },
+          { "label": "Həftədə 2–3 dəfə", "pts": 3 },
+          { "label": "Həftədə 4+ dəfə", "pts": 4 }
         ]
       },
       {
-        "id": "training",
-        "question": "Padel üzrə məşq aldınızmı və ya alırsınızmı?",
+        "id": "coaching",
+        "question": "Peşəkar məşqçidən dərs aldınızmı?",
         "options": [
-          {
-            "label": "Xeyr",
-            "pts": 0
-          },
-          {
-            "label": "Bəli, keçmişdə",
-            "pts": 1
-          },
-          {
-            "label": "Bəli, hal-hazırda",
-            "pts": 2
-          }
+          { "label": "Xeyr", "pts": 0 },
+          { "label": "Bir neçə dərs aldım", "pts": 1 },
+          { "label": "Müntəzəm aldım", "pts": 2 },
+          { "label": "Hal-hazırda alıram", "pts": 3 }
         ]
       },
       {
-        "id": "age",
-        "question": "Neçə yaşınız var?",
+        "id": "service",
+        "question": "Servis atışınızı necə qiymətləndirirsiniz?",
         "options": [
-          {
-            "label": "18-30 yaş",
-            "pts": 0
-          },
-          {
-            "label": "31-40 yaş",
-            "pts": 0
-          },
-          {
-            "label": "41-50 yaş",
-            "pts": 0
-          },
-          {
-            "label": "50-dən yuxarı",
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "id": "competition",
-        "question": "Müsabiqə oyunlarında hansı səviyyədə iştirak edirsiniz?",
-        "options": [
-          {
-            "label": "Yalnız dostlarla oyunlar",
-            "pts": 0
-          },
-          {
-            "label": "Dostluq turnirləri",
-            "pts": 1
-          },
-          {
-            "label": "Amateur liqalar",
-            "pts": 2
-          },
-          {
-            "label": "Federasiya yarışları",
-            "pts": 3
-          }
+          { "label": "Sadə servis ata bilirəm", "pts": 0 },
+          { "label": "Stabil, bəzən xəta edirəm", "pts": 1 },
+          { "label": "Spin və ya sürətlə edirəm", "pts": 2 },
+          { "label": "Fərqli servislə rəqibi çətinliyə salıram", "pts": 3 }
         ]
       },
       {
         "id": "volley",
-        "question": "Vole zərbəsi zamanı…",
+        "question": "Vole (tor yaxınlığında zərbə):",
         "options": [
-          {
-            "label": "Tora demək olar ki, çıxmıram",
-            "pts": 0
-          },
-          {
-            "label": "Torda özümü güvənli hiss etmirəm, çox xəta edirəm",
-            "pts": 1
-          },
-          {
-            "label": "Hər iki tərəfdən vole edə bilirəm, amma çətinliklə",
-            "pts": 2
-          },
-          {
-            "label": "Torda yaxşı mövqeyim var və etibarlı vole edirəm",
-            "pts": 3
-          },
-          {
-            "label": "Dərinlik və güclə vole edirəm",
-            "pts": 4
-          }
+          { "label": "Tora çıxmıram", "pts": 0 },
+          { "label": "Çıxıram amma müdafiə oluram", "pts": 1 },
+          { "label": "Stabil vole edirəm", "pts": 2 },
+          { "label": "Hücum voleleri edib xal qazanıram", "pts": 3 },
+          { "label": "Hər iki tərəfli güclü vole", "pts": 4 }
         ]
       },
       {
-        "id": "rebounds",
-        "question": "Divar top zərbələri zamanı…",
+        "id": "bandeja",
+        "question": "Bandeja zərbəsini...",
         "options": [
-          {
-            "label": "Topu necə oxuyacağımı bilmirəm, divardan sıçramadan vururum",
-            "pts": 0
-          },
-          {
-            "label": "Çətinliklə arxa divardan zərbə etməyə çalışıram",
-            "pts": 1
-          },
-          {
-            "label": "Arxa divardan qayıdan topu qaytarıram, ikiqat divar zərbəsi çətindir",
-            "pts": 2
-          },
-          {
-            "label": "İkiqat divar zərbələrini qaytarıram və sürətli topları tuturam",
-            "pts": 3
-          },
-          {
-            "label": "Hər iki tərəfdən güclü divar eniş zərbələri edirəm",
-            "pts": 4
-          }
+          { "label": "Bu nədir, bilmirəm", "pts": 0 },
+          { "label": "Bilirəm amma edə bilmirəm", "pts": 1 },
+          { "label": "Bəzən edirəm, stabil deyil", "pts": 2 },
+          { "label": "Stabil edirəm", "pts": 3 },
+          { "label": "Güclü və dəqiq edirəm", "pts": 4 }
+        ]
+      },
+      {
+        "id": "vibora",
+        "question": "Vibora zərbəsini...",
+        "options": [
+          { "label": "Bu nədir, bilmirəm", "pts": 0 },
+          { "label": "Bilirəm amma edə bilmirəm", "pts": 1 },
+          { "label": "Bəzən edirəm", "pts": 2 },
+          { "label": "Stabil edirəm", "pts": 3 }
+        ]
+      },
+      {
+        "id": "wall",
+        "question": "Divardan gələn topa müdafiə:",
+        "options": [
+          { "label": "Arxa divara çatmıram", "pts": 0 },
+          { "label": "Sadə divar toplarını qaytarıram", "pts": 1 },
+          { "label": "Stabil qaytarıram", "pts": 2 },
+          { "label": "Köşə (ikiqat divar) toplarını da qaytarıram", "pts": 3 },
+          { "label": "Divardan hücuma keçirəm", "pts": 4 }
+        ]
+      },
+      {
+        "id": "smash",
+        "question": "Smash (yuxarıdan güclü zərbə):",
+        "options": [
+          { "label": "Smash edə bilmirəm", "pts": 0 },
+          { "label": "Sadə smash edirəm", "pts": 1 },
+          { "label": "Güclü smash edirəm", "pts": 2 },
+          { "label": "Sürətli topları da smash edirəm", "pts": 3 },
+          { "label": "Xala çevirən agresif smash", "pts": 4 }
+        ]
+      },
+      {
+        "id": "lob",
+        "question": "Lob (müdafiə zərbəsi):",
+        "options": [
+          { "label": "Lob bilmirəm", "pts": 0 },
+          { "label": "Sadə lob edirəm", "pts": 1 },
+          { "label": "Stabil lob, rəqibi geri çəkirəm", "pts": 2 },
+          { "label": "Dəqiq lob ilə mövqe qazanıram", "pts": 3 }
+        ]
+      },
+      {
+        "id": "tactics",
+        "question": "Taktiki oyun anlayışı:",
+        "options": [
+          { "label": "Sadəcə topu qaytarıram", "pts": 0 },
+          { "label": "Bəzən rəqibin zəif tərəfinə oynayıram", "pts": 1 },
+          { "label": "Kortda mövqe tutmağı başa düşürəm", "pts": 2 },
+          { "label": "Partnerlə koordinasiya edib taktiki oyun qururum", "pts": 3 },
+          { "label": "Oyun boyu taktika dəyişdirirəm", "pts": 4 }
+        ]
+      },
+      {
+        "id": "competition",
+        "question": "Turnir / rəsmi yarış təcrübəsi:",
+        "options": [
+          { "label": "Heç yarışmadım", "pts": 0 },
+          { "label": "Dostluq turnirləri", "pts": 1 },
+          { "label": "Amatör liqalar", "pts": 2 },
+          { "label": "Federasiya yarışları", "pts": 3 },
+          { "label": "Milli/beynəlxalq yarışlar", "pts": 4 }
+        ]
+      },
+      {
+        "id": "fitness",
+        "question": "Oyun zamanı fiziki hazırlıq:",
+        "options": [
+          { "label": "Tez yoruluram", "pts": 0 },
+          { "label": "Orta müddət oynaya bilirəm", "pts": 1 },
+          { "label": "Uzun oyunlarda da stabil qalıram", "pts": 2 },
+          { "label": "Yüksək tempdə də güclüyəm", "pts": 3 }
+        ]
+      },
+      {
+        "id": "terms",
+        "question": "Bu terminləri bilirsinizdəmi? (bandeja, vibora, bajada, globo, chiquita)",
+        "options": [
+          { "label": "Heç birini bilmirəm", "pts": 0 },
+          { "label": "1–2 sini bilirəm", "pts": 1 },
+          { "label": "Əksərini bilirəm", "pts": 2 },
+          { "label": "Hamısını bilirəm və tətbiq edirəm", "pts": 3 }
+        ]
+      },
+      {
+        "id": "self",
+        "question": "Özünüzü ümumi olaraq necə qiymətləndirirsiniz?",
+        "options": [
+          { "label": "Başlanğıc", "pts": 0 },
+          { "label": "Orta-aşağı", "pts": 1 },
+          { "label": "Orta", "pts": 2 },
+          { "label": "Orta-yuxarı", "pts": 3 },
+          { "label": "Yüksək", "pts": 4 }
         ]
       }
     ]

@@ -9,10 +9,10 @@ type Position = "drive" | "revés" | "flexible";
 type Hand = "right" | "left";
 type Gender = "male" | "female" | "other" | "";
 
-// Max pts = 3+4+2+0+3+4+4 = 20
-// Linear ELO range: 600 (0 pts) → 1400 (20 pts)
+// Max pts = 4+4+3+3+4+4+3+4+4+3+4+4+3+3+4 = 54
+// Linear ELO range: 600 (0 pts) → 1400 (54 pts)
 function calcElo(pts: number): { elo: number; dbLevel: string; emoji: string } {
-  const elo = Math.round(600 + (pts / 20) * 800);
+  const elo = Math.round(600 + (pts / 54) * 800);
   const dbLevel =
     elo < 800  ? "beginner" :
     elo < 1050 ? "intermediate" :
@@ -24,10 +24,10 @@ function calcElo(pts: number): { elo: number; dbLevel: string; emoji: string } {
   return { elo, dbLevel, emoji };
 }
 
-// Steps: 1=name, 2-8=survey Q1-Q7, 9=position, 10=hand, 11=gender, 12=result
-const TOTAL_STEPS = 12;
+// Steps: 1=name, 2-16=survey Q1-Q15, 17=position, 18=hand, 19=gender, 20=result
+const TOTAL_STEPS = 20;
 const SURVEY_START = 2;
-const SURVEY_END = 8;
+const SURVEY_END = 16;
 
 const POSITIONS: { value: Position; label: string; side: string; desc: string }[] = [
   { value: "drive",    label: "Drive",    side: "Right side",  desc: "Forehand dominant, prefer the right side of the court" },
@@ -46,9 +46,10 @@ export default function OnboardingPage() {
   const [position, setPosition] = useState<Position>("flexible");
   const [hand, setHand] = useState<Hand>("right");
   const [gender, setGender] = useState<Gender>("");
+  const [skippedToResult, setSkippedToResult] = useState(false);
 
   // Use translated questions from i18n
-  const SURVEY = t.onboarding.questions;
+  const SURVEY = t.onboarding.questions as { id: string; question: string; skip_if_zero?: boolean; options: { label: string; pts: number }[] }[];
 
   const surveyIndex = step - SURVEY_START; // 0-6 when in survey
   const inSurvey = step >= SURVEY_START && step <= SURVEY_END;
@@ -98,11 +99,30 @@ export default function OnboardingPage() {
 
   const progress = ((step - 1) / (TOTAL_STEPS - 1)) * 100;
 
+  const handleNext = () => {
+    // Q1 (exp_years): if "never played" (pts=0), skip directly to result
+    if (step === SURVEY_START && SURVEY[0]?.skip_if_zero && surveyAnswers[SURVEY[0].id] === 0) {
+      setSkippedToResult(true);
+      setStep(TOTAL_STEPS);
+    } else {
+      setStep((s) => s + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (step === TOTAL_STEPS && skippedToResult) {
+      setSkippedToResult(false);
+      setStep(SURVEY_START);
+    } else {
+      setStep((s) => s - 1);
+    }
+  };
+
   const phaseLabel = step === 1
     ? t.onboarding.step1Title
     : inSurvey
     ? `${t.onboarding.levelTestTitle} · ${t.onboarding.question} ${surveyIndex + 1} ${t.onboarding.of} ${SURVEY.length}`
-    : step <= 11
+    : step < TOTAL_STEPS
     ? t.profile.editProfile
     : t.onboarding.yourLevel;
 
@@ -174,8 +194,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 9 — Position */}
-          {step === 9 && (
+          {/* Step 17 — Position */}
+          {step === 17 && (
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.profile.position}</h2>
@@ -199,8 +219,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 10 — Hand */}
-          {step === 10 && (
+          {/* Step 18 — Hand */}
+          {step === 18 && (
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.profile.hand}</h2>
@@ -220,8 +240,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 11 — Gender */}
-          {step === 11 && (
+          {/* Step 19 — Gender */}
+          {step === 19 && (
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">One more thing</h2>
@@ -244,8 +264,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 12 — Result */}
-          {step === 12 && (
+          {/* Step 20 — Result */}
+          {step === 20 && (
             <div className="text-center space-y-5 py-2">
               <div>
                 <p className="text-5xl mb-3">{result.emoji}</p>
@@ -267,13 +287,13 @@ export default function OnboardingPage() {
         {/* Navigation */}
         <div className="flex gap-3 mt-6">
           {step > 1 && (
-            <button onClick={() => setStep((s) => s - 1)}
+            <button onClick={handleBack}
               className="flex items-center gap-1.5 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <ChevronLeft className="w-4 h-4" /> {t.common.back}
             </button>
           )}
           {step < TOTAL_STEPS ? (
-            <button onClick={() => setStep((s) => s + 1)} disabled={!canNext()}
+            <button onClick={handleNext} disabled={!canNext()}
               className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-padel-green text-white text-sm font-semibold hover:bg-green-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               {t.onboarding.continue} <ChevronRight className="w-4 h-4" />
             </button>
