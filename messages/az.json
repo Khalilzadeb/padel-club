@@ -120,6 +120,11 @@
     "back": "Arxa",
     "male": "Kişi",
     "female": "Qadın",
+    "other": "Digər",
+    "preferNotToSay": "Bildirmək istəmirəm",
+    "rightSide": "Sağ tərəf",
+    "leftSide": "Sol tərəf",
+    "bothSides": "Hər iki tərəf",
     "stats": "Statistika",
     "recentMatches": "Son oyunlar",
     "noRecentMatches": "Son oyun yoxdur"
@@ -248,6 +253,13 @@
     "yourLevel": "Sizin səviyyəniz",
     "startPlaying": "Oynamağa başla",
     "startingLevelNote": "Bu sizin başlanğıc səviyyənizdir. Hər reytinq oyunundan sonra avtomatik yenilənəcək. Maksimum səviyyə 7.0-dır.",
+    "positionSubtitle": "Meydanda hansı tərəfi seçirsiniz?",
+    "driveDesc": "Forhend güclü, sağ tərəfi üstün tutursunuz",
+    "revesDesc": "Bəkhənd güclü, sol tərəfi üstün tutursunuz",
+    "flexibleDesc": "Hər iki tərəfdə rahat oynayırsınız",
+    "handSubtitle": "Hansı əllə oynayırsınız?",
+    "genderTitle": "Bir şey daha",
+    "genderSubtitle": "İsteğe bağlı — turnir kateqoriyaları üçün istifadə olunur",
     "levelTestResult": "Səviyyə Testi Nəticəsi",
     "questions": [
       {

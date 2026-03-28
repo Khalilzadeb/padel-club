@@ -120,6 +120,11 @@
     "back": "Back",
     "male": "Male",
     "female": "Female",
+    "other": "Other",
+    "preferNotToSay": "Prefer not to say",
+    "rightSide": "Right side",
+    "leftSide": "Left side",
+    "bothSides": "Both sides",
     "stats": "Stats",
     "recentMatches": "Recent matches",
     "noRecentMatches": "No recent matches"
@@ -248,6 +253,13 @@
     "yourLevel": "Your level",
     "startPlaying": "Start playing",
     "startingLevelNote": "This is your starting level. It will automatically update after every ranked match. Max level is 7.0.",
+    "positionSubtitle": "Which side of the court do you prefer?",
+    "driveDesc": "Forehand dominant, prefer the right side of the court",
+    "revesDesc": "Backhand dominant, prefer the left side of the court",
+    "flexibleDesc": "Comfortable playing either side",
+    "handSubtitle": "Which hand do you play with?",
+    "genderTitle": "One more thing",
+    "genderSubtitle": "Optional — used for tournament categories",
     "levelTestResult": "Level Test Result",
     "questions": [
       {

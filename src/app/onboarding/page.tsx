@@ -29,11 +29,6 @@ const TOTAL_STEPS = 20;
 const SURVEY_START = 2;
 const SURVEY_END = 16;
 
-const POSITIONS: { value: Position; label: string; side: string; desc: string }[] = [
-  { value: "drive",    label: "Drive",    side: "Right side",  desc: "Forehand dominant, prefer the right side of the court" },
-  { value: "revés",    label: "Revés",    side: "Left side",   desc: "Backhand dominant, prefer the left side of the court" },
-  { value: "flexible", label: "Flexible", side: "Both sides",  desc: "Comfortable playing either side" },
-];
 
 export default function OnboardingPage() {
   const { user, updateUser } = useAuth();
@@ -199,10 +194,14 @@ export default function OnboardingPage() {
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.profile.position}</h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Which side of the court do you prefer?</p>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.onboarding.positionSubtitle}</p>
               </div>
               <div className="space-y-2">
-                {POSITIONS.map((p) => (
+                {([
+                  { value: "drive"    as Position, label: "Drive",    side: t.profile.rightSide, desc: t.onboarding.driveDesc },
+                  { value: "revés"    as Position, label: "Revés",    side: t.profile.leftSide,  desc: t.onboarding.revesDesc },
+                  { value: "flexible" as Position, label: "Flexible", side: t.profile.bothSides, desc: t.onboarding.flexibleDesc },
+                ]).map((p) => (
                   <button key={p.value} type="button" onClick={() => setPosition(p.value)}
                     className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${position === p.value ? "border-padel-green bg-green-50 dark:bg-green-900/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"}`}>
                     <div className="flex-1">
@@ -224,7 +223,7 @@ export default function OnboardingPage() {
             <div className="space-y-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.profile.hand}</h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Which hand do you play with?</p>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.onboarding.handSubtitle}</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {(["right", "left"] as const).map((h) => (
@@ -244,15 +243,15 @@ export default function OnboardingPage() {
           {step === 19 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white">One more thing</h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.profile.gender} <span className="text-gray-400">(optional — used for tournament categories)</span></p>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">{t.onboarding.genderTitle}</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">{t.profile.gender} <span className="text-gray-400">({t.onboarding.genderSubtitle})</span></p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {([
                   { value: "male",   label: t.profile.male,             emoji: "👨" },
                   { value: "female", label: t.profile.female,           emoji: "👩" },
-                  { value: "other",  label: "Other",                    emoji: "🧑" },
-                  { value: "",       label: "Prefer not to say",        emoji: "🤐" },
+                  { value: "other",  label: t.profile.other,            emoji: "🧑" },
+                  { value: "",       label: t.profile.preferNotToSay,   emoji: "🤐" },
                 ] as const).map((g) => (
                   <button key={String(g.value)} type="button" onClick={() => setGender(g.value as Gender)}
                     className={`py-5 rounded-xl border-2 text-center transition-all ${gender === g.value ? "border-padel-green bg-green-50 dark:bg-green-900/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"}`}>
