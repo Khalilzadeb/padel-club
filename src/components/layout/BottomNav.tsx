@@ -23,6 +23,8 @@ export default function BottomNav() {
     { href: "/messages", label: t.nav.messages, icon: MessageCircle },
   ];
 
+  if (pathname === "/onboarding") return null;
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 shadow-lg">
       <div className="flex items-center justify-around px-2 pb-safe">
