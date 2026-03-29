@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "PadelOn",
+    startupImage: "/icon-512.png",
   },
 };
 
