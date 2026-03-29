@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={initialLocale} suppressHydrationWarning>
       <head>
-        <link rel="apple-touch-icon" href="/icon-512.png" />
+        <link rel="apple-touch-icon" href="/icon-512.jpg" />
       </head>
       <body className={`${inter.className} min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900`}>
         <AuthProvider>
