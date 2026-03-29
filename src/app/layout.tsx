@@ -28,11 +28,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "PadelOn",
   description: "Padel oyunları, turnirler və reytinq",
-  icons: {
-    icon: "/icon-192.png",
-    shortcut: "/icon-192.png",
-    apple: "/icon-512.png",
-  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
