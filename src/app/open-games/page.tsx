@@ -282,6 +282,8 @@ export default function OpenGamesPage() {
                   onDisputeScore={(id) => handleAction(id, "dispute_score")}
                   onUpdateBookingStatus={(id, status) => handleAction(id, "update_booking_status", { status })}
                   onInvitePlayer={(id, playerId) => handleAction(id, "invite_player", { playerId })}
+                  onJoinWaitlist={(id) => handleAction(id, "join_waitlist")}
+                  onLeaveWaitlist={(id) => handleAction(id, "leave_waitlist")}
                   loading={actionLoading}
                 />
               </div>
