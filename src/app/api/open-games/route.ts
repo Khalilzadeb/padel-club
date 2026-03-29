@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOpenGames, createOpenGame } from "@/lib/data/open-games";
+import { getOpenGames, createOpenGame, getWaitlistBatch } from "@/lib/data/open-games";
 import { verifyToken } from "@/lib/auth";
 import { getPlayer, getPlayers } from "@/lib/data/players";
 import { createNotification } from "@/lib/data/notifications";
@@ -68,7 +68,13 @@ export async function GET(req: NextRequest) {
     return true;
   });
 
-  return NextResponse.json(upcoming);
+  const waitlistMap = await getWaitlistBatch(upcoming.map(g => g.id), currentPlayerId);
+  const result = upcoming.map(g => ({
+    ...g,
+    waitlistCount: waitlistMap[g.id]?.count ?? 0,
+    myWaitlistPosition: waitlistMap[g.id]?.myPosition ?? null,
+  }));
+  return NextResponse.json(result);
 }
 
 export async function POST(req: NextRequest) {

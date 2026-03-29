@@ -25,10 +25,12 @@ interface Props {
   onDisputeScore: (id: string) => void;
   onUpdateBookingStatus: (id: string, status: "booked" | "failed") => void;
   onInvitePlayer: (id: string, playerId: string) => void;
+  onJoinWaitlist: (id: string) => void;
+  onLeaveWaitlist: (id: string) => void;
   loading?: boolean;
 }
 
-export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, onUpdateBookingStatus, onInvitePlayer, loading }: Props) {
+export default function OpenGameCard({ game, players, courts, currentPlayerId, onJoin, onLeave, onCancel, onSubmitScore, onConfirmScore, onDisputeScore, onUpdateBookingStatus, onInvitePlayer, onJoinWaitlist, onLeaveWaitlist, loading }: Props) {
   const { t } = useLocale();
   const [showScoreForm, setShowScoreForm] = useState(false);
   const [showTeamPick, setShowTeamPick] = useState(false);
@@ -330,7 +332,25 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
               <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 ml-auto" onClick={() => setShowLeaveConfirm(true)} disabled={loading}>
                 {t.games.leaveGame}
               </Button>
-            ) : !isFull ? (
+            ) : isFull ? (
+              game.myWaitlistPosition ? (
+                <div className="flex items-center gap-2 ml-auto flex-wrap">
+                  <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                    {t.games.waitlistPosition.replace("#{pos}", String(game.myWaitlistPosition))}
+                    {(game.waitlistCount ?? 0) > 1 && ` · ${t.games.waitlistCount.replace("{count}", String(game.waitlistCount))}`}
+                  </span>
+                  <Button size="sm" variant="ghost" className="text-gray-500 dark:text-gray-400" onClick={() => onLeaveWaitlist(game.id)} disabled={loading}>
+                    {t.games.leaveWaitlist}
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" variant="ghost" className="text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 ml-auto" onClick={() => onJoinWaitlist(game.id)} disabled={loading}>
+                  <Clock className="w-3.5 h-3.5" />
+                  {t.games.joinWaitlist}
+                  {(game.waitlistCount ?? 0) > 0 && <span className="ml-1 text-xs opacity-70">({game.waitlistCount})</span>}
+                </Button>
+              )
+            ) : (
               showTeamPick ? (
                 <div className="flex items-center gap-2 flex-wrap w-full">
                   <span className="text-xs text-gray-500 dark:text-gray-400">Choose team:</span>
@@ -364,7 +384,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
                   {t.games.joinGame} <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               )
-            ) : null
+            )
           )}
         </div>
       )}

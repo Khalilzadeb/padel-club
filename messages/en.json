@@ -80,7 +80,11 @@
     "noCompletedGames": "No completed games yet",
     "won": "Won",
     "lost": "Lost",
-    "draw": "Draw"
+    "draw": "Draw",
+    "joinWaitlist": "Join waitlist",
+    "leaveWaitlist": "Leave queue",
+    "waitlistPosition": "Queue: #{pos}",
+    "waitlistCount": "{count} waiting"
   },
   "players": {
     "title": "Players",

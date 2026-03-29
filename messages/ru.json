@@ -80,7 +80,11 @@
     "noCompletedGames": "Завершённых игр пока нет",
     "won": "Победа",
     "lost": "Поражение",
-    "draw": "Ничья"
+    "draw": "Ничья",
+    "joinWaitlist": "В очередь",
+    "leaveWaitlist": "Выйти из очереди",
+    "waitlistPosition": "Очередь: #{pos}",
+    "waitlistCount": "{count} ждут"
   },
   "players": {
     "title": "Игроки",

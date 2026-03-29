@@ -80,7 +80,11 @@
     "noCompletedGames": "Hələ tamamlanmış oyun yoxdur",
     "won": "Qalib",
     "lost": "Məğlub",
-    "draw": "Bərabər"
+    "draw": "Bərabər",
+    "joinWaitlist": "Gözləmə siyahısına qoşul",
+    "leaveWaitlist": "Siyahıdan çıx",
+    "waitlistPosition": "Sıra: #{pos}",
+    "waitlistCount": "{count} gözləyir"
   },
   "players": {
     "title": "Oyunçular",

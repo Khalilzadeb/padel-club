@@ -152,3 +152,49 @@ export async function leaveOpenGame(id: string, playerId: string): Promise<OpenG
 export async function cancelOpenGame(id: string): Promise<void> {
   await supabase.from('open_games').update({ status: 'cancelled' }).eq('id', id)
 }
+
+export async function joinWaitlist(gameId: string, playerId: string): Promise<number> {
+  await supabase.from('game_waitlist')
+    .upsert({ game_id: gameId, player_id: playerId }, { onConflict: 'game_id,player_id' })
+  const { data } = await supabase.from('game_waitlist')
+    .select('player_id').eq('game_id', gameId).order('created_at')
+  const list = (data ?? []).map(r => (r as Record<string, unknown>).player_id as string)
+  const idx = list.indexOf(playerId)
+  return idx >= 0 ? idx + 1 : 1
+}
+
+export async function leaveWaitlist(gameId: string, playerId: string): Promise<void> {
+  await supabase.from('game_waitlist').delete()
+    .eq('game_id', gameId).eq('player_id', playerId)
+}
+
+export async function getWaitlistPlayerIds(gameId: string): Promise<string[]> {
+  const { data } = await supabase.from('game_waitlist')
+    .select('player_id').eq('game_id', gameId).order('created_at')
+  return (data ?? []).map(r => (r as Record<string, unknown>).player_id as string)
+}
+
+export async function getWaitlistBatch(
+  gameIds: string[],
+  currentPlayerId?: string | null
+): Promise<Record<string, { count: number; myPosition: number | null }>> {
+  if (gameIds.length === 0) return {}
+  const { data } = await supabase.from('game_waitlist')
+    .select('game_id, player_id')
+    .in('game_id', gameIds)
+    .order('created_at')
+  const byGame: Record<string, string[]> = {}
+  for (const row of data ?? []) {
+    const r = row as Record<string, unknown>
+    const gid = r.game_id as string
+    if (!byGame[gid]) byGame[gid] = []
+    byGame[gid].push(r.player_id as string)
+  }
+  const result: Record<string, { count: number; myPosition: number | null }> = {}
+  for (const gid of gameIds) {
+    const list = byGame[gid] ?? []
+    const idx = currentPlayerId ? list.indexOf(currentPlayerId) : -1
+    result[gid] = { count: list.length, myPosition: idx >= 0 ? idx + 1 : null }
+  }
+  return result
+}

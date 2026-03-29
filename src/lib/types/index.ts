@@ -152,6 +152,8 @@ export interface OpenGame {
   submittedBy?: string;
   matchId?: string;
   createdAt: string;
+  waitlistCount?: number;
+  myWaitlistPosition?: number | null;
 }
 
 // ─── Tournament ───────────────────────────────────────────────────────────────

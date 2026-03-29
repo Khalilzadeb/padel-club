@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOpenGame, joinOpenGame, leaveOpenGame, cancelOpenGame } from "@/lib/data/open-games";
+import { getOpenGame, joinOpenGame, leaveOpenGame, cancelOpenGame, joinWaitlist, leaveWaitlist, getWaitlistPlayerIds } from "@/lib/data/open-games";
 import { verifyToken } from "@/lib/auth";
 import { findUserById } from "@/lib/data/users";
 import { createNotification } from "@/lib/data/notifications";
@@ -84,7 +84,34 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ status: "cancelled" });
     }
     const updated = await leaveOpenGame(id, user.playerId);
+    // Notify first waitlist player that a spot opened
+    const waitlist = await getWaitlistPlayerIds(id);
+    if (waitlist.length > 0) {
+      await createNotification({
+        playerId: waitlist[0],
+        type: "game_join",
+        title: "Oyunda yer açıldı! 🎾",
+        body: `${updated?.date} ${updated?.startTime} — tez qoşul!`,
+        link: `/open-games`,
+      });
+    }
     return NextResponse.json(updated);
+  }
+
+  // ── JOIN WAITLIST ─────────────────────────────────────────────────────────
+  if (action === "join_waitlist") {
+    const game = await getOpenGame(id);
+    if (!game) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (game.status !== "full") return NextResponse.json({ error: "Game is not full" }, { status: 400 });
+    if (game.playerIds.includes(user.playerId)) return NextResponse.json({ error: "You are already in this game" }, { status: 400 });
+    const position = await joinWaitlist(id, user.playerId);
+    return NextResponse.json({ position });
+  }
+
+  // ── LEAVE WAITLIST ────────────────────────────────────────────────────────
+  if (action === "leave_waitlist") {
+    await leaveWaitlist(id, user.playerId);
+    return NextResponse.json({ ok: true });
   }
 
   if (action === "cancel") {
