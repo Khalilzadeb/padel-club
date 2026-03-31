@@ -8,6 +8,39 @@ import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { MapPin, Clock, TrendingUp, TrendingDown, Trophy } from "lucide-react";
+import type { Metadata } from "next";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.padelon.az";
+
+export async function generateMetadata({ params }: { params: Promise<{ matchId: string }> }): Promise<Metadata> {
+  const { matchId } = await params;
+  const [match, players, courts] = await Promise.all([
+    getMatch(matchId),
+    getPlayers(),
+    getCourts(),
+  ]);
+  if (!match) return { title: "Match — PadelOn" };
+
+  const court = courts.find((c) => c.id === match.courtId);
+  const t1 = match.team1.playerIds.map((id) => players.find((p) => p.id === id)?.name.split(" ")[0]).filter(Boolean).join(" & ");
+  const t2 = match.team2.playerIds.map((id) => players.find((p) => p.id === id)?.name.split(" ")[0]).filter(Boolean).join(" & ");
+  const score = match.sets.map((s) => `${s.team1Games}-${s.team2Games}`).join(", ");
+  const title = `${t1} vs ${t2} — PadelOn`;
+  const description = `${match.date} · ${court?.name ?? ""} · ${score}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${siteUrl}/matches/${matchId}`,
+      siteName: "PadelOn",
+      images: [{ url: `${siteUrl}/icon-512.jpg`, width: 512, height: 512, alt: "PadelOn" }],
+      type: "website",
+    },
+  };
+}
 
 export default async function MatchDetailPage({ params }: { params: Promise<{ matchId: string }> }) {
   const { matchId } = await params;
