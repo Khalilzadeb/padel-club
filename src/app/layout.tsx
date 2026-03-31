@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "PadelOn",
-  description: "Padel oyunları, turnirler və reytinq",
+  description: "Oyna, Reytinq qazan, Real səviyyəni tap. 🎾",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "PadelOn",
-    description: "Padel oyunları, turnirler və reytinq",
+    description: "Oyna, Reytinq qazan, Real səviyyəni tap. 🎾",
     url: siteUrl,
     siteName: "PadelOn",
     images: [{ url: "/icon-512.jpg", width: 512, height: 512, alt: "PadelOn" }],
