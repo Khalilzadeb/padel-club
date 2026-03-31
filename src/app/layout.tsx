@@ -37,6 +37,14 @@ export const metadata: Metadata = {
     title: "PadelOn",
     startupImage: "/icon-512.png",
   },
+  openGraph: {
+    title: "PadelOn",
+    description: "Padel oyunları, turnirler və reytinq",
+    url: siteUrl,
+    siteName: "PadelOn",
+    images: [{ url: "/icon-512.jpg", width: 512, height: 512, alt: "PadelOn" }],
+    type: "website",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
