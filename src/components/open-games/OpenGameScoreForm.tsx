@@ -94,10 +94,12 @@ export default function OpenGameScoreForm({ players, currentPlayerId, onSubmit, 
               <span className="text-xs text-gray-500 w-10">Set {s.setNumber}</span>
               <input type="number" min="0" max="7" value={s.team1Games}
                 onChange={(e) => updateSet(i, "team1Games", +e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-14 text-center border border-gray-200 rounded px-2 py-1 text-sm" />
               <span className="text-gray-400">–</span>
               <input type="number" min="0" max="7" value={s.team2Games}
                 onChange={(e) => updateSet(i, "team2Games", +e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-14 text-center border border-gray-200 rounded px-2 py-1 text-sm" />
               {sets.length > 1 && (
                 <button type="button" onClick={() => removeSet(i)} className="text-red-400 hover:text-red-600 ml-auto">
