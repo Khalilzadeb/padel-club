@@ -77,17 +77,17 @@ export default async function HeroSection() {
 
         {playerStats && (
           <div className="grid grid-cols-3 gap-2 md:gap-3 flex-shrink-0 w-full md:w-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-3 md:px-5 py-3 md:py-4 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-2 md:px-5 py-3 md:py-4 text-center">
               <p className="text-green-200 text-[10px] md:text-xs font-medium mb-1 leading-tight">{t.profile.eloRating}</p>
-              <p className="text-xl md:text-3xl font-black">{playerStats.eloRating}</p>
+              <p className="text-3xl font-black">{playerStats.eloRating}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-3 md:px-5 py-3 md:py-4 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-2 md:px-5 py-3 md:py-4 text-center">
               <p className="text-green-200 text-[10px] md:text-xs font-medium mb-1 leading-tight">{t.profile.level}</p>
-              <p className="text-xl md:text-3xl font-black">{eloToDisplayLevel(playerStats.eloRating)}</p>
+              <p className="text-3xl font-black">{eloToDisplayLevel(playerStats.eloRating)}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-3 md:px-5 py-3 md:py-4 text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-2 md:px-5 py-3 md:py-4 text-center">
               <p className="text-green-200 text-[10px] md:text-xs font-medium mb-1 leading-tight">{t.profile.winRate}</p>
-              <p className="text-xl md:text-3xl font-black">{winRate}</p>
+              <p className="text-3xl font-black">{winRate}</p>
             </div>
           </div>
         )}
