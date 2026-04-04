@@ -42,7 +42,7 @@ export default function OpenGameCard({ game, players, courts, currentPlayerId, o
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const handleShare = () => {
-    const base = typeof window !== "undefined" ? window.location.origin : "";
+    const base = "https://www.padelon.az";
     const url = game.isPrivate && isCreator && game.joinCode
       ? `${base}/open-games/${game.id}?code=${game.joinCode}`
       : `${base}/open-games/${game.id}`;
