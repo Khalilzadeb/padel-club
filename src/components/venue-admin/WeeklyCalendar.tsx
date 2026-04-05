@@ -92,10 +92,13 @@ export default function WeeklyCalendar({
   const courtRecurring = recurringBookings.filter((r) => r.courtId === selectedCourt);
 
   type SlotInfo =
-    | { type: "booking"; id: string; label: string; booking: Booking }
-    | { type: "recurring"; id: string; label: string };
+    | { type: "booking"; isStart: true; rowSpan: number; id: string; label: string; booking: Booking }
+    | { type: "booking"; isStart: false }
+    | { type: "recurring"; isStart: true; rowSpan: number; id: string; label: string }
+    | { type: "recurring"; isStart: false }
+    | null;
 
-  function getSlot(date: Date, hour: number): SlotInfo | null {
+  function getSlot(date: Date, hour: number): SlotInfo {
     const dateStr = toDateStr(date);
     const slotMins = hour * 60;
 
@@ -106,18 +109,17 @@ export default function WeeklyCalendar({
       return slotMins >= start && slotMins < end;
     });
     if (booking) {
+      const startMins = timeToMins(booking.start_time);
+      const isStart = slotMins === startMins || (slotMins < startMins && slotMins + 60 > startMins);
+      if (!isStart) return { type: "booking", isStart: false };
+      const rowSpan = Math.ceil(booking.duration_minutes / 60);
       const isPlayerBooking = booking.player_ids && booking.player_ids.length > 0;
       let label = "Booked";
-      if (isPlayerBooking) {
-        label = "Oyunçu booking";
-      } else if (booking.booker_name && booking.booker_phone) {
-        label = `${booking.booker_name} · ${booking.booker_phone}`;
-      } else if (booking.booker_name) {
-        label = booking.booker_name;
-      } else if (booking.booker_phone) {
-        label = booking.booker_phone;
-      }
-      return { type: "booking", id: booking.id, label, booking };
+      if (isPlayerBooking) label = "Oyunçu booking";
+      else if (booking.booker_name && booking.booker_phone) label = `${booking.booker_name} · ${booking.booker_phone}`;
+      else if (booking.booker_name) label = booking.booker_name;
+      else if (booking.booker_phone) label = booking.booker_phone;
+      return { type: "booking", isStart: true, rowSpan, id: booking.id, label, booking };
     }
 
     const jsDay = date.getDay();
@@ -128,7 +130,11 @@ export default function WeeklyCalendar({
       return slotMins >= start && slotMins < end;
     });
     if (recurring) {
-      return { type: "recurring", id: recurring.id, label: recurring.label ?? "Recurring" };
+      const startMins = timeToMins(recurring.startTime);
+      const isStart = slotMins === startMins || (slotMins < startMins && slotMins + 60 > startMins);
+      if (!isStart) return { type: "recurring", isStart: false };
+      const rowSpan = Math.ceil(recurring.durationMinutes / 60);
+      return { type: "recurring", isStart: true, rowSpan, id: recurring.id, label: recurring.label ?? "Recurring" };
     }
 
     return null;
@@ -136,15 +142,15 @@ export default function WeeklyCalendar({
 
   const handleSlotClick = (date: Date, hour: number) => {
     const slot = getSlot(date, hour);
-    if (slot?.type === "booking") {
-      // Show detail modal with booker info
+    if (slot?.type === "booking" && slot.isStart) {
       setDetailBooking(slot.booking);
       return;
     }
-    if (slot?.type === "recurring") {
+    if (slot?.type === "recurring" && slot.isStart) {
       onDeleteRecurring(slot.id);
       return;
     }
+    if (slot !== null) return; // middle of a block — ignore
     setAddModal({ date: toDateStr(date), startTime: `${String(hour).padStart(2, "0")}:00` });
     setBookerName("");
     setBookerPhone("");
@@ -217,32 +223,47 @@ export default function WeeklyCalendar({
           <tbody>
             {HOURS.map((hour) => (
               <tr key={hour}>
-                <td className="px-2 py-0 text-gray-400 text-right border-r border-gray-100 align-top pt-1 w-12">
+                <td className="px-2 py-0 text-gray-400 text-right border-r border-gray-100 align-top pt-1 w-12 text-xs">
                   {String(hour).padStart(2, "0")}:00
                 </td>
                 {weekDates.map((date, di) => {
                   const slot = getSlot(date, hour);
                   const isPast = toDateStr(date) < toDateStr(new Date()) ||
                     (toDateStr(date) === toDateStr(new Date()) && hour < new Date().getHours());
+
+                  // Middle of a merged block — skip rendering this cell
+                  if (slot !== null && !slot.isStart) return null;
+
+                  const rowSpan = slot?.isStart ? slot.rowSpan : 1;
+                  const isBooked = slot?.isStart && slot.type === "booking";
+                  const isRecurring = slot?.isStart && slot.type === "recurring";
+
                   return (
                     <td
                       key={di}
+                      rowSpan={rowSpan}
                       onClick={() => handleSlotClick(date, hour)}
-                      className={`border border-gray-100 h-10 cursor-pointer transition-colors text-center relative ${
-                        slot?.type === "booking"
+                      className={`border border-gray-100 cursor-pointer transition-colors text-center align-middle relative ${
+                        isBooked
                           ? "bg-red-100 hover:bg-red-200"
-                          : slot?.type === "recurring"
+                          : isRecurring
                           ? "bg-blue-100 hover:bg-blue-200"
                           : isPast
                           ? "bg-gray-50 cursor-default"
                           : "hover:bg-green-50"
                       }`}
+                      style={{ minHeight: `${rowSpan * 40}px` }}
                     >
-                      {slot && (
-                        <span className={`text-xs font-medium truncate px-1 ${slot.type === "recurring" ? "text-blue-700" : "text-red-700"}`}>
-                          {slot.type === "recurring" && "↻ "}
-                          {slot.label}
-                        </span>
+                      {slot?.isStart && (
+                        <div className={`px-1.5 py-1 text-xs font-medium leading-tight ${isRecurring ? "text-blue-700" : "text-red-700"}`}>
+                          {isRecurring && <span className="mr-0.5">↻</span>}
+                          <span className="block truncate">{slot.label}</span>
+                          {rowSpan > 1 && (
+                            <span className="block text-xs opacity-60 mt-0.5">
+                              {String(hour).padStart(2, "0")}:00 – {String(hour + rowSpan).padStart(2, "0")}:00
+                            </span>
+                          )}
+                        </div>
                       )}
                     </td>
                   );
