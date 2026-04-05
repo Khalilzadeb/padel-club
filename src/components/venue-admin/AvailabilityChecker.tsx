@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Search, X, CheckCircle, XCircle, Repeat, User, Phone, Plus } from "lucide-react";
+import { Search, X, CheckCircle, User, Phone, Repeat } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -46,156 +46,122 @@ function toDateStr(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-const HOURS = Array.from({ length: 15 }, (_, i) => i + 8); // 08–22
+function pad(n: number) { return String(n).padStart(2, "0"); }
+
+const ALL_HOURS = Array.from({ length: 15 }, (_, i) => i + 8); // 08–22
+
+type CellStatus =
+  | { type: "free" }
+  | { type: "booked"; label: string; phone?: string | null; time: string; isPlayer: boolean }
+  | { type: "recurring"; label: string; time: string };
 
 export default function AvailabilityChecker({ courts, bookings, recurringBookings, onAddBooking }: Props) {
   const [open, setOpen] = useState(false);
-  const [date, setDate] = useState(toDateStr(new Date()));
   const nowH = new Date().getHours();
+  const [date, setDate] = useState(toDateStr(new Date()));
   const [fromHour, setFromHour] = useState(nowH < 22 ? nowH + 1 : 19);
-  const [toHour, setToHour] = useState(nowH < 21 ? nowH + 2 : 20);
+  const [toHour, setToHour] = useState(nowH < 20 ? nowH + 3 : 22);
   const [searched, setSearched] = useState(false);
 
-  const [bookingCourtId, setBookingCourtId] = useState<string | null>(null);
+  // Booking modal
+  const [bookModal, setBookModal] = useState<{ courtId: string; courtName: string; hour: number } | null>(null);
+  const [bookFromHour, setBookFromHour] = useState(8);
+  const [bookToHour, setBookToHour] = useState(9);
   const [bookerName, setBookerName] = useState("");
   const [bookerPhone, setBookerPhone] = useState("");
-  const [bookFromHour, setBookFromHour] = useState(fromHour);
-  const [bookToHour, setBookToHour] = useState(fromHour + 1);
-  const [bookingError, setBookingError] = useState("");
+  const [bookError, setBookError] = useState("");
 
-  // Auto-fix: toHour must be > fromHour
-  const effectiveToHour = toHour > fromHour ? toHour : fromHour + 1;
-  const durationMins = (effectiveToHour - fromHour) * 60;
+  const effectiveTo = toHour > fromHour ? toHour : fromHour + 1;
+  const rangeHours = Array.from({ length: effectiveTo - fromHour }, (_, i) => fromHour + i);
 
-  type ConflictInfo = {
-    label: string;
-    phone?: string | null;
-    time: string;
-    type: "booked" | "recurring";
-  };
+  function getCellStatus(courtId: string, hour: number): CellStatus {
+    const slotStart = hour * 60;
+    const slotEnd = slotStart + 60;
 
-  function getCourtStatus(court: Court): { status: "free" } | { status: "partial" | "blocked"; conflicts: ConflictInfo[] } {
-    const rangeStart = fromHour * 60;
-    const rangeEnd = effectiveToHour * 60;
-    const conflicts: ConflictInfo[] = [];
-
-    // Regular bookings overlapping the range
-    bookings.forEach((b) => {
-      if (b.court_id !== court.id || b.date !== date) return;
-      const start = timeToMins(b.start_time);
-      const end = start + b.duration_minutes;
-      if (start < rangeEnd && end > rangeStart) {
-        const isPlayer = b.player_ids && b.player_ids.length > 0;
-        conflicts.push({
-          type: "booked",
-          label: isPlayer ? "Oyunçu booking" : (b.booker_name ?? "Booked"),
-          phone: b.booker_phone,
-          time: `${b.start_time} – ${b.end_time}`,
-        });
-      }
+    const booking = bookings.find((b) => {
+      if (b.court_id !== courtId || b.date !== date) return false;
+      const s = timeToMins(b.start_time);
+      const e = s + b.duration_minutes;
+      return s < slotEnd && e > slotStart;
     });
+    if (booking) {
+      const isPlayer = !!(booking.player_ids && booking.player_ids.length > 0);
+      return {
+        type: "booked",
+        label: isPlayer ? "Oyunçu" : (booking.booker_name ?? "Bron"),
+        phone: booking.booker_phone,
+        time: `${booking.start_time}–${booking.end_time}`,
+        isPlayer,
+      };
+    }
 
-    // Recurring bookings overlapping the range
     const jsDay = new Date(date).getDay();
-    recurringBookings.forEach((r) => {
-      if (r.courtId !== court.id || r.dayOfWeek !== jsDay) return;
-      const start = timeToMins(r.startTime);
-      const end = start + r.durationMinutes;
-      if (start < rangeEnd && end > rangeStart) {
-        const endMins = start + r.durationMinutes;
-        const endStr = `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`;
-        conflicts.push({
-          type: "recurring",
-          label: r.label ?? "Recurring booking",
-          time: `${r.startTime} – ${endStr}`,
-        });
-      }
+    const rec = recurringBookings.find((r) => {
+      if (r.courtId !== courtId || r.dayOfWeek !== jsDay) return false;
+      const s = timeToMins(r.startTime);
+      const e = s + r.durationMinutes;
+      return s < slotEnd && e > slotStart;
     });
+    if (rec) {
+      const endM = timeToMins(rec.startTime) + rec.durationMinutes;
+      return { type: "recurring", label: rec.label ?? "Recurring", time: `${rec.startTime}–${pad(Math.floor(endM / 60))}:${pad(endM % 60)}` };
+    }
 
-    if (conflicts.length === 0) return { status: "free" };
-    // Check if entire range is blocked or just part of it
-    const totalBlockedMins = conflicts.reduce((sum, _) => sum + 60, 0); // rough
-    return { status: totalBlockedMins >= durationMins ? "blocked" : "partial", conflicts };
+    return { type: "free" };
   }
-
-  const results = searched ? courts.map((c) => ({ court: c, ...getCourtStatus(c) })) : [];
-  const freeCount = results.filter((r) => r.status === "free").length;
-
-  const handleSearch = () => {
-    if (effectiveToHour <= fromHour) return;
-    setSearched(true);
-    setBookingCourtId(null);
-  };
 
   function checkConflict(courtId: string, bFrom: number, bTo: number): string | null {
     const rangeStart = bFrom * 60;
     const rangeEnd = bTo * 60;
-
-    const conflictBooking = bookings.find((b) => {
+    const b = bookings.find((b) => {
       if (b.court_id !== courtId || b.date !== date) return false;
-      const start = timeToMins(b.start_time);
-      const end = start + b.duration_minutes;
-      return start < rangeEnd && end > rangeStart;
+      const s = timeToMins(b.start_time);
+      const e = s + b.duration_minutes;
+      return s < rangeEnd && e > rangeStart;
     });
-    if (conflictBooking) {
-      const who = conflictBooking.booker_name ?? "Oyunçu";
-      return `${conflictBooking.start_time}–${conflictBooking.end_time} arası artıq "${who}" tərəfindən bron edilib`;
-    }
-
+    if (b) return `${b.start_time}–${b.end_time} arası artıq "${b.booker_name ?? "oyunçu"}" tərəfindən bron edilib`;
     const jsDay = new Date(date).getDay();
-    const conflictRecurring = recurringBookings.find((r) => {
+    const r = recurringBookings.find((r) => {
       if (r.courtId !== courtId || r.dayOfWeek !== jsDay) return false;
-      const start = timeToMins(r.startTime);
-      const end = start + r.durationMinutes;
-      return start < rangeEnd && end > rangeStart;
+      const s = timeToMins(r.startTime);
+      const e = s + r.durationMinutes;
+      return s < rangeEnd && e > rangeStart;
     });
-    if (conflictRecurring) {
-      return `Bu saatda recurring booking var: "${conflictRecurring.label ?? "Recurring"}"`;
-    }
-
+    if (r) return `Bu saatda recurring booking var: "${r.label ?? "Recurring"}"`;
     return null;
   }
 
-  const handleAddBooking = () => {
-    if (!bookingCourtId) return;
-    if (bookToHour <= bookFromHour) {
-      setBookingError("Bitmə saatı başlama saatından böyük olmalıdır");
-      return;
-    }
-    const conflict = checkConflict(bookingCourtId, bookFromHour, bookToHour);
-    if (conflict) {
-      setBookingError(conflict);
-      return;
-    }
-    const bookDuration = (bookToHour - bookFromHour) * 60;
-    onAddBooking(
-      bookingCourtId,
-      date,
-      `${String(bookFromHour).padStart(2, "0")}:00`,
-      bookDuration,
-      bookerName,
-      bookerPhone
-    );
-    setBookingCourtId(null);
+  const openBookModal = (courtId: string, courtName: string, hour: number) => {
+    setBookModal({ courtId, courtName, hour });
+    setBookFromHour(hour);
+    setBookToHour(hour + 1);
     setBookerName("");
     setBookerPhone("");
-    setBookingError("");
+    setBookError("");
+  };
+
+  const handleConfirmBooking = () => {
+    if (!bookModal) return;
+    if (bookToHour <= bookFromHour) { setBookError("Bitmə saatı başlama saatından böyük olmalıdır"); return; }
+    const conflict = checkConflict(bookModal.courtId, bookFromHour, bookToHour);
+    if (conflict) { setBookError(conflict); return; }
+    onAddBooking(bookModal.courtId, date, `${pad(bookFromHour)}:00`, (bookToHour - bookFromHour) * 60, bookerName, bookerPhone);
+    setBookModal(null);
     setTimeout(() => setSearched(true), 150);
   };
 
   return (
     <>
       <button
-        onClick={() => { setOpen(true); setSearched(false); setBookingCourtId(null); }}
+        onClick={() => { setOpen(true); setSearched(false); }}
         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:border-padel-green hover:text-padel-green transition-colors shadow-sm"
       >
-        <Search className="w-4 h-4" />
-        Boş kort tap
+        <Search className="w-4 h-4" /> Boş kort tap
       </button>
 
       {open && (
-        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 px-4 pt-16 pb-8 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 px-2 pt-12 pb-8 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
@@ -208,14 +174,14 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
 
             {/* Search form */}
             <div className="px-5 py-4 border-b border-gray-100">
-              <div className="grid grid-cols-3 gap-3 items-end">
-                <div className="col-span-3 sm:col-span-1">
+              <div className="flex flex-wrap gap-3 items-end">
+                <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Tarix</label>
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => { setDate(e.target.value); setSearched(false); }}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                   />
                 </div>
                 <div>
@@ -223,171 +189,182 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
                   <select
                     value={fromHour}
                     onChange={(e) => { setFromHour(Number(e.target.value)); setSearched(false); }}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                   >
-                    {HOURS.slice(0, -1).map((h) => (
-                      <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
-                    ))}
+                    {ALL_HOURS.slice(0, -1).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Bitmə</label>
                   <select
-                    value={effectiveToHour}
+                    value={effectiveTo}
                     onChange={(e) => { setToHour(Number(e.target.value)); setSearched(false); }}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                   >
-                    {HOURS.filter((h) => h > fromHour).map((h) => (
-                      <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
-                    ))}
+                    {ALL_HOURS.filter((h) => h > fromHour).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
                   </select>
                 </div>
+                <button
+                  onClick={() => setSearched(true)}
+                  className="px-5 py-2 bg-padel-green text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+                >
+                  Axtar
+                </button>
               </div>
-              <button
-                onClick={handleSearch}
-                className="mt-3 w-full py-2.5 bg-padel-green text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
-              >
-                Axtar — {durationMins} dəqiqə ({durationMins / 60} saat)
-              </button>
             </div>
 
-            {/* Results */}
+            {/* Grid */}
             {searched && (
-              <div className="px-5 py-4 space-y-2">
-                <p className="text-xs text-gray-500 mb-3">
-                  <span className="font-semibold text-gray-700">
-                    {date} · {String(fromHour).padStart(2, "0")}:00 – {String(effectiveToHour).padStart(2, "0")}:00
-                  </span>
-                  {" "}— <span className="text-green-600 font-medium">{freeCount} boş</span>, <span className="text-red-500 font-medium">{results.length - freeCount} dolu</span>
-                </p>
+              <div className="p-5 overflow-x-auto">
+                <div className="mb-3 flex items-center gap-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-100 border border-green-300 inline-block" /> Boş — klikləyin</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-200 inline-block" /> Bron edilib</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-100 border border-blue-200 inline-block" /> Recurring</span>
+                </div>
 
-                {results.map(({ court, status, ...info }) => (
-                  <div key={court.id}>
-                    <div className={`flex items-start gap-3 px-4 py-3 rounded-xl border transition-colors ${
-                      status === "free"
-                        ? "bg-green-50 border-green-200"
-                        : "bg-red-50 border-red-200"
-                    }`}>
-                      {status === "free"
-                        ? <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                        : <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                      }
-
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">{court.name}</p>
-                        {status === "free" && (
-                          <p className="text-xs text-green-600">Boşdur · ₼{(court.price_per_hour * durationMins / 60).toFixed(0)} ({durationMins / 60} saat)</p>
-                        )}
-                        {"conflicts" in info && info.conflicts.map((c: ConflictInfo, i: number) => (
-                          <div key={i} className="mt-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {c.type === "recurring"
-                                ? <Repeat className="w-3 h-3 text-blue-500" />
-                                : <User className="w-3 h-3 text-red-400" />
-                              }
-                              <span className="text-xs text-red-700 font-medium">{c.label}</span>
-                              {c.phone && (
-                                <a href={`tel:${c.phone}`} className="text-xs text-red-500 flex items-center gap-1 hover:underline">
-                                  <Phone className="w-3 h-3" />{c.phone}
-                                </a>
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr>
+                      <th className="text-left px-3 py-2 bg-gray-50 rounded-tl-xl border border-gray-100 text-gray-500 font-medium w-28">Kort</th>
+                      {rangeHours.map((h) => (
+                        <th key={h} className="px-2 py-2 bg-gray-50 border border-gray-100 text-center text-gray-600 font-semibold min-w-[80px]">
+                          {pad(h)}:00
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {courts.map((court) => (
+                      <tr key={court.id}>
+                        <td className="px-3 py-2 border border-gray-100 bg-gray-50 font-medium text-gray-700 whitespace-nowrap">
+                          {court.name}
+                        </td>
+                        {rangeHours.map((h) => {
+                          const cell = getCellStatus(court.id, h);
+                          return (
+                            <td
+                              key={h}
+                              onClick={() => cell.type === "free" && openBookModal(court.id, court.name, h)}
+                              className={`border border-gray-100 px-2 py-2 text-center align-middle transition-colors ${
+                                cell.type === "free"
+                                  ? "bg-green-50 hover:bg-green-100 cursor-pointer"
+                                  : cell.type === "recurring"
+                                  ? "bg-blue-50"
+                                  : "bg-red-50"
+                              }`}
+                            >
+                              {cell.type === "free" && (
+                                <CheckCircle className="w-4 h-4 text-green-400 mx-auto" />
                               )}
-                              <span className="text-xs text-gray-400">{c.time}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {status === "free" && (
-                        <button
-                          onClick={() => { setBookingCourtId(court.id); setBookerName(""); setBookerPhone(""); setBookingError(""); setBookFromHour(fromHour); setBookToHour(effectiveToHour); }}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-padel-green text-white rounded-lg text-xs font-medium hover:bg-green-700 flex-shrink-0"
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Book et
-                        </button>
-                      )}
-                    </div>
-
-                    {bookingCourtId === court.id && (
-                      <div className="mx-2 mt-1 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
-                        <p className="text-xs font-semibold text-gray-700">{court.name} · {date}</p>
-
-                        {/* Time range for booking */}
-                        <div className="flex gap-2 items-end">
-                          <div className="flex-1">
-                            <label className="block text-xs text-gray-500 mb-1">Başlama</label>
-                            <select
-                              value={bookFromHour}
-                              onChange={(e) => { setBookFromHour(Number(e.target.value)); setBookingError(""); }}
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white"
-                            >
-                              {HOURS.slice(0, -1).map((h) => (
-                                <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="flex-1">
-                            <label className="block text-xs text-gray-500 mb-1">Bitmə</label>
-                            <select
-                              value={bookToHour}
-                              onChange={(e) => { setBookToHour(Number(e.target.value)); setBookingError(""); }}
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white"
-                            >
-                              {HOURS.filter((h) => h > bookFromHour).map((h) => (
-                                <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Error */}
-                        {bookingError && (
-                          <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg">
-                            ⚠️ {bookingError}
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Ad Soyad</label>
-                            <input
-                              type="text"
-                              value={bookerName}
-                              onChange={(e) => setBookerName(e.target.value)}
-                              placeholder="Rəşad Əliyev"
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Telefon</label>
-                            <input
-                              type="tel"
-                              value={bookerPhone}
-                              onChange={(e) => setBookerPhone(e.target.value)}
-                              placeholder="+994 50 000 00 00"
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => { setBookingCourtId(null); setBookingError(""); }} className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100">
-                            Ləğv et
-                          </button>
-                          <button onClick={handleAddBooking} className="flex-1 py-2 rounded-lg bg-padel-green text-white text-sm font-medium hover:bg-green-700">
-                            Təsdiqlə
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                              {cell.type === "booked" && (
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center justify-center gap-1 text-red-700 font-medium">
+                                    <User className="w-3 h-3 flex-shrink-0" />
+                                    <span className="truncate max-w-[70px]">{cell.label}</span>
+                                  </div>
+                                  {cell.phone && !cell.isPlayer && (
+                                    <div className="flex items-center justify-center gap-1 text-red-500">
+                                      <Phone className="w-3 h-3 flex-shrink-0" />
+                                      <span className="truncate max-w-[70px]">{cell.phone}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {cell.type === "recurring" && (
+                                <div className="flex items-center justify-center gap-1 text-blue-700">
+                                  <Repeat className="w-3 h-3 flex-shrink-0" />
+                                  <span className="truncate max-w-[70px]">{cell.label}</span>
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
             {!searched && (
-              <div className="px-5 py-10 text-center text-gray-400 text-sm">
+              <div className="px-5 py-12 text-center text-gray-400 text-sm">
                 Tarix və saat aralığı seçib "Axtar" düyməsinə bas
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Booking modal */}
+      {bookModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900">Bron et</h3>
+              <button onClick={() => setBookModal(null)}><X className="w-5 h-5 text-gray-400" /></button>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">{bookModal.courtName} · {date}</p>
+
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Başlama</label>
+                  <select
+                    value={bookFromHour}
+                    onChange={(e) => { setBookFromHour(Number(e.target.value)); setBookError(""); }}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  >
+                    {ALL_HOURS.slice(0, -1).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Bitmə</label>
+                  <select
+                    value={bookToHour}
+                    onChange={(e) => { setBookToHour(Number(e.target.value)); setBookError(""); }}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                  >
+                    {ALL_HOURS.filter((h) => h > bookFromHour).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {bookError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg">
+                  ⚠️ {bookError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Ad Soyad</label>
+                <input
+                  type="text"
+                  value={bookerName}
+                  onChange={(e) => setBookerName(e.target.value)}
+                  placeholder="Rəşad Əliyev"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Telefon</label>
+                <input
+                  type="tel"
+                  value={bookerPhone}
+                  onChange={(e) => setBookerPhone(e.target.value)}
+                  placeholder="+994 50 000 00 00"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setBookModal(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
+                Ləğv et
+              </button>
+              <button onClick={handleConfirmBooking} className="flex-1 py-2.5 rounded-xl bg-padel-green text-white text-sm font-medium hover:bg-green-700">
+                Bron et
+              </button>
+            </div>
           </div>
         </div>
       )}
