@@ -49,3 +49,48 @@ export function getSessionCookieOptions(maxAge = EXPIRES_IN) {
     maxAge,
   };
 }
+
+// ── Venue Admin Session ──────────────────────────────────────────
+const VENUE_COOKIE = "venue_session";
+
+export interface VenueSessionPayload {
+  adminId: string;
+  email: string;
+  name: string;
+  location: string;
+}
+
+export async function signVenueToken(payload: VenueSessionPayload): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${EXPIRES_IN}s`)
+    .sign(SECRET);
+}
+
+export async function verifyVenueToken(token: string): Promise<VenueSessionPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, SECRET);
+    return payload as unknown as VenueSessionPayload;
+  } catch {
+    return null;
+  }
+}
+
+export async function getVenueSession(): Promise<VenueSessionPayload | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(VENUE_COOKIE)?.value;
+  if (!token) return null;
+  return verifyVenueToken(token);
+}
+
+export function getVenueCookieOptions(maxAge = EXPIRES_IN) {
+  return {
+    name: VENUE_COOKIE,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge,
+  };
+}

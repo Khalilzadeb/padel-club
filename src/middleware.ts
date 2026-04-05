@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { verifyToken, verifyVenueToken } from "@/lib/auth";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -7,14 +7,15 @@ const PUBLIC_PATHS = [
   "/api/auth/login",
   "/api/auth/signup",
   "/api/auth/google",
-  "/open-games/",  // share pages + OG images — must be public for WhatsApp/Telegram previews
-  "/api/og",       // OG image generator — must be public
+  "/open-games/",
+  "/api/og",
+  "/venue-admin/login",
+  "/api/venue-admin/auth/login",
 ];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public paths and static assets
   if (
     PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
     pathname.startsWith("/_next") ||
@@ -23,6 +24,20 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Venue admin routes — separate session
+  if (pathname.startsWith("/venue-admin") || pathname.startsWith("/api/venue-admin")) {
+    const venueToken = req.cookies.get("venue_session")?.value;
+    const venueSession = venueToken ? await verifyVenueToken(venueToken) : null;
+    if (!venueSession) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL("/venue-admin/login", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Regular user routes
   const token = req.cookies.get("padel_session")?.value;
   const session = token ? await verifyToken(token) : null;
 

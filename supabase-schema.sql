@@ -5,6 +5,28 @@
 
 -- TABLES
 
+-- Venue admins (padel center managers)
+create table if not exists venue_admins (
+  id text primary key,
+  email text unique not null,
+  password_hash text not null,
+  name text not null,
+  location text not null,
+  created_at timestamptz default now()
+);
+
+-- Recurring bookings (e.g. every Tuesday 19:00)
+create table if not exists recurring_bookings (
+  id text primary key,
+  court_id text references courts(id),
+  day_of_week integer not null, -- 0=Sun, 1=Mon, ..., 6=Sat
+  start_time text not null,     -- "HH:MM"
+  duration_minutes integer not null default 90,
+  label text,
+  created_by text references venue_admins(id),
+  created_at timestamptz default now()
+);
+
 create table if not exists courts (
   id text primary key,
   name text not null,
