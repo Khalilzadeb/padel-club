@@ -4,7 +4,7 @@ import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
 import BookingCalendar from "@/components/bookings/BookingCalendar";
 import { Court, Booking, OpenGame, Player } from "@/lib/types";
-import { MapPin, ChevronRight, UserPlus, X } from "lucide-react";
+import { MapPin, ChevronRight, UserPlus, X, Home, Sun } from "lucide-react";
 
 const MAX_INVITES = 5;
 
@@ -37,8 +37,7 @@ const DURATIONS = [
 
 export default function OpenGameForm({ courts, players, currentPlayerId, playerElo, existingGames, onSubmit, onClose }: Props) {
   // Step 1 — location + court
-  const locations = [...new Set(courts.map((c) => c.location).filter(Boolean) as string[])];
-  const [location, setLocation] = useState<string>(locations[0] ?? "");
+  const locations = [...new Set(courts.filter(c => c.location !== "TEST COURTS").map((c) => c.location).filter(Boolean) as string[])];
   const [courtId, setCourtId] = useState("");
 
   // Step 2 — calendar
@@ -56,7 +55,7 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
   const [notes, setNotes] = useState("");
   const [invitePlayerIds, setInvitePlayerIds] = useState<string[]>([]);
 
-  const locationCourts = courts.filter((c) => (location ? c.location === location : true));
+  const filteredCourts = courts.filter(c => c.location !== "TEST COURTS");
 
   useEffect(() => {
     if (!courtId) return;
@@ -124,49 +123,47 @@ export default function OpenGameForm({ courts, players, currentPlayerId, playerE
 
   return (
     <div className="space-y-5">
-      {/* Step 1 — Location */}
-      {locations.length > 1 && (
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-            <MapPin className="w-3.5 h-3.5 inline mr-1" />Location
-          </label>
-          <div className="flex gap-2 flex-wrap">
-            {locations.map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                onClick={() => { setLocation(loc); setCourtId(""); }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  location === loc
-                    ? "bg-padel-green text-white border-padel-green"
-                    : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
-                }`}
-              >
-                {loc}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Step 1 — Court selection */}
+      {/* Step 1 — Court selection grouped by location */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Select Court</label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {locationCourts.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setCourtId(c.id)}
-              className={`py-3 px-2 rounded-xl text-sm font-medium border transition-all text-center ${
-                courtId === c.id
-                  ? "bg-padel-green text-white border-padel-green shadow-sm"
-                  : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-padel-green hover:bg-green-50 dark:hover:bg-green-900/20"
-              }`}
-            >
-              {c.name}
-            </button>
-          ))}
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-3">
+          <MapPin className="w-3.5 h-3.5 inline mr-1" />Select Court
+        </label>
+        <div className="space-y-4">
+          {locations.map((loc) => {
+            const locCourts = filteredCourts.filter(c => c.location === loc);
+            return (
+              <div key={loc}>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />{loc}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {locCourts.map((c) => {
+                    const selected = courtId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCourtId(c.id)}
+                        className={`py-2.5 px-3 rounded-xl text-left border transition-all ${
+                          selected
+                            ? "bg-padel-green text-white border-padel-green shadow-sm"
+                            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-padel-green hover:bg-green-50 dark:hover:bg-green-900/20"
+                        }`}
+                      >
+                        <p className="text-sm font-medium leading-tight">{c.name}</p>
+                        <div className={`flex items-center gap-1 mt-1 text-xs ${selected ? "text-green-100" : "text-gray-400 dark:text-gray-500"}`}>
+                          {c.type === "indoor" ? <Home className="w-3 h-3" /> : <Sun className="w-3 h-3" />}
+                          <span>{c.type === "indoor" ? "Indoor" : "Outdoor"}</span>
+                          <span>·</span>
+                          <span>₼{c.pricePerHour}/saat</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
