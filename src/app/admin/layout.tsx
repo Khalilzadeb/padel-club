@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Trophy, LayoutDashboard, Users, Shield } from "lucide-react";
+import { Trophy, LayoutDashboard, Users, Shield, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/tournaments", label: "Tournaments", icon: Trophy },
   { href: "/admin/players", label: "Players", icon: Users },
+  { href: "/admin/venues", label: "Venues", icon: MapPin },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
