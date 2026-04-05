@@ -77,12 +77,12 @@ export default function WeeklyCalendar({
   const [addModal, setAddModal] = useState<{ date: string; startTime: string } | null>(null);
   const [bookerName, setBookerName] = useState("");
   const [bookerPhone, setBookerPhone] = useState("");
-  const [addDuration, setAddDuration] = useState(90);
+  const [addDuration, setAddDuration] = useState(60);
   const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [rDay, setRDay] = useState(1);
   const [rTime, setRTime] = useState("19:00");
-  const [rDuration, setRDuration] = useState(90);
+  const [rDuration, setRDuration] = useState(60);
   const [rLabel, setRLabel] = useState("");
 
   const weekDates = getWeekDates(weekOffset);
@@ -154,7 +154,7 @@ export default function WeeklyCalendar({
     setAddModal({ date: toDateStr(date), startTime: `${String(hour).padStart(2, "0")}:00` });
     setBookerName("");
     setBookerPhone("");
-    setAddDuration(90);
+    setAddDuration(60);
   };
 
   const handleAddConfirm = () => {
@@ -403,7 +403,7 @@ export default function WeeklyCalendar({
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Müddət</label>
                 <div className="flex gap-2">
-                  {[60, 90, 120].map((d) => (
+                  {[60, 120].map((d) => (
                     <button
                       key={d}
                       onClick={() => setAddDuration(d)}
@@ -472,7 +472,7 @@ export default function WeeklyCalendar({
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Müddət</label>
                 <div className="flex gap-2">
-                  {[60, 90, 120].map((d) => (
+                  {[60, 120].map((d) => (
                     <button
                       key={d}
                       onClick={() => setRDuration(d)}
