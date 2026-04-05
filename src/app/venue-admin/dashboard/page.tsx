@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, LogOut, Calendar } from "lucide-react";
+import { MapPin, LogOut, Calendar, Gamepad2, Users, Clock } from "lucide-react";
 import WeeklyCalendar from "@/components/venue-admin/WeeklyCalendar";
 
 interface Court {
@@ -32,12 +32,31 @@ interface RecurringBooking {
   label: string | null;
 }
 
-interface Admin {
+interface OpenGame {
   id: string;
+  court_id: string;
+  courtName: string;
+  date: string;
+  start_time: string;
+  duration_minutes: number;
+  status: string;
+  player_ids: string[];
+  max_players: number;
+  game_type: string;
+  is_private: boolean;
+}
+
+interface Admin {
   name: string;
   email: string;
   location: string;
 }
+
+const STATUS_COLORS: Record<string, string> = {
+  open: "bg-green-100 text-green-700",
+  full: "bg-orange-100 text-orange-700",
+  completed: "bg-gray-100 text-gray-500",
+};
 
 export default function VenueAdminDashboard() {
   const router = useRouter();
@@ -45,17 +64,15 @@ export default function VenueAdminDashboard() {
   const [courts, setCourts] = useState<Court[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [recurring, setRecurring] = useState<RecurringBooking[]>([]);
+  const [openGames, setOpenGames] = useState<OpenGame[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"calendar" | "games">("calendar");
 
   const fetchBookings = useCallback(async () => {
     const now = new Date();
-    const from = new Date(now);
-    from.setDate(now.getDate() - 14);
-    const to = new Date(now);
-    to.setDate(now.getDate() + 60);
-    const fromStr = from.toISOString().slice(0, 10);
-    const toStr = to.toISOString().slice(0, 10);
-    const res = await fetch(`/api/venue-admin/bookings?from=${fromStr}&to=${toStr}`);
+    const from = new Date(now); from.setDate(now.getDate() - 14);
+    const to = new Date(now); to.setDate(now.getDate() + 60);
+    const res = await fetch(`/api/venue-admin/bookings?from=${from.toISOString().slice(0, 10)}&to=${to.toISOString().slice(0, 10)}`);
     if (res.ok) setBookings(await res.json());
   }, []);
 
@@ -66,23 +83,20 @@ export default function VenueAdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/venue-admin/courts").then((r) => r.json()),
-      fetch("/api/venue-admin/recurring-bookings").then((r) => r.json()),
-    ]).then(([courtsData, recurringData]) => {
+      fetch("/api/venue-admin/me").then((r) => r.ok ? r.json() : null),
+      fetch("/api/venue-admin/courts").then((r) => r.ok ? r.json() : []),
+      fetch("/api/venue-admin/recurring-bookings").then((r) => r.ok ? r.json() : []),
+      fetch("/api/venue-admin/open-games").then((r) => r.ok ? r.json() : []),
+    ]).then(([adminData, courtsData, recurringData, gamesData]) => {
+      if (!adminData) { router.push("/venue-admin/login"); return; }
+      setAdmin(adminData);
       setCourts(Array.isArray(courtsData) ? courtsData : []);
       setRecurring(Array.isArray(recurringData) ? recurringData : []);
+      setOpenGames(Array.isArray(gamesData) ? gamesData : []);
     });
-
-    // Get admin info from cookie via a simple approach
-    fetch("/api/venue-admin/courts")
-      .then((r) => {
-        if (r.status === 401) router.push("/venue-admin/login");
-      });
-
     fetchBookings().finally(() => setLoading(false));
   }, [fetchBookings, router]);
 
-  // Listen for recurring booking events from calendar
   useEffect(() => {
     const handler = async (e: Event) => {
       const { courtId, dayOfWeek, startTime, durationMinutes, label } = (e as CustomEvent).detail;
@@ -97,13 +111,7 @@ export default function VenueAdminDashboard() {
     return () => window.removeEventListener("addRecurring", handler);
   }, [fetchRecurring]);
 
-  const handleAddBooking = async (
-    courtId: string,
-    date: string,
-    startTime: string,
-    durationMinutes: number,
-    label: string
-  ) => {
+  const handleAddBooking = async (courtId: string, date: string, startTime: string, durationMinutes: number, label: string) => {
     await fetch("/api/venue-admin/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -133,13 +141,11 @@ export default function VenueAdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-gray-900 text-white px-4 py-3 flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-padel-green" />
-          <span className="text-sm font-semibold">Venue Admin</span>
+        <MapPin className="w-4 h-4 text-padel-green flex-shrink-0" />
+        <div>
+          <span className="text-sm font-semibold">{admin?.location ?? "Venue Admin"}</span>
+          {admin && <span className="text-xs text-gray-400 ml-2">— {admin.name}</span>}
         </div>
-        {admin && (
-          <span className="text-xs text-gray-400 ml-1">— {admin.location}</span>
-        )}
         <button
           onClick={handleLogout}
           className="ml-auto flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
@@ -150,26 +156,87 @@ export default function VenueAdminDashboard() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Calendar className="w-5 h-5 text-padel-green" />
-          <h1 className="text-xl font-black text-gray-900">Booking Calendar</h1>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setTab("calendar")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${
+              tab === "calendar"
+                ? "bg-padel-green text-white border-padel-green"
+                : "bg-white text-gray-600 border-gray-200 hover:border-padel-green"
+            }`}
+          >
+            <Calendar className="w-4 h-4" /> Booking Calendar
+          </button>
+          <button
+            onClick={() => setTab("games")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${
+              tab === "games"
+                ? "bg-padel-green text-white border-padel-green"
+                : "bg-white text-gray-600 border-gray-200 hover:border-padel-green"
+            }`}
+          >
+            <Gamepad2 className="w-4 h-4" /> Open Games
+            {openGames.length > 0 && (
+              <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded-full">
+                {tab === "games" ? openGames.length : <span className="text-padel-green bg-green-50 px-1.5 py-0.5 rounded-full">{openGames.length}</span>}
+              </span>
+            )}
+          </button>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-20">
             <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : courts.length === 0 ? (
-          <div className="text-center py-20 text-gray-400">No courts found for your venue.</div>
+        ) : tab === "calendar" ? (
+          courts.length === 0 ? (
+            <div className="text-center py-20 text-gray-400">No courts found.</div>
+          ) : (
+            <WeeklyCalendar
+              courts={courts}
+              bookings={bookings}
+              recurringBookings={recurring}
+              onAddBooking={handleAddBooking}
+              onDeleteBooking={handleDeleteBooking}
+              onDeleteRecurring={handleDeleteRecurring}
+            />
+          )
         ) : (
-          <WeeklyCalendar
-            courts={courts}
-            bookings={bookings}
-            recurringBookings={recurring}
-            onAddBooking={handleAddBooking}
-            onDeleteBooking={handleDeleteBooking}
-            onDeleteRecurring={handleDeleteRecurring}
-          />
+          <div>
+            {openGames.length === 0 ? (
+              <div className="text-center py-20 text-gray-400">No upcoming open games.</div>
+            ) : (
+              <div className="space-y-3">
+                {openGames.map((g) => (
+                  <div key={g.id} className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center gap-4 shadow-sm">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold text-gray-900">{g.courtName}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[g.status] ?? "bg-gray-100 text-gray-500"}`}>
+                          {g.status}
+                        </span>
+                        {g.is_private && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">Private</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {g.date} · {g.start_time} · {g.duration_minutes} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {g.player_ids.length}/{g.max_players}
+                        </span>
+                        <span className="capitalize">{g.game_type}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
