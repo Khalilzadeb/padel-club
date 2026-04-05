@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, LogOut, Calendar, Gamepad2, Users, Clock } from "lucide-react";
+import { MapPin, LogOut, Calendar, Gamepad2, Users, Clock, BarChart2 } from "lucide-react";
 import WeeklyCalendar from "@/components/venue-admin/WeeklyCalendar";
+import StatsDashboard from "@/components/venue-admin/StatsDashboard";
 
 interface Court {
   id: string;
@@ -66,7 +67,7 @@ export default function VenueAdminDashboard() {
   const [recurring, setRecurring] = useState<RecurringBooking[]>([]);
   const [openGames, setOpenGames] = useState<OpenGame[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"calendar" | "games">("calendar");
+  const [tab, setTab] = useState<"calendar" | "games" | "stats">("calendar");
 
   const fetchBookings = useCallback(async () => {
     const now = new Date();
@@ -178,10 +179,20 @@ export default function VenueAdminDashboard() {
           >
             <Gamepad2 className="w-4 h-4" /> Open Games
             {openGames.length > 0 && (
-              <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded-full">
-                {tab === "games" ? openGames.length : <span className="text-padel-green bg-green-50 px-1.5 py-0.5 rounded-full">{openGames.length}</span>}
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === "games" ? "bg-white/20 text-white" : "bg-green-100 text-padel-green"}`}>
+                {openGames.length}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setTab("stats")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${
+              tab === "stats"
+                ? "bg-padel-green text-white border-padel-green"
+                : "bg-white text-gray-600 border-gray-200 hover:border-padel-green"
+            }`}
+          >
+            <BarChart2 className="w-4 h-4" /> Statistika
           </button>
         </div>
 
@@ -189,6 +200,8 @@ export default function VenueAdminDashboard() {
           <div className="flex justify-center py-20">
             <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : tab === "stats" ? (
+          <StatsDashboard location={admin?.location ?? ""} />
         ) : tab === "calendar" ? (
           courts.length === 0 ? (
             <div className="text-center py-20 text-gray-400">No courts found.</div>
