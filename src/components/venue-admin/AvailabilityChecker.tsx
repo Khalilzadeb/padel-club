@@ -59,6 +59,9 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
   const [bookingCourtId, setBookingCourtId] = useState<string | null>(null);
   const [bookerName, setBookerName] = useState("");
   const [bookerPhone, setBookerPhone] = useState("");
+  const [bookFromHour, setBookFromHour] = useState(fromHour);
+  const [bookToHour, setBookToHour] = useState(fromHour + 1);
+  const [bookingError, setBookingError] = useState("");
 
   // Auto-fix: toHour must be > fromHour
   const effectiveToHour = toHour > fromHour ? toHour : fromHour + 1;
@@ -124,19 +127,59 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
     setBookingCourtId(null);
   };
 
+  function checkConflict(courtId: string, bFrom: number, bTo: number): string | null {
+    const rangeStart = bFrom * 60;
+    const rangeEnd = bTo * 60;
+
+    const conflictBooking = bookings.find((b) => {
+      if (b.court_id !== courtId || b.date !== date) return false;
+      const start = timeToMins(b.start_time);
+      const end = start + b.duration_minutes;
+      return start < rangeEnd && end > rangeStart;
+    });
+    if (conflictBooking) {
+      const who = conflictBooking.booker_name ?? "Oyunçu";
+      return `${conflictBooking.start_time}–${conflictBooking.end_time} arası artıq "${who}" tərəfindən bron edilib`;
+    }
+
+    const jsDay = new Date(date).getDay();
+    const conflictRecurring = recurringBookings.find((r) => {
+      if (r.courtId !== courtId || r.dayOfWeek !== jsDay) return false;
+      const start = timeToMins(r.startTime);
+      const end = start + r.durationMinutes;
+      return start < rangeEnd && end > rangeStart;
+    });
+    if (conflictRecurring) {
+      return `Bu saatda recurring booking var: "${conflictRecurring.label ?? "Recurring"}"`;
+    }
+
+    return null;
+  }
+
   const handleAddBooking = () => {
     if (!bookingCourtId) return;
+    if (bookToHour <= bookFromHour) {
+      setBookingError("Bitmə saatı başlama saatından böyük olmalıdır");
+      return;
+    }
+    const conflict = checkConflict(bookingCourtId, bookFromHour, bookToHour);
+    if (conflict) {
+      setBookingError(conflict);
+      return;
+    }
+    const bookDuration = (bookToHour - bookFromHour) * 60;
     onAddBooking(
       bookingCourtId,
       date,
-      `${String(fromHour).padStart(2, "0")}:00`,
-      durationMins,
+      `${String(bookFromHour).padStart(2, "0")}:00`,
+      bookDuration,
       bookerName,
       bookerPhone
     );
     setBookingCourtId(null);
     setBookerName("");
     setBookerPhone("");
+    setBookingError("");
     setTimeout(() => setSearched(true), 150);
   };
 
@@ -256,7 +299,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
 
                       {status === "free" && (
                         <button
-                          onClick={() => { setBookingCourtId(court.id); setBookerName(""); setBookerPhone(""); }}
+                          onClick={() => { setBookingCourtId(court.id); setBookerName(""); setBookerPhone(""); setBookingError(""); setBookFromHour(fromHour); setBookToHour(effectiveToHour); }}
                           className="flex items-center gap-1 px-3 py-1.5 bg-padel-green text-white rounded-lg text-xs font-medium hover:bg-green-700 flex-shrink-0"
                         >
                           <Plus className="w-3.5 h-3.5" /> Book et
@@ -266,9 +309,43 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
 
                     {bookingCourtId === court.id && (
                       <div className="mx-2 mt-1 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
-                        <p className="text-xs font-medium text-gray-600">
-                          {court.name} · {date} · {String(fromHour).padStart(2, "0")}:00 – {String(effectiveToHour).padStart(2, "0")}:00
-                        </p>
+                        <p className="text-xs font-semibold text-gray-700">{court.name} · {date}</p>
+
+                        {/* Time range for booking */}
+                        <div className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-500 mb-1">Başlama</label>
+                            <select
+                              value={bookFromHour}
+                              onChange={(e) => { setBookFromHour(Number(e.target.value)); setBookingError(""); }}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white"
+                            >
+                              {HOURS.slice(0, -1).map((h) => (
+                                <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-500 mb-1">Bitmə</label>
+                            <select
+                              value={bookToHour}
+                              onChange={(e) => { setBookToHour(Number(e.target.value)); setBookingError(""); }}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white"
+                            >
+                              {HOURS.filter((h) => h > bookFromHour).map((h) => (
+                                <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Error */}
+                        {bookingError && (
+                          <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg">
+                            ⚠️ {bookingError}
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="block text-xs text-gray-500 mb-1">Ad Soyad</label>
@@ -292,7 +369,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => setBookingCourtId(null)} className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100">
+                          <button onClick={() => { setBookingCourtId(null); setBookingError(""); }} className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100">
                             Ləğv et
                           </button>
                           <button onClick={handleAddBooking} className="flex-1 py-2 rounded-lg bg-padel-green text-white text-sm font-medium hover:bg-green-700">
