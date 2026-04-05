@@ -11,7 +11,7 @@ import OnboardingGuard from "@/components/layout/OnboardingGuard";
 import WelcomeGuide from "@/components/layout/WelcomeGuide";
 import SiteTour from "@/components/layout/SiteTour";
 import AppRefresh from "@/components/layout/AppRefresh";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { type Locale, VALID_LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "@/lib/i18n";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -53,6 +53,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? (rawLocale as Locale)
     : DEFAULT_LOCALE;
 
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? "";
+  const isVenueAdmin = pathname.startsWith("/venue-admin");
+
   return (
     <html lang={initialLocale} suppressHydrationWarning>
       <head>
@@ -62,14 +66,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AuthProvider>
           <ThemeProvider>
             <LocaleProvider initialLocale={initialLocale}>
-              <AppRefresh />
-              <OnboardingGuard />
-              <WelcomeGuide />
-              <SiteTour />
-              <Navbar />
-              <main className="flex-1 pb-20 md:pb-0">{children}</main>
-              <Footer />
-              <BottomNav />
+              {isVenueAdmin ? (
+                <main className="flex-1">{children}</main>
+              ) : (
+                <>
+                  <AppRefresh />
+                  <OnboardingGuard />
+                  <WelcomeGuide />
+                  <SiteTour />
+                  <Navbar />
+                  <main className="flex-1 pb-20 md:pb-0">{children}</main>
+                  <Footer />
+                  <BottomNav />
+                </>
+              )}
             </LocaleProvider>
           </ThemeProvider>
         </AuthProvider>

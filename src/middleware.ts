@@ -21,7 +21,9 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon")
   ) {
-    return NextResponse.next();
+    const res = NextResponse.next();
+    if (pathname.startsWith("/venue-admin")) res.headers.set("x-pathname", pathname);
+    return res;
   }
 
   // Venue admin routes — separate session
@@ -34,7 +36,9 @@ export async function middleware(req: NextRequest) {
       }
       return NextResponse.redirect(new URL("/venue-admin/login", req.url));
     }
-    return NextResponse.next();
+    const res = NextResponse.next();
+    res.headers.set("x-pathname", pathname);
+    return res;
   }
 
   // Regular user routes
