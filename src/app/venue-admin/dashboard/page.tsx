@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { MapPin, LogOut, Calendar, Gamepad2, Users, Clock, BarChart2 } from "lucide-react";
 import WeeklyCalendar from "@/components/venue-admin/WeeklyCalendar";
 import StatsDashboard from "@/components/venue-admin/StatsDashboard";
+import AvailabilityChecker from "@/components/venue-admin/AvailabilityChecker";
 
 interface Court {
   id: string;
@@ -157,8 +158,9 @@ export default function VenueAdminDashboard() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-6">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div className="flex gap-2">
           <button
             onClick={() => setTab("calendar")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${
@@ -194,6 +196,13 @@ export default function VenueAdminDashboard() {
           >
             <BarChart2 className="w-4 h-4" /> Statistika
           </button>
+        </div>
+          <AvailabilityChecker
+            courts={courts}
+            bookings={bookings}
+            recurringBookings={recurring}
+            onAddBooking={handleAddBooking}
+          />
         </div>
 
         {loading ? (
