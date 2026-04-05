@@ -111,11 +111,11 @@ export default function VenueAdminDashboard() {
     return () => window.removeEventListener("addRecurring", handler);
   }, [fetchRecurring]);
 
-  const handleAddBooking = async (courtId: string, date: string, startTime: string, durationMinutes: number, label: string) => {
+  const handleAddBooking = async (courtId: string, date: string, startTime: string, durationMinutes: number, bookerName: string, bookerPhone: string) => {
     await fetch("/api/venue-admin/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ courtId, date, startTime, durationMinutes, label }),
+      body: JSON.stringify({ courtId, date, startTime, durationMinutes, bookerName, bookerPhone }),
     });
     fetchBookings();
   };

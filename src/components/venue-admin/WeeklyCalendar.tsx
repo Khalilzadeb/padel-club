@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Repeat, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Repeat, Trash2, User, Phone, X } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -10,6 +10,8 @@ interface Booking {
   end_time: string;
   duration_minutes: number;
   notes?: string | null;
+  booker_name?: string | null;
+  booker_phone?: string | null;
   player_ids?: string[];
 }
 
@@ -32,7 +34,7 @@ interface Props {
   courts: Court[];
   bookings: Booking[];
   recurringBookings: RecurringBooking[];
-  onAddBooking: (courtId: string, date: string, startTime: string, durationMinutes: number, label: string) => void;
+  onAddBooking: (courtId: string, date: string, startTime: string, durationMinutes: number, bookerName: string, bookerPhone: string) => void;
   onDeleteBooking: (id: string) => void;
   onDeleteRecurring: (id: string) => void;
 }
@@ -43,7 +45,7 @@ const DAY_LABELS_AZ = ["B.e", "Ç.a", "Çər", "C.a", "Cüm", "Şnb", "Baz"];
 
 function getWeekDates(offset: number): Date[] {
   const now = new Date();
-  const day = now.getDay(); // 0=Sun
+  const day = now.getDay();
   const monday = new Date(now);
   monday.setDate(now.getDate() - ((day + 6) % 7) + offset * 7);
   return Array.from({ length: 7 }, (_, i) => {
@@ -73,8 +75,10 @@ export default function WeeklyCalendar({
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedCourt, setSelectedCourt] = useState(courts[0]?.id ?? "");
   const [addModal, setAddModal] = useState<{ date: string; startTime: string } | null>(null);
-  const [addLabel, setAddLabel] = useState("");
+  const [bookerName, setBookerName] = useState("");
+  const [bookerPhone, setBookerPhone] = useState("");
   const [addDuration, setAddDuration] = useState(90);
+  const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [rDay, setRDay] = useState(1);
   const [rTime, setRTime] = useState("19:00");
@@ -87,7 +91,11 @@ export default function WeeklyCalendar({
   const courtBookings = bookings.filter((b) => b.court_id === selectedCourt);
   const courtRecurring = recurringBookings.filter((r) => r.courtId === selectedCourt);
 
-  function isBooked(date: Date, hour: number): { type: "booking" | "recurring"; id: string; label: string } | null {
+  type SlotInfo =
+    | { type: "booking"; id: string; label: string; booking: Booking }
+    | { type: "recurring"; id: string; label: string };
+
+  function getSlot(date: Date, hour: number): SlotInfo | null {
     const dateStr = toDateStr(date);
     const slotMins = hour * 60;
 
@@ -99,10 +107,13 @@ export default function WeeklyCalendar({
     });
     if (booking) {
       const isPlayerBooking = booking.player_ids && booking.player_ids.length > 0;
-      return { type: "booking", id: booking.id, label: isPlayerBooking ? "Player booking" : (booking.notes ?? "Booked") };
+      const label = isPlayerBooking
+        ? "Oyunçu booking"
+        : (booking.booker_name ?? booking.notes ?? "Booked");
+      return { type: "booking", id: booking.id, label, booking };
     }
 
-    const jsDay = date.getDay(); // 0=Sun
+    const jsDay = date.getDay();
     const recurring = courtRecurring.find((r) => {
       if (r.dayOfWeek !== jsDay) return false;
       const start = timeToMins(r.startTime);
@@ -117,20 +128,25 @@ export default function WeeklyCalendar({
   }
 
   const handleSlotClick = (date: Date, hour: number) => {
-    const booked = isBooked(date, hour);
-    if (booked) {
-      if (booked.type === "booking") onDeleteBooking(booked.id);
-      else onDeleteRecurring(booked.id);
+    const slot = getSlot(date, hour);
+    if (slot?.type === "booking") {
+      // Show detail modal with booker info
+      setDetailBooking(slot.booking);
+      return;
+    }
+    if (slot?.type === "recurring") {
+      onDeleteRecurring(slot.id);
       return;
     }
     setAddModal({ date: toDateStr(date), startTime: `${String(hour).padStart(2, "0")}:00` });
-    setAddLabel("");
+    setBookerName("");
+    setBookerPhone("");
     setAddDuration(90);
   };
 
   const handleAddConfirm = () => {
     if (!addModal) return;
-    onAddBooking(selectedCourt, addModal.date, addModal.startTime, addDuration, addLabel || "Venue booking");
+    onAddBooking(selectedCourt, addModal.date, addModal.startTime, addDuration, bookerName, bookerPhone);
     setAddModal(null);
   };
 
@@ -193,31 +209,32 @@ export default function WeeklyCalendar({
           </thead>
           <tbody>
             {HOURS.map((hour) => (
-              <tr key={hour} className="group">
+              <tr key={hour}>
                 <td className="px-2 py-0 text-gray-400 text-right border-r border-gray-100 align-top pt-1 w-12">
                   {String(hour).padStart(2, "0")}:00
                 </td>
                 {weekDates.map((date, di) => {
-                  const booked = isBooked(date, hour);
-                  const isPast = date < new Date() && hour < new Date().getHours() && toDateStr(date) === toDateStr(new Date());
+                  const slot = getSlot(date, hour);
+                  const isPast = toDateStr(date) < toDateStr(new Date()) ||
+                    (toDateStr(date) === toDateStr(new Date()) && hour < new Date().getHours());
                   return (
                     <td
                       key={di}
                       onClick={() => handleSlotClick(date, hour)}
                       className={`border border-gray-100 h-10 cursor-pointer transition-colors text-center relative ${
-                        booked?.type === "booking"
+                        slot?.type === "booking"
                           ? "bg-red-100 hover:bg-red-200"
-                          : booked?.type === "recurring"
+                          : slot?.type === "recurring"
                           ? "bg-blue-100 hover:bg-blue-200"
                           : isPast
                           ? "bg-gray-50 cursor-default"
                           : "hover:bg-green-50"
                       }`}
                     >
-                      {booked && (
-                        <span className={`text-xs font-medium truncate px-1 ${booked.type === "recurring" ? "text-blue-700" : "text-red-700"}`}>
-                          {booked.type === "recurring" && "↻ "}
-                          {booked.label}
+                      {slot && (
+                        <span className={`text-xs font-medium truncate px-1 ${slot.type === "recurring" ? "text-blue-700" : "text-red-700"}`}>
+                          {slot.type === "recurring" && "↻ "}
+                          {slot.label}
                         </span>
                       )}
                     </td>
@@ -241,7 +258,7 @@ export default function WeeklyCalendar({
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-medium border border-blue-200 hover:bg-blue-100 transition-colors"
         >
           <Repeat className="w-4 h-4" />
-          Add recurring booking
+          Recurring booking əlavə et
         </button>
       </div>
 
@@ -258,8 +275,7 @@ export default function WeeklyCalendar({
                   <span className="text-sm font-medium text-gray-800">{DAYS[r.dayOfWeek === 0 ? 6 : r.dayOfWeek - 1]}</span>
                   <span className="text-gray-400 mx-1.5">·</span>
                   <span className="text-sm text-gray-600">{r.startTime} · {r.durationMinutes} min</span>
-                  {r.label && <span className="text-gray-400 mx-1.5">·</span>}
-                  {r.label && <span className="text-xs text-gray-500">{r.label}</span>}
+                  {r.label && <><span className="text-gray-400 mx-1.5">·</span><span className="text-xs text-gray-500">{r.label}</span></>}
                 </div>
                 <button onClick={() => onDeleteRecurring(r.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                   <Trash2 className="w-4 h-4" />
@@ -270,27 +286,94 @@ export default function WeeklyCalendar({
         </div>
       )}
 
+      {/* Booking detail modal */}
+      {detailBooking && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900">Booking məlumatı</h3>
+              <button onClick={() => setDetailBooking(null)}><X className="w-5 h-5 text-gray-400" /></button>
+            </div>
+            <div className="space-y-3 mb-5">
+              <div className="bg-gray-50 rounded-xl px-4 py-3">
+                <p className="text-xs text-gray-400 mb-0.5">Kort · Tarix · Saat</p>
+                <p className="text-sm font-medium text-gray-800">
+                  {court?.name} · {detailBooking.date} · {detailBooking.start_time} ({detailBooking.duration_minutes} min)
+                </p>
+              </div>
+              {detailBooking.booker_name && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+                  <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-gray-400">Ad Soyad</p>
+                    <p className="text-sm font-medium text-gray-800">{detailBooking.booker_name}</p>
+                  </div>
+                </div>
+              )}
+              {detailBooking.booker_phone && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+                  <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-gray-400">Telefon</p>
+                    <a href={`tel:${detailBooking.booker_phone}`} className="text-sm font-medium text-padel-green hover:underline">
+                      {detailBooking.booker_phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+              {!detailBooking.booker_name && !detailBooking.booker_phone && (
+                <p className="text-sm text-gray-400 text-center py-2">Məlumat yoxdur</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { onDeleteBooking(detailBooking.id); setDetailBooking(null); }}
+                className="flex-1 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" /> Sil
+              </button>
+              <button onClick={() => setDetailBooking(null)} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                Bağla
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add booking modal */}
       {addModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <h3 className="font-bold text-gray-900 mb-4">Add Booking</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              <span className="font-medium">{court?.name}</span> · {addModal.date} at {addModal.startTime}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900">Booking əlavə et</h3>
+              <button onClick={() => setAddModal(null)}><X className="w-5 h-5 text-gray-400" /></button>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              {court?.name} · {addModal.date} · {addModal.startTime}
             </p>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Label (optional)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Ad Soyad</label>
                 <input
                   type="text"
-                  value={addLabel}
-                  onChange={(e) => setAddLabel(e.target.value)}
-                  placeholder="e.g. Rəşad qrupu"
+                  value={bookerName}
+                  onChange={(e) => setBookerName(e.target.value)}
+                  placeholder="Məsələn: Rəşad Əliyev"
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Duration</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Telefon</label>
+                <input
+                  type="tel"
+                  value={bookerPhone}
+                  onChange={(e) => setBookerPhone(e.target.value)}
+                  placeholder="+994 50 000 00 00"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Müddət</label>
                 <div className="flex gap-2">
                   {[60, 90, 120].map((d) => (
                     <button
@@ -300,7 +383,7 @@ export default function WeeklyCalendar({
                         addDuration === d ? "bg-padel-green text-white border-padel-green" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                       }`}
                     >
-                      {d} min
+                      {d} dəq
                     </button>
                   ))}
                 </div>
@@ -308,10 +391,10 @@ export default function WeeklyCalendar({
             </div>
             <div className="flex gap-2 mt-5">
               <button onClick={() => setAddModal(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
-                Cancel
+                Ləğv et
               </button>
               <button onClick={handleAddConfirm} className="flex-1 py-2.5 rounded-xl bg-padel-green text-white text-sm font-medium hover:bg-green-700">
-                Add Booking
+                Əlavə et
               </button>
             </div>
           </div>
@@ -322,13 +405,16 @@ export default function WeeklyCalendar({
       {showRecurringModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Repeat className="w-5 h-5 text-blue-600" /> Add Recurring Booking
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <Repeat className="w-5 h-5 text-blue-600" /> Recurring Booking
+              </h3>
+              <button onClick={() => setShowRecurringModal(false)}><X className="w-5 h-5 text-gray-400" /></button>
+            </div>
             <p className="text-sm text-gray-500 mb-4">{court?.name}</p>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Day of week</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Həftənin günü</label>
                 <div className="grid grid-cols-7 gap-1">
                   {DAYS.map((d, i) => {
                     const jsDay = i === 6 ? 0 : i + 1;
@@ -347,7 +433,7 @@ export default function WeeklyCalendar({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Start time</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Başlama saatı</label>
                 <input
                   type="time"
                   value={rTime}
@@ -356,7 +442,7 @@ export default function WeeklyCalendar({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Duration</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Müddət</label>
                 <div className="flex gap-2">
                   {[60, 90, 120].map((d) => (
                     <button
@@ -366,38 +452,36 @@ export default function WeeklyCalendar({
                         rDuration === d ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                       }`}
                     >
-                      {d} min
+                      {d} dəq
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Label (optional)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Ad (istəyə bağlı)</label>
                 <input
                   type="text"
                   value={rLabel}
                   onChange={(e) => setRLabel(e.target.value)}
-                  placeholder="e.g. Elçin qrupu"
+                  placeholder="Məsələn: Elçin qrupu"
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
             <div className="flex gap-2 mt-5">
               <button onClick={() => setShowRecurringModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">
-                Cancel
+                Ləğv et
               </button>
               <button
                 onClick={() => {
-                  // parent handles via separate prop
-                  const event = new CustomEvent("addRecurring", {
+                  window.dispatchEvent(new CustomEvent("addRecurring", {
                     detail: { courtId: selectedCourt, dayOfWeek: rDay, startTime: rTime, durationMinutes: rDuration, label: rLabel || null },
-                  });
-                  window.dispatchEvent(event);
+                  }));
                   setShowRecurringModal(false);
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
               >
-                Add
+                Əlavə et
               </button>
             </div>
           </div>

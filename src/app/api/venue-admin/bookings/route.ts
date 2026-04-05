@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { courtId, date, startTime, durationMinutes, label } = body;
+  const { courtId, date, startTime, durationMinutes, bookerName, bookerPhone } = body;
 
   if (!courtId || !date || !startTime || !durationMinutes) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -65,7 +65,9 @@ export async function POST(req: NextRequest) {
       end_time: endTime,
       duration_minutes: durationMinutes,
       status: "confirmed",
-      notes: label ?? "Venue booking",
+      notes: "Venue booking",
+      booker_name: bookerName ?? null,
+      booker_phone: bookerPhone ?? null,
     })
     .select()
     .single();
