@@ -107,9 +107,16 @@ export default function WeeklyCalendar({
     });
     if (booking) {
       const isPlayerBooking = booking.player_ids && booking.player_ids.length > 0;
-      const label = isPlayerBooking
-        ? "Oyunçu booking"
-        : (booking.booker_name ?? booking.notes ?? "Booked");
+      let label = "Booked";
+      if (isPlayerBooking) {
+        label = "Oyunçu booking";
+      } else if (booking.booker_name && booking.booker_phone) {
+        label = `${booking.booker_name} · ${booking.booker_phone}`;
+      } else if (booking.booker_name) {
+        label = booking.booker_name;
+      } else if (booking.booker_phone) {
+        label = booking.booker_phone;
+      }
       return { type: "booking", id: booking.id, label, booking };
     }
 
