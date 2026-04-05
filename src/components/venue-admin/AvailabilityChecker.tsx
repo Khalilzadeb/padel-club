@@ -39,7 +39,7 @@ interface Props {
 
 function timeToMins(t: string) {
   const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
+  return (h < 8 ? h + 24 : h) * 60 + m;
 }
 
 function toDateStr(d: Date) {
@@ -48,19 +48,29 @@ function toDateStr(d: Date) {
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 
-const ALL_HOURS = Array.from({ length: 15 }, (_, i) => i + 8); // 08–22
+// 08:00–02:00 next day. 24=00:00, 25=01:00, 26=02:00
+const ALL_HOURS = Array.from({ length: 19 }, (_, i) => i + 8);
+function hourLabel(h: number) { const a = h >= 24 ? h - 24 : h; return `${pad(a)}:00`; }
+
+// Returns the booking date string, adding 1 day if hour >= 24
+function bookingDate(baseDate: string, hour: number): string {
+  if (hour < 24) return baseDate;
+  const d = new Date(baseDate);
+  d.setDate(d.getDate() + 1);
+  return toDateStr(d);
+}
 
 type CellStatus =
   | { type: "free" }
-  | { type: "booked"; label: string; phone?: string | null; time: string; isPlayer: boolean }
-  | { type: "recurring"; label: string; time: string };
+  | { type: "booked"; label: string; phone?: string | null; time: string; isPlayer: boolean; bookingId: string }
+  | { type: "recurring"; label: string; time: string; recurringId: string };
 
 export default function AvailabilityChecker({ courts, bookings, recurringBookings, onAddBooking }: Props) {
   const [open, setOpen] = useState(false);
   const nowH = new Date().getHours();
   const [date, setDate] = useState(toDateStr(new Date()));
-  const [fromHour, setFromHour] = useState(nowH < 22 ? nowH + 1 : 19);
-  const [toHour, setToHour] = useState(nowH < 20 ? nowH + 3 : 22);
+  const [fromHour, setFromHour] = useState(Math.min(Math.max(nowH < 26 ? nowH + 1 : 8, 8), 25));
+  const [toHour, setToHour] = useState(Math.min(Math.max(nowH < 24 ? nowH + 3 : 11, 9), 26));
   const [searched, setSearched] = useState(false);
 
   // Booking modal
@@ -92,6 +102,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
         phone: booking.booker_phone,
         time: `${booking.start_time}–${booking.end_time}`,
         isPlayer,
+        bookingId: booking.id,
       };
     }
 
@@ -104,7 +115,12 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
     });
     if (rec) {
       const endM = timeToMins(rec.startTime) + rec.durationMinutes;
-      return { type: "recurring", label: rec.label ?? "Recurring", time: `${rec.startTime}–${pad(Math.floor(endM / 60))}:${pad(endM % 60)}` };
+      return {
+        type: "recurring",
+        label: rec.label ?? "Recurring",
+        time: `${rec.startTime}–${pad(Math.floor(endM / 60))}:${pad(endM % 60)}`,
+        recurringId: rec.id,
+      };
     }
 
     return { type: "free" };
@@ -134,7 +150,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
   const openBookModal = (courtId: string, courtName: string, hour: number) => {
     setBookModal({ courtId, courtName, hour });
     setBookFromHour(hour);
-    setBookToHour(hour + 1);
+    setBookToHour(Math.min(hour + 1, 26));
     setBookerName("");
     setBookerPhone("");
     setBookError("");
@@ -145,7 +161,9 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
     if (bookToHour <= bookFromHour) { setBookError("Bitmə saatı başlama saatından böyük olmalıdır"); return; }
     const conflict = checkConflict(bookModal.courtId, bookFromHour, bookToHour);
     if (conflict) { setBookError(conflict); return; }
-    onAddBooking(bookModal.courtId, date, `${pad(bookFromHour)}:00`, (bookToHour - bookFromHour) * 60, bookerName, bookerPhone);
+    const actualDate = bookingDate(date, bookFromHour);
+    const startTime = hourLabel(bookFromHour);
+    onAddBooking(bookModal.courtId, actualDate, startTime, (bookToHour - bookFromHour) * 60, bookerName, bookerPhone);
     setBookModal(null);
     setTimeout(() => setSearched(true), 150);
   };
@@ -191,7 +209,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
                     onChange={(e) => { setFromHour(Number(e.target.value)); setSearched(false); }}
                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                   >
-                    {ALL_HOURS.slice(0, -1).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
+                    {ALL_HOURS.slice(0, -1).map((h) => <option key={h} value={h}>{hourLabel(h)}</option>)}
                   </select>
                 </div>
                 <div>
@@ -201,7 +219,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
                     onChange={(e) => { setToHour(Number(e.target.value)); setSearched(false); }}
                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                   >
-                    {ALL_HOURS.filter((h) => h > fromHour).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
+                    {ALL_HOURS.filter((h) => h > fromHour).map((h) => <option key={h} value={h}>{hourLabel(h)}</option>)}
                   </select>
                 </div>
                 <button
@@ -228,59 +246,83 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
                       <th className="text-left px-3 py-2 bg-gray-50 rounded-tl-xl border border-gray-100 text-gray-500 font-medium w-28">Kort</th>
                       {rangeHours.map((h) => (
                         <th key={h} className="px-2 py-2 bg-gray-50 border border-gray-100 text-center text-gray-600 font-semibold min-w-[80px]">
-                          {pad(h)}:00
+                          {hourLabel(h)}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {courts.map((court) => (
-                      <tr key={court.id}>
-                        <td className="px-3 py-2 border border-gray-100 bg-gray-50 font-medium text-gray-700 whitespace-nowrap">
-                          {court.name}
-                        </td>
-                        {rangeHours.map((h) => {
-                          const cell = getCellStatus(court.id, h);
-                          return (
-                            <td
-                              key={h}
-                              onClick={() => cell.type === "free" && openBookModal(court.id, court.name, h)}
-                              className={`border border-gray-100 px-2 py-2 text-center align-middle transition-colors ${
-                                cell.type === "free"
-                                  ? "bg-green-50 hover:bg-green-100 cursor-pointer"
-                                  : cell.type === "recurring"
-                                  ? "bg-blue-50"
-                                  : "bg-red-50"
-                              }`}
-                            >
-                              {cell.type === "free" && (
-                                <CheckCircle className="w-4 h-4 text-green-400 mx-auto" />
-                              )}
-                              {cell.type === "booked" && (
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center justify-center gap-1 text-red-700 font-medium">
-                                    <User className="w-3 h-3 flex-shrink-0" />
+                    {courts.map((court) => {
+                      const skipped = new Set<number>();
+                      return (
+                        <tr key={court.id}>
+                          <td className="px-3 py-2 border border-gray-100 bg-gray-50 font-medium text-gray-700 whitespace-nowrap">
+                            {court.name}
+                          </td>
+                          {rangeHours.map((h) => {
+                            if (skipped.has(h)) return null;
+                            const cell = getCellStatus(court.id, h);
+
+                            // Compute colSpan for non-free cells
+                            let colSpan = 1;
+                            if (cell.type !== "free") {
+                              const cellId = cell.type === "booked" ? cell.bookingId : cell.recurringId;
+                              for (let i = 1; i < rangeHours.length; i++) {
+                                const nextH = h + i;
+                                if (!rangeHours.includes(nextH)) break;
+                                const next = getCellStatus(court.id, nextH);
+                                const nextId = next.type === "booked" ? next.bookingId : next.type === "recurring" ? next.recurringId : null;
+                                if (nextId === cellId) {
+                                  colSpan++;
+                                  skipped.add(nextH);
+                                } else {
+                                  break;
+                                }
+                              }
+                            }
+
+                            return (
+                              <td
+                                key={h}
+                                colSpan={colSpan}
+                                onClick={() => cell.type === "free" && openBookModal(court.id, court.name, h)}
+                                className={`border border-gray-100 px-2 py-2 text-center align-middle transition-colors ${
+                                  cell.type === "free"
+                                    ? "bg-green-50 hover:bg-green-100 cursor-pointer"
+                                    : cell.type === "recurring"
+                                    ? "bg-blue-50"
+                                    : "bg-red-50"
+                                }`}
+                              >
+                                {cell.type === "free" && (
+                                  <CheckCircle className="w-4 h-4 text-green-400 mx-auto" />
+                                )}
+                                {cell.type === "booked" && (
+                                  <div className="space-y-0.5">
+                                    <div className="flex items-center justify-center gap-1 text-red-700 font-medium">
+                                      <User className="w-3 h-3 flex-shrink-0" />
+                                      <span className="truncate max-w-[70px]">{cell.label}</span>
+                                    </div>
+                                    {cell.phone && !cell.isPlayer && (
+                                      <div className="flex items-center justify-center gap-1 text-red-500">
+                                        <Phone className="w-3 h-3 flex-shrink-0" />
+                                        <span className="truncate max-w-[70px]">{cell.phone}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {cell.type === "recurring" && (
+                                  <div className="flex items-center justify-center gap-1 text-blue-700">
+                                    <Repeat className="w-3 h-3 flex-shrink-0" />
                                     <span className="truncate max-w-[70px]">{cell.label}</span>
                                   </div>
-                                  {cell.phone && !cell.isPlayer && (
-                                    <div className="flex items-center justify-center gap-1 text-red-500">
-                                      <Phone className="w-3 h-3 flex-shrink-0" />
-                                      <span className="truncate max-w-[70px]">{cell.phone}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                              {cell.type === "recurring" && (
-                                <div className="flex items-center justify-center gap-1 text-blue-700">
-                                  <Repeat className="w-3 h-3 flex-shrink-0" />
-                                  <span className="truncate max-w-[70px]">{cell.label}</span>
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -314,7 +356,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
                     onChange={(e) => { setBookFromHour(Number(e.target.value)); setBookError(""); }}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                   >
-                    {ALL_HOURS.slice(0, -1).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
+                    {ALL_HOURS.slice(0, -1).map((h) => <option key={h} value={h}>{hourLabel(h)}</option>)}
                   </select>
                 </div>
                 <div className="flex-1">
@@ -324,7 +366,7 @@ export default function AvailabilityChecker({ courts, bookings, recurringBooking
                     onChange={(e) => { setBookToHour(Number(e.target.value)); setBookError(""); }}
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green"
                   >
-                    {ALL_HOURS.filter((h) => h > bookFromHour).map((h) => <option key={h} value={h}>{pad(h)}:00</option>)}
+                    {ALL_HOURS.filter((h) => h > bookFromHour).map((h) => <option key={h} value={h}>{hourLabel(h)}</option>)}
                   </select>
                 </div>
               </div>

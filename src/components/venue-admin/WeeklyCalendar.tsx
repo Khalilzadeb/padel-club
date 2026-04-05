@@ -39,7 +39,9 @@ interface Props {
   onDeleteRecurring: (id: string) => void;
 }
 
-const HOURS = Array.from({ length: 15 }, (_, i) => i + 8); // 08:00 – 22:00
+// 08:00 – 02:00 (next day). Hours 24,25,26 = 00:00,01:00,02:00
+const HOURS = Array.from({ length: 19 }, (_, i) => i + 8);
+function hourLabel(h: number) { const a = h >= 24 ? h - 24 : h; return `${String(a).padStart(2, "0")}:00`; }
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DAY_LABELS_AZ = ["B.e", "Ç.a", "Çər", "C.a", "Cüm", "Şnb", "Baz"];
 
@@ -61,7 +63,8 @@ function toDateStr(d: Date) {
 
 function timeToMins(t: string) {
   const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
+  // 00:00–07:59 treated as next-day (24:00–31:59)
+  return (h < 8 ? h + 24 : h) * 60 + m;
 }
 
 export default function WeeklyCalendar({
@@ -151,7 +154,9 @@ export default function WeeklyCalendar({
       return;
     }
     if (slot !== null) return; // middle of a block — ignore
-    setAddModal({ date: toDateStr(date), startTime: `${String(hour).padStart(2, "0")}:00` });
+    // For post-midnight hours (24-26), the actual date is the next day
+    const actualDate = hour >= 24 ? (() => { const d = new Date(date); d.setDate(d.getDate() + 1); return toDateStr(d); })() : toDateStr(date);
+    setAddModal({ date: actualDate, startTime: hourLabel(hour) });
     setBookerName("");
     setBookerPhone("");
     setAddDuration(60);
@@ -224,7 +229,7 @@ export default function WeeklyCalendar({
             {HOURS.map((hour) => (
               <tr key={hour}>
                 <td className="px-2 py-0 text-gray-400 text-right border-r border-gray-100 align-top pt-1 w-12 text-xs">
-                  {String(hour).padStart(2, "0")}:00
+                  {hourLabel(hour)}
                 </td>
                 {weekDates.map((date, di) => {
                   const slot = getSlot(date, hour);
@@ -260,7 +265,7 @@ export default function WeeklyCalendar({
                           <span className="block truncate">{slot.label}</span>
                           {rowSpan > 1 && (
                             <span className="block text-xs opacity-60 mt-0.5">
-                              {String(hour).padStart(2, "0")}:00 – {String(hour + rowSpan).padStart(2, "0")}:00
+                              {hourLabel(hour)} – {hourLabel(hour + rowSpan)}
                             </span>
                           )}
                         </div>
