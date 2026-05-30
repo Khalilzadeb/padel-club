@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trophy, Play, CheckCircle2, Edit3, Crown, Trash2 } from "lucide-react";
+import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -238,10 +238,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
               )}
             </Card>
           ) : (
-            rounds
-              .slice()
-              .reverse()
-              .map((round) => (
+            rounds.map((round) => (
                 <RoundCard
                   key={round.id}
                   round={round}
@@ -259,8 +256,8 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Standings column */}
-        <div className="lg:col-span-1">
-          <Card className="p-5 sticky top-20">
+        <div className="lg:col-span-1 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+          <Card className="p-5">
             <h2 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <Trophy className="w-4 h-4 text-padel-green" />
               {t.communityTournaments.standings}
@@ -416,93 +413,128 @@ function MatchRow({
   tournamentId: string;
   onScored: () => void;
 }) {
-  const { t } = useLocale();
-  const [editing, setEditing] = useState(false);
   const [t1, setT1] = useState(String(match.team1Points ?? ""));
   const [t2, setT2] = useState(String(match.team2Points ?? ""));
   const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const lastSavedRef = useRef({ t1: String(match.team1Points ?? ""), t2: String(match.team2Points ?? "") });
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync local state when the match prop changes (after a reload).
+  useEffect(() => {
+    const newT1 = String(match.team1Points ?? "");
+    const newT2 = String(match.team2Points ?? "");
+    setT1(newT1);
+    setT2(newT2);
+    lastSavedRef.current = { t1: newT1, t2: newT2 };
+  }, [match.team1Points, match.team2Points]);
+
+  const scheduleSave = (nextT1: string, nextT2: string) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      if (nextT1 === lastSavedRef.current.t1 && nextT2 === lastSavedRef.current.t2) return;
+      if (nextT1 === "" || nextT2 === "") return;
+      const n1 = Number(nextT1);
+      const n2 = Number(nextT2);
+      if (!Number.isFinite(n1) || !Number.isFinite(n2)) return;
+      if (n1 < 0 || n2 < 0) return;
+
+      setSaving(true);
+      const res = await fetch(`/api/community/tournaments/${tournamentId}/matches/${match.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team1Points: n1, team2Points: n2 }),
+      });
+      setSaving(false);
+      if (res.ok) {
+        lastSavedRef.current = { t1: nextT1, t2: nextT2 };
+        setJustSaved(true);
+        setTimeout(() => setJustSaved(false), 1200);
+        onScored();
+      }
+    }, 600);
+  };
 
   const handleT1Change = (v: string) => {
     setT1(v);
+    let newT2 = t2;
     if (v === "") {
+      newT2 = "";
       setT2("");
-      return;
+    } else {
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0 && n <= pointsPerRound) {
+        newT2 = String(pointsPerRound - n);
+        setT2(newT2);
+      }
     }
-    const n = Number(v);
-    if (Number.isFinite(n) && n >= 0 && n <= pointsPerRound) {
-      setT2(String(pointsPerRound - n));
-    }
+    scheduleSave(v, newT2);
   };
 
   const handleT2Change = (v: string) => {
     setT2(v);
+    let newT1 = t1;
     if (v === "") {
+      newT1 = "";
       setT1("");
-      return;
+    } else {
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0 && n <= pointsPerRound) {
+        newT1 = String(pointsPerRound - n);
+        setT1(newT1);
+      }
     }
-    const n = Number(v);
-    if (Number.isFinite(n) && n >= 0 && n <= pointsPerRound) {
-      setT1(String(pointsPerRound - n));
-    }
-  };
-
-  const save = async () => {
-    const team1Points = Number(t1);
-    const team2Points = Number(t2);
-    if (!Number.isFinite(team1Points) || !Number.isFinite(team2Points)) {
-      alert("Invalid scores");
-      return;
-    }
-    if (team1Points + team2Points !== pointsPerRound) {
-      if (!confirm(t.communityTournaments.confirmScoreMismatch.replace("{target}", String(pointsPerRound)))) return;
-    }
-    setSaving(true);
-    const res = await fetch(`/api/community/tournaments/${tournamentId}/matches/${match.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ team1Points, team2Points }),
-    });
-    setSaving(false);
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      alert(e.error ?? "Failed");
-      return;
-    }
-    setEditing(false);
-    onScored();
+    scheduleSave(newT1, v);
   };
 
   const team1Won = match.team1Points !== null && match.team2Points !== null && match.team1Points > match.team2Points;
   const team2Won = match.team1Points !== null && match.team2Points !== null && match.team2Points > match.team1Points;
+  const canEdit = isAdmin;
 
   return (
     <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
-      <div className="px-3 py-1 bg-gray-50 dark:bg-gray-700/50 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
-        {match.courtLabel}
+      <div className="px-3 py-1 bg-gray-50 dark:bg-gray-700/50 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center justify-between">
+        <span>{match.courtLabel}</span>
+        {saving && <span className="text-gray-400 normal-case">Saving…</span>}
+        {!saving && justSaved && (
+          <span className="text-padel-green normal-case flex items-center gap-0.5">
+            <Check className="w-3 h-3" /> Saved
+          </span>
+        )}
       </div>
       <div className="p-3 flex items-center gap-2">
-        <div className={`flex-1 ${team1Won ? "font-semibold" : ""}`}>
-          <p className="text-sm text-gray-900 dark:text-white">{match.team1PlayerIds.map(playerName).join(" + ")}</p>
+        <div className={`flex-1 min-w-0 ${team1Won ? "font-semibold" : ""}`}>
+          <p className="text-sm text-gray-900 dark:text-white truncate">{match.team1PlayerIds.map(playerName).join(" + ")}</p>
         </div>
-        <div className="flex items-center gap-2">
-          {editing ? (
+        <div className="flex items-center gap-2 shrink-0">
+          {canEdit ? (
             <>
               <input
                 type="number"
+                inputMode="numeric"
                 min="0"
                 max={pointsPerRound}
                 value={t1}
                 onChange={(e) => handleT1Change(e.target.value)}
-                className="w-14 px-2 py-1 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className={`w-14 px-2 py-1 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-padel-green ${
+                  team1Won
+                    ? "border-padel-green font-bold"
+                    : "border-gray-200 dark:border-gray-600"
+                }`}
               />
-              <span className="text-gray-400">–</span>
+              <span className="text-gray-300">–</span>
               <input
                 type="number"
+                inputMode="numeric"
                 min="0"
                 max={pointsPerRound}
                 value={t2}
                 onChange={(e) => handleT2Change(e.target.value)}
-                className="w-14 px-2 py-1 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className={`w-14 px-2 py-1 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-padel-green ${
+                  team2Won
+                    ? "border-padel-green font-bold"
+                    : "border-gray-200 dark:border-gray-600"
+                }`}
               />
             </>
           ) : (
@@ -517,29 +549,10 @@ function MatchRow({
             </>
           )}
         </div>
-        <div className={`flex-1 text-right ${team2Won ? "font-semibold" : ""}`}>
-          <p className="text-sm text-gray-900 dark:text-white">{match.team2PlayerIds.map(playerName).join(" + ")}</p>
+        <div className={`flex-1 min-w-0 text-right ${team2Won ? "font-semibold" : ""}`}>
+          <p className="text-sm text-gray-900 dark:text-white truncate">{match.team2PlayerIds.map(playerName).join(" + ")}</p>
         </div>
       </div>
-      {isAdmin && (
-        <div className="px-3 pb-3 flex justify-end gap-2">
-          {editing ? (
-            <>
-              <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={saving}>
-                {t.communityTournaments.cancel}
-              </Button>
-              <Button size="sm" onClick={save} disabled={saving}>
-                {saving ? t.communityTournaments.saving : t.communityTournaments.saveScore}
-              </Button>
-            </>
-          ) : (
-            <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
-              <Edit3 className="w-3 h-3 mr-1" />
-              {match.status === "completed" ? t.communityTournaments.editScore : t.communityTournaments.enterScore}
-            </Button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
