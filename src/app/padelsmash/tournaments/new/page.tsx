@@ -23,6 +23,8 @@ export default function NewTournamentPage() {
   const [format, setFormat] = useState<CommunityTournamentFormat>("americano");
   const [pointsPerRound, setPointsPerRound] = useState<16 | 24 | 32>(24);
   const [roundsCount, setRoundsCount] = useState<string>("");
+  const [courtCount, setCourtCount] = useState<number>(2);
+  const [prizePositions, setPrizePositions] = useState<1 | 2 | 3>(1);
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const [allPlayers, setAllPlayers] = useState<CommunityPlayer[]>([]);
@@ -90,6 +92,8 @@ export default function NewTournamentPage() {
         format,
         pointsPerRound,
         roundsCount: roundsCount ? Number(roundsCount) : null,
+        courtCount,
+        prizePositions,
         startDate,
         playerIds: orderedIds,
       }),
@@ -113,7 +117,8 @@ export default function NewTournamentPage() {
   }
 
   const americanoRounds = format === "americano" ? americanoTotalRounds(selected.size) : 0;
-  const americanoInvalid = format === "americano" && selected.size > 0 && selected.size % 4 !== 0;
+  const americanoInvalid = format === "americano" && selected.size > 0 && selected.size !== courtCount * 4;
+  const expectedPlayers = courtCount * 4;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -214,6 +219,30 @@ export default function NewTournamentPage() {
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              {t.communityTournaments.courtCountLabel}
+            </label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setCourtCount(v)}
+                  className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
+                    courtCount === v
+                      ? "border-padel-green bg-padel-green text-white"
+                      : "border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-1.5">
+              {t.communityTournaments.courtCountHint.replace("{players}", String(expectedPlayers))}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
               {t.communityTournaments.pointsLabel}
             </label>
             <div className="flex gap-2">
@@ -228,6 +257,27 @@ export default function NewTournamentPage() {
                   }`}
                 >
                   {v}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              {t.communityTournaments.prizePositionsLabel}
+            </label>
+            <div className="flex gap-2">
+              {[1, 2, 3].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setPrizePositions(v as 1 | 2 | 3)}
+                  className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
+                    prizePositions === v
+                      ? "border-padel-green bg-padel-green text-white"
+                      : "border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {v === 1 ? t.communityTournaments.prize1 : v === 2 ? t.communityTournaments.prize2 : t.communityTournaments.prize3}
                 </button>
               ))}
             </div>
@@ -290,12 +340,15 @@ export default function NewTournamentPage() {
               {t.communityTournaments.americanoRoundsCount
                 .replace("{players}", String(selected.size))
                 .replace("{rounds}", String(americanoRounds))
-                .replace("{courts}", String(selected.size / 4))}
+                .replace("{courts}", String(courtCount))}
             </p>
           )}
           {americanoInvalid && (
             <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-              {t.communityTournaments.americanoMustBeMultipleOf4}
+              {t.communityTournaments.americanoCourtMismatch
+                .replace("{courts}", String(courtCount))
+                .replace("{expected}", String(expectedPlayers))
+                .replace("{actual}", String(selected.size))}
             </p>
           )}
 

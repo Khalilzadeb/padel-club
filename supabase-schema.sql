@@ -275,13 +275,19 @@ create table if not exists community_tournaments (
   status text not null default 'draft', -- 'draft' | 'active' | 'completed' | 'cancelled'
   points_per_round integer not null default 24, -- 16, 24 or 32
   rounds_count integer, -- planned rounds (null for championship)
+  court_count integer not null default 1,
+  prize_positions integer not null default 1, -- 1, 2, or 3 places paid
   start_date text,
   end_date text,
-  winner_player_ids text[], -- ids in community_players
-  cover_url text, -- group photo of winners
+  winner_player_ids text[], -- ids in community_players, ordered by place
+  cover_url text,
   created_by text references users(id),
   created_at timestamptz default now()
 );
+
+-- Migration for tables created before these columns existed:
+alter table community_tournaments add column if not exists court_count integer not null default 1;
+alter table community_tournaments add column if not exists prize_positions integer not null default 1;
 
 create index if not exists idx_community_tournaments_community on community_tournaments(community_id);
 create index if not exists idx_community_tournaments_status on community_tournaments(status);

@@ -10,6 +10,7 @@ import type {
   TournamentStandingRow,
 } from '@/lib/types'
 import { getCommunityPlayers } from '@/lib/data/communities'
+import { americanoRoundPairings, americanoTotalRounds } from '@/lib/tournament-pairing'
 
 function toTournament(row: Record<string, unknown>): CommunityTournament {
   return {
@@ -21,6 +22,8 @@ function toTournament(row: Record<string, unknown>): CommunityTournament {
     status: row.status as CommunityTournamentStatus,
     pointsPerRound: row.points_per_round as number,
     roundsCount: row.rounds_count as number | null,
+    courtCount: (row.court_count as number) ?? 1,
+    prizePositions: (row.prize_positions as number) ?? 1,
     startDate: row.start_date as string | null,
     endDate: row.end_date as string | null,
     winnerPlayerIds: (row.winner_player_ids as string[] | null) ?? null,
@@ -97,6 +100,8 @@ export interface CreateTournamentInput {
   format: CommunityTournamentFormat
   pointsPerRound: number
   roundsCount?: number | null
+  courtCount: number
+  prizePositions: number
   startDate?: string | null
   endDate?: string | null
   createdBy?: string | null
@@ -116,6 +121,8 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
       status: 'draft',
       points_per_round: input.pointsPerRound,
       rounds_count: input.roundsCount ?? null,
+      court_count: input.courtCount,
+      prize_positions: input.prizePositions,
       start_date: input.startDate ?? null,
       end_date: input.endDate ?? null,
       created_by: input.createdBy ?? null,
@@ -133,6 +140,41 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
     }))
     const { error: pErr } = await supabase.from('community_tournament_players').insert(rows)
     if (pErr) throw new Error(pErr.message)
+  }
+
+  // Americano: pre-create all rounds and matches upfront (schedule is deterministic).
+  if (input.format === 'americano') {
+    const totalRounds = americanoTotalRounds(input.playerIds.length)
+    const roundRows: Record<string, unknown>[] = []
+    const matchRows: Record<string, unknown>[] = []
+    for (let r = 1; r <= totalRounds; r++) {
+      const roundId = `r_${id}_${r}`
+      roundRows.push({
+        id: roundId,
+        tournament_id: id,
+        round_number: r,
+        status: 'pending',
+      })
+      const pairings = americanoRoundPairings(input.playerIds, r)
+      pairings.forEach((p, i) => {
+        matchRows.push({
+          id: `m_${roundId}_${i + 1}`,
+          round_id: roundId,
+          tournament_id: id,
+          court_label: `Court ${i + 1}`,
+          team1_player_ids: p.team1,
+          team2_player_ids: p.team2,
+        })
+      })
+    }
+    if (roundRows.length > 0) {
+      const { error: rErr } = await supabase.from('community_tournament_rounds').insert(roundRows)
+      if (rErr) throw new Error(rErr.message)
+    }
+    if (matchRows.length > 0) {
+      const { error: mErr } = await supabase.from('community_tournament_matches').insert(matchRows)
+      if (mErr) throw new Error(mErr.message)
+    }
   }
 
   return toTournament(data)

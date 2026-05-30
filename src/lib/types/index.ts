@@ -267,6 +267,8 @@ export interface CommunityTournament {
   status: CommunityTournamentStatus;
   pointsPerRound: number;
   roundsCount: number | null;
+  courtCount: number;
+  prizePositions: number;
   startDate: string | null;
   endDate: string | null;
   winnerPlayerIds: string[] | null;

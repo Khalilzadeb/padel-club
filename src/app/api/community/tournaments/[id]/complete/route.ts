@@ -19,8 +19,14 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   if (!tournament) return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
 
   const standings = await getStandings(id);
-  // Winners are top 2 players (or 4 if team-format); for now keep it simple: top 2.
-  const winners = standings.slice(0, 2).map((s) => s.player.id);
+  // Take top N from standings, where N = prize_positions configured at creation.
+  // For team formats each "place" is a pair, so multiply by 2.
+  const isTeamFormat =
+    tournament.format === "team-americano" ||
+    tournament.format === "team-mexicano" ||
+    tournament.format === "championship";
+  const slots = tournament.prizePositions * (isTeamFormat ? 2 : 1);
+  const winners = standings.slice(0, slots).map((s) => s.player.id);
 
   try {
     await completeTournament(id, winners);

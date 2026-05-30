@@ -71,13 +71,20 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
 
   const { tournament, rounds, matchesByRound, standings, isAdmin } = data;
   const currentRound = rounds.find((r) => r.status === "active") ?? rounds[rounds.length - 1];
-  const allRoundsDone = rounds.length > 0 && rounds.every((r) => r.status === "completed");
+  const hasActiveRound = rounds.some((r) => r.status === "active");
+  const hasPendingRound = rounds.some((r) => r.status === "pending");
   const canStartNext =
     !!isAdmin &&
-    (rounds.length === 0 || rounds[rounds.length - 1].status === "completed") &&
-    (tournament.roundsCount === null ||
-      tournament.roundsCount === undefined ||
-      rounds.length < tournament.roundsCount) &&
+    !hasActiveRound &&
+    tournament.status !== "completed" &&
+    (hasPendingRound ||
+      (tournament.format === "mexicano" &&
+        (!tournament.roundsCount || rounds.length < tournament.roundsCount)));
+  const canFinish =
+    !!isAdmin &&
+    !hasActiveRound &&
+    !hasPendingRound &&
+    rounds.length > 0 &&
     tournament.status !== "completed";
 
   const startNextRound = async () => {
@@ -158,15 +165,21 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
           {tournament.status === "completed" && tournament.winnerPlayerIds && tournament.winnerPlayerIds.length > 0 && (
-            <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-lg border border-amber-200 dark:border-amber-800">
-              <Crown className="w-5 h-5 text-amber-500" />
-              <div>
-                <p className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300 font-semibold">
-                  {t.communityTournaments.winner}
-                </p>
-                <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
-                  {tournament.winnerPlayerIds.map(playerName).join(" + ")}
-                </p>
+            <div className="bg-amber-50 dark:bg-amber-900/20 px-4 py-3 rounded-lg border border-amber-200 dark:border-amber-800 min-w-[200px]">
+              <p className="text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300 font-semibold mb-2 flex items-center gap-1">
+                <Crown className="w-4 h-4" />
+                {t.communityTournaments.podium}
+              </p>
+              <div className="space-y-1">
+                {tournament.winnerPlayerIds.map((pid, idx) => {
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "•";
+                  return (
+                    <p key={pid} className="text-sm font-bold text-amber-900 dark:text-amber-100 flex items-center gap-2">
+                      <span>{medal}</span>
+                      <span>{playerName(pid)}</span>
+                    </p>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -174,13 +187,15 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
 
         {isAdmin && (
           <div className="mt-4 flex gap-2 flex-wrap">
-            {tournament.status !== "completed" && canStartNext && (
+            {canStartNext && (
               <Button onClick={startNextRound} disabled={working}>
                 <Play className="w-4 h-4 mr-1" />
-                {rounds.length === 0 ? t.communityTournaments.startTournament : t.communityTournaments.startNextRound}
+                {rounds.filter((r) => r.status === "completed").length === 0
+                  ? t.communityTournaments.startTournament
+                  : t.communityTournaments.startNextRound}
               </Button>
             )}
-            {tournament.status !== "completed" && allRoundsDone && (
+            {canFinish && (
               <Button variant="secondary" onClick={completeTournament} disabled={working}>
                 <CheckCircle2 className="w-4 h-4 mr-1" />
                 {t.communityTournaments.finishTournament}
