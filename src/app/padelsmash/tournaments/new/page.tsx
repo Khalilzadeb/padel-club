@@ -11,7 +11,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import type { CommunityPlayer, CommunityTournamentFormat } from "@/lib/types";
 import { americanoTotalRounds, suggestedAmericanoRounds } from "@/lib/tournament-pairing";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 export default function NewTournamentPage() {
   const { t } = useLocale();
@@ -31,6 +31,9 @@ export default function NewTournamentPage() {
 
   const [allPlayers, setAllPlayers] = useState<CommunityPlayer[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Step-4 (championship only): pair selected players into 16 teams.
+  const [teamPairs, setTeamPairs] = useState<[string, string][]>([]);
+  const [pendingFirst, setPendingFirst] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,12 +88,10 @@ export default function NewTournamentPage() {
 
     const orderedIds = allPlayers.filter((p) => selected.has(p.id)).map((p) => p.id);
 
-    // Championship: pair consecutive players into 2-player teams.
+    // Championship: use the explicit team pairings the admin built in step 4.
     const teams =
       format === "championship"
-        ? Array.from({ length: Math.floor(orderedIds.length / 2) }, (_, i) => ({
-            playerIds: [orderedIds[i * 2], orderedIds[i * 2 + 1]],
-          }))
+        ? teamPairs.map(([p1, p2]) => ({ playerIds: [p1, p2] }))
         : undefined;
 
     const res = await fetch("/api/community/tournaments", {
@@ -153,26 +154,29 @@ export default function NewTournamentPage() {
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-8 mt-4">
-        {[1, 2, 3].map((s) => (
-          <div key={s} className="flex-1 flex items-center gap-2">
-            <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                step >= s
-                  ? "bg-padel-green text-white"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-500"
-              }`}
-            >
-              {step > s ? <Check className="w-4 h-4" /> : s}
-            </div>
-            {s < 3 && (
+        {(format === "championship" ? [1, 2, 3, 4] : [1, 2, 3]).map((s) => {
+          const totalSteps = format === "championship" ? 4 : 3;
+          return (
+            <div key={s} className="flex-1 flex items-center gap-2">
               <div
-                className={`flex-1 h-1 rounded-full ${
-                  step > s ? "bg-padel-green" : "bg-gray-200 dark:bg-gray-700"
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                  step >= s
+                    ? "bg-padel-green text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-500"
                 }`}
-              />
-            )}
-          </div>
-        ))}
+              >
+                {step > s ? <Check className="w-4 h-4" /> : s}
+              </div>
+              {s < totalSteps && (
+                <div
+                  className={`flex-1 h-1 rounded-full ${
+                    step > s ? "bg-padel-green" : "bg-gray-200 dark:bg-gray-700"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {step === 1 && (
@@ -508,22 +512,249 @@ export default function NewTournamentPage() {
             <Button variant="ghost" onClick={() => setStep(2)} disabled={saving}>
               {t.communityTournaments.back}
             </Button>
-            <Button
-              onClick={submit}
-              disabled={
-                saving ||
-                selected.size < 4 ||
-                americanoMultipleInvalid ||
-                americanoTooFewPlayers ||
-                championshipInvalid ||
-                (format === "championship" && selected.size !== 16 && selected.size !== 32)
-              }
-            >
-              {saving ? t.communityTournaments.creating : t.communityTournaments.create}
-            </Button>
+            {format === "championship" ? (
+              <Button
+                onClick={() => {
+                  // Initialize team pairs from selection order if not already done.
+                  if (teamPairs.length === 0) {
+                    const ordered = allPlayers
+                      .filter((p) => selected.has(p.id))
+                      .map((p) => p.id);
+                    const pairs: [string, string][] = [];
+                    for (let i = 0; i + 1 < ordered.length; i += 2) {
+                      pairs.push([ordered[i], ordered[i + 1]]);
+                    }
+                    setTeamPairs(pairs);
+                  }
+                  setStep(4);
+                }}
+                disabled={
+                  saving ||
+                  championshipInvalid ||
+                  (selected.size !== 16 && selected.size !== 32)
+                }
+              >
+                {t.communityTournaments.next}
+              </Button>
+            ) : (
+              <Button
+                onClick={submit}
+                disabled={
+                  saving ||
+                  selected.size < 4 ||
+                  americanoMultipleInvalid ||
+                  americanoTooFewPlayers
+                }
+              >
+                {saving ? t.communityTournaments.creating : t.communityTournaments.create}
+              </Button>
+            )}
           </div>
         </Card>
       )}
+
+      {step === 4 && format === "championship" && (
+        <Step4Teams
+          allPlayers={allPlayers}
+          selectedIds={Array.from(selected)}
+          teamPairs={teamPairs}
+          setTeamPairs={setTeamPairs}
+          pendingFirst={pendingFirst}
+          setPendingFirst={setPendingFirst}
+          onBack={() => setStep(3)}
+          onSubmit={submit}
+          saving={saving}
+          error={error}
+        />
+      )}
     </div>
+  );
+}
+
+function Step4Teams({
+  allPlayers,
+  selectedIds,
+  teamPairs,
+  setTeamPairs,
+  pendingFirst,
+  setPendingFirst,
+  onBack,
+  onSubmit,
+  saving,
+  error,
+}: {
+  allPlayers: CommunityPlayer[];
+  selectedIds: string[];
+  teamPairs: [string, string][];
+  setTeamPairs: (pairs: [string, string][]) => void;
+  pendingFirst: string | null;
+  setPendingFirst: (id: string | null) => void;
+  onBack: () => void;
+  onSubmit: () => void;
+  saving: boolean;
+  error: string | null;
+}) {
+  const { t } = useLocale();
+  const playerById = new Map(allPlayers.map((p) => [p.id, p]));
+  const paired = new Set(teamPairs.flat());
+  const available = selectedIds.filter((id) => !paired.has(id));
+  const teamsNeeded = selectedIds.length / 2;
+  const targetTeams = teamsNeeded; // 8 or 16
+  const groupCount = Math.ceil(targetTeams / 4);
+  const groupLabels = ["A", "B", "C", "D"].slice(0, groupCount);
+
+  const handlePlayerTap = (id: string) => {
+    if (pendingFirst === id) {
+      setPendingFirst(null);
+      return;
+    }
+    if (pendingFirst) {
+      setTeamPairs([...teamPairs, [pendingFirst, id]]);
+      setPendingFirst(null);
+    } else {
+      setPendingFirst(id);
+    }
+  };
+
+  const removeTeam = (idx: number) => {
+    setTeamPairs(teamPairs.filter((_, i) => i !== idx));
+  };
+
+  const autoPair = () => {
+    const newPairs = [...teamPairs];
+    const remaining = [...available];
+    while (remaining.length >= 2) {
+      newPairs.push([remaining.shift()!, remaining.shift()!]);
+    }
+    setTeamPairs(newPairs);
+    setPendingFirst(null);
+  };
+
+  const clearAll = () => {
+    setTeamPairs([]);
+    setPendingFirst(null);
+  };
+
+  const allTeamsFormed = teamPairs.length === targetTeams;
+
+  return (
+    <Card className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-gray-900 dark:text-white">{t.communityTournaments.buildTeamsTitle}</h2>
+        <Badge variant={allTeamsFormed ? "green" : "gray"}>
+          {teamPairs.length} / {targetTeams}
+        </Badge>
+      </div>
+
+      <p className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+        {t.communityTournaments.buildTeamsHint}
+      </p>
+
+      {/* Available players */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+          {t.communityTournaments.availablePlayers} ({available.length})
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {available.map((id) => {
+            const p = playerById.get(id);
+            if (!p) return null;
+            const isPending = pendingFirst === id;
+            return (
+              <button
+                key={id}
+                onClick={() => handlePlayerTap(id)}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  isPending
+                    ? "bg-padel-green text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
+                <span>{p.name}</span>
+              </button>
+            );
+          })}
+          {available.length === 0 && (
+            <p className="text-sm text-gray-400 italic">{t.communityTournaments.allPaired}</p>
+          )}
+        </div>
+        {available.length > 0 && (
+          <div className="flex gap-2 mt-3">
+            <Button size="sm" variant="ghost" onClick={autoPair}>
+              {t.communityTournaments.autoPairRemaining}
+            </Button>
+            {teamPairs.length > 0 && (
+              <Button size="sm" variant="ghost" onClick={clearAll}>
+                {t.communityTournaments.clearAllTeams}
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Formed teams, grouped by A/B/C/D */}
+      <div className="space-y-3">
+        {groupLabels.map((groupLabel, gIdx) => {
+          const startIdx = gIdx * 4;
+          const groupTeams = teamPairs.slice(startIdx, startIdx + 4);
+          return (
+            <div key={groupLabel}>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
+                {t.communityTournaments.group} {groupLabel}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[0, 1, 2, 3].map((slot) => {
+                  const team = groupTeams[slot];
+                  const teamPosLabel = `${groupLabel}${slot + 1}`;
+                  if (!team) {
+                    return (
+                      <div
+                        key={slot}
+                        className="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-400 italic"
+                      >
+                        {teamPosLabel} — {t.communityTournaments.emptySlot}
+                      </div>
+                    );
+                  }
+                  const [p1Id, p2Id] = team;
+                  const p1 = playerById.get(p1Id);
+                  const p2 = playerById.get(p2Id);
+                  return (
+                    <div
+                      key={slot}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/10 flex items-center gap-2"
+                    >
+                      <span className="text-xs font-bold text-padel-green w-8">{teamPosLabel}</span>
+                      <span className="text-sm text-gray-900 dark:text-white flex-1 truncate">
+                        {p1?.name} + {p2?.name}
+                      </span>
+                      <button
+                        onClick={() => removeTeam(startIdx + slot)}
+                        className="text-red-500 hover:text-red-600 text-sm font-medium"
+                        title={t.communityTournaments.removeTeam}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      <div className="flex justify-between">
+        <Button variant="ghost" onClick={onBack} disabled={saving}>
+          {t.communityTournaments.back}
+        </Button>
+        <Button onClick={onSubmit} disabled={saving || !allTeamsFormed}>
+          {saving ? t.communityTournaments.creating : t.communityTournaments.create}
+        </Button>
+      </div>
+    </Card>
   );
 }
