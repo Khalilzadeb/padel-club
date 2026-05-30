@@ -53,9 +53,9 @@ export default function PadelSmashPage() {
     (p) => !search || p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const tabs: { key: Tab; label: string; icon: typeof Users; comingSoon?: boolean }[] = [
+  const tabs: { key: Tab; label: string; icon: typeof Users; comingSoon?: boolean; href?: string }[] = [
     { key: "members", label: t.community.tabs.members, icon: Users },
-    { key: "events", label: t.community.tabs.events, icon: Trophy, comingSoon: true },
+    { key: "events", label: t.community.tabs.events, icon: Trophy, href: "/padelsmash/tournaments" },
     { key: "announcements", label: t.community.tabs.announcements, icon: MessageSquare, comingSoon: true },
     { key: "stats", label: t.community.tabs.stats, icon: BarChart3, comingSoon: true },
   ];
@@ -110,28 +110,43 @@ export default function PadelSmashPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
-        {tabs.map(({ key, label, icon: Icon, comingSoon }) => (
-          <button
-            key={key}
-            onClick={() => !comingSoon && setTab(key)}
-            disabled={comingSoon}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
-              tab === key
-                ? "bg-padel-green text-white"
-                : comingSoon
-                ? "bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-            {comingSoon && (
-              <span className="text-[10px] uppercase tracking-wide bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">
-                {t.community.comingSoon}
-              </span>
-            )}
-          </button>
-        ))}
+        {tabs.map(({ key, label, icon: Icon, comingSoon, href }) => {
+          const className = `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
+            tab === key
+              ? "bg-padel-green text-white"
+              : comingSoon
+              ? "bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+              : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+          }`;
+          const content = (
+            <>
+              <Icon className="w-4 h-4" />
+              {label}
+              {comingSoon && (
+                <span className="text-[10px] uppercase tracking-wide bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">
+                  {t.community.comingSoon}
+                </span>
+              )}
+            </>
+          );
+          if (href) {
+            return (
+              <Link key={key} href={href} className={className}>
+                {content}
+              </Link>
+            );
+          }
+          return (
+            <button
+              key={key}
+              onClick={() => !comingSoon && setTab(key)}
+              disabled={comingSoon}
+              className={className}
+            >
+              {content}
+            </button>
+          );
+        })}
       </div>
 
       {tab === "members" && (

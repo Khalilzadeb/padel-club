@@ -265,6 +265,69 @@ create table if not exists community_admins (
 
 create index if not exists idx_community_admins_user on community_admins(user_id);
 
+-- Community tournaments: Americano, Mexicano, team variants, and championships.
+create table if not exists community_tournaments (
+  id text primary key,
+  community_id text references communities(id) on delete cascade,
+  name text not null,
+  description text,
+  format text not null, -- 'americano' | 'mexicano' | 'team-americano' | 'team-mexicano' | 'championship'
+  status text not null default 'draft', -- 'draft' | 'active' | 'completed' | 'cancelled'
+  points_per_round integer not null default 24, -- 16, 24 or 32
+  rounds_count integer, -- planned rounds (null for championship)
+  start_date text,
+  end_date text,
+  winner_player_ids text[], -- ids in community_players
+  cover_url text, -- group photo of winners
+  created_by text references users(id),
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_community_tournaments_community on community_tournaments(community_id);
+create index if not exists idx_community_tournaments_status on community_tournaments(status);
+
+create table if not exists community_tournament_players (
+  id text primary key,
+  tournament_id text references community_tournaments(id) on delete cascade,
+  community_player_id text references community_players(id) on delete cascade,
+  team_id text, -- for team formats: players sharing the same team_id are partners
+  seed integer, -- initial ranking (used by mexicano for round 1)
+  total_points integer default 0,
+  matches_played integer default 0,
+  matches_won integer default 0,
+  unique(tournament_id, community_player_id)
+);
+
+create index if not exists idx_ct_players_tournament on community_tournament_players(tournament_id);
+
+create table if not exists community_tournament_rounds (
+  id text primary key,
+  tournament_id text references community_tournaments(id) on delete cascade,
+  round_number integer not null,
+  status text not null default 'pending', -- 'pending' | 'active' | 'completed'
+  started_at timestamptz,
+  completed_at timestamptz,
+  unique(tournament_id, round_number)
+);
+
+create index if not exists idx_ct_rounds_tournament on community_tournament_rounds(tournament_id);
+
+create table if not exists community_tournament_matches (
+  id text primary key,
+  round_id text references community_tournament_rounds(id) on delete cascade,
+  tournament_id text references community_tournaments(id) on delete cascade,
+  court_label text, -- 'Court 1', 'Court A' etc.
+  team1_player_ids text[] not null,
+  team2_player_ids text[] not null,
+  team1_points integer,
+  team2_points integer,
+  status text not null default 'pending', -- 'pending' | 'completed'
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_ct_matches_round on community_tournament_matches(round_id);
+create index if not exists idx_ct_matches_tournament on community_tournament_matches(tournament_id);
+
 -- Seed the PadelSmash community itself.
 insert into communities (id, slug, name, description, logo_url, cover_url) values
   ('padelsmash', 'padelsmash', 'PadelSmash',

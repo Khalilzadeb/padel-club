@@ -249,6 +249,71 @@ export interface CommunitySummary extends Community {
   playerCount: number;
 }
 
+export type CommunityTournamentFormat =
+  | "americano"
+  | "mexicano"
+  | "team-americano"
+  | "team-mexicano"
+  | "championship";
+
+export type CommunityTournamentStatus = "draft" | "active" | "completed" | "cancelled";
+
+export interface CommunityTournament {
+  id: string;
+  communityId: string;
+  name: string;
+  description: string | null;
+  format: CommunityTournamentFormat;
+  status: CommunityTournamentStatus;
+  pointsPerRound: number;
+  roundsCount: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  winnerPlayerIds: string[] | null;
+  coverUrl: string | null;
+  createdBy: string | null;
+  createdAt: string;
+}
+
+export interface CommunityTournamentPlayer {
+  id: string;
+  tournamentId: string;
+  communityPlayerId: string;
+  teamId: string | null;
+  seed: number | null;
+  totalPoints: number;
+  matchesPlayed: number;
+  matchesWon: number;
+}
+
+export interface CommunityTournamentRound {
+  id: string;
+  tournamentId: string;
+  roundNumber: number;
+  status: "pending" | "active" | "completed";
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface CommunityTournamentMatch {
+  id: string;
+  roundId: string;
+  tournamentId: string;
+  courtLabel: string | null;
+  team1PlayerIds: string[];
+  team2PlayerIds: string[];
+  team1Points: number | null;
+  team2Points: number | null;
+  status: "pending" | "completed";
+  createdAt: string;
+}
+
+export interface TournamentStandingRow {
+  player: CommunityPlayer;
+  tournamentPlayer: CommunityTournamentPlayer;
+  rank: number;
+}
+
 export interface Tournament {
   id: string;
   name: string;

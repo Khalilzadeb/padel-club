@@ -1,0 +1,330 @@
+import { supabase } from '@/lib/supabase'
+import type {
+  CommunityPlayer,
+  CommunityTournament,
+  CommunityTournamentFormat,
+  CommunityTournamentMatch,
+  CommunityTournamentPlayer,
+  CommunityTournamentRound,
+  CommunityTournamentStatus,
+  TournamentStandingRow,
+} from '@/lib/types'
+import { getCommunityPlayers } from '@/lib/data/communities'
+
+function toTournament(row: Record<string, unknown>): CommunityTournament {
+  return {
+    id: row.id as string,
+    communityId: row.community_id as string,
+    name: row.name as string,
+    description: row.description as string | null,
+    format: row.format as CommunityTournamentFormat,
+    status: row.status as CommunityTournamentStatus,
+    pointsPerRound: row.points_per_round as number,
+    roundsCount: row.rounds_count as number | null,
+    startDate: row.start_date as string | null,
+    endDate: row.end_date as string | null,
+    winnerPlayerIds: (row.winner_player_ids as string[] | null) ?? null,
+    coverUrl: row.cover_url as string | null,
+    createdBy: row.created_by as string | null,
+    createdAt: row.created_at as string,
+  }
+}
+
+function toTournamentPlayer(row: Record<string, unknown>): CommunityTournamentPlayer {
+  return {
+    id: row.id as string,
+    tournamentId: row.tournament_id as string,
+    communityPlayerId: row.community_player_id as string,
+    teamId: row.team_id as string | null,
+    seed: row.seed as number | null,
+    totalPoints: (row.total_points as number) ?? 0,
+    matchesPlayed: (row.matches_played as number) ?? 0,
+    matchesWon: (row.matches_won as number) ?? 0,
+  }
+}
+
+function toRound(row: Record<string, unknown>): CommunityTournamentRound {
+  return {
+    id: row.id as string,
+    tournamentId: row.tournament_id as string,
+    roundNumber: row.round_number as number,
+    status: row.status as CommunityTournamentRound['status'],
+    startedAt: row.started_at as string | null,
+    completedAt: row.completed_at as string | null,
+  }
+}
+
+function toMatch(row: Record<string, unknown>): CommunityTournamentMatch {
+  return {
+    id: row.id as string,
+    roundId: row.round_id as string,
+    tournamentId: row.tournament_id as string,
+    courtLabel: row.court_label as string | null,
+    team1PlayerIds: (row.team1_player_ids as string[]) ?? [],
+    team2PlayerIds: (row.team2_player_ids as string[]) ?? [],
+    team1Points: row.team1_points as number | null,
+    team2Points: row.team2_points as number | null,
+    status: row.status as CommunityTournamentMatch['status'],
+    createdAt: row.created_at as string,
+  }
+}
+
+export async function listTournaments(communityId: string): Promise<CommunityTournament[]> {
+  const { data, error } = await supabase
+    .from('community_tournaments')
+    .select('*')
+    .eq('community_id', communityId)
+    .order('created_at', { ascending: false })
+  if (error || !data) return []
+  return data.map(toTournament)
+}
+
+export async function getTournament(id: string): Promise<CommunityTournament | null> {
+  const { data, error } = await supabase
+    .from('community_tournaments')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error || !data) return null
+  return toTournament(data)
+}
+
+export interface CreateTournamentInput {
+  communityId: string
+  name: string
+  description?: string | null
+  format: CommunityTournamentFormat
+  pointsPerRound: number
+  roundsCount?: number | null
+  startDate?: string | null
+  endDate?: string | null
+  createdBy?: string | null
+  playerIds: string[] // community_player ids in seed order
+}
+
+export async function createTournament(input: CreateTournamentInput): Promise<CommunityTournament> {
+  const id = `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  const { data, error } = await supabase
+    .from('community_tournaments')
+    .insert({
+      id,
+      community_id: input.communityId,
+      name: input.name,
+      description: input.description ?? null,
+      format: input.format,
+      status: 'draft',
+      points_per_round: input.pointsPerRound,
+      rounds_count: input.roundsCount ?? null,
+      start_date: input.startDate ?? null,
+      end_date: input.endDate ?? null,
+      created_by: input.createdBy ?? null,
+    })
+    .select()
+    .single()
+  if (error || !data) throw new Error(error?.message ?? 'Failed to create tournament')
+
+  if (input.playerIds.length > 0) {
+    const rows = input.playerIds.map((pid, i) => ({
+      id: `tp_${id}_${i + 1}`,
+      tournament_id: id,
+      community_player_id: pid,
+      seed: i + 1,
+    }))
+    const { error: pErr } = await supabase.from('community_tournament_players').insert(rows)
+    if (pErr) throw new Error(pErr.message)
+  }
+
+  return toTournament(data)
+}
+
+export async function getTournamentPlayers(tournamentId: string): Promise<CommunityTournamentPlayer[]> {
+  const { data, error } = await supabase
+    .from('community_tournament_players')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+  if (error || !data) return []
+  return data.map(toTournamentPlayer)
+}
+
+export async function getRounds(tournamentId: string): Promise<CommunityTournamentRound[]> {
+  const { data, error } = await supabase
+    .from('community_tournament_rounds')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('round_number', { ascending: true })
+  if (error || !data) return []
+  return data.map(toRound)
+}
+
+export async function getRoundMatches(roundId: string): Promise<CommunityTournamentMatch[]> {
+  const { data, error } = await supabase
+    .from('community_tournament_matches')
+    .select('*')
+    .eq('round_id', roundId)
+    .order('created_at', { ascending: true })
+  if (error || !data) return []
+  return data.map(toMatch)
+}
+
+export async function getTournamentMatches(tournamentId: string): Promise<CommunityTournamentMatch[]> {
+  const { data, error } = await supabase
+    .from('community_tournament_matches')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('created_at', { ascending: true })
+  if (error || !data) return []
+  return data.map(toMatch)
+}
+
+export async function createRoundWithMatches(
+  tournamentId: string,
+  roundNumber: number,
+  pairings: { team1: string[]; team2: string[]; courtLabel?: string | null }[]
+): Promise<CommunityTournamentRound> {
+  const roundId = `r_${tournamentId}_${roundNumber}`
+  const { data, error } = await supabase
+    .from('community_tournament_rounds')
+    .insert({
+      id: roundId,
+      tournament_id: tournamentId,
+      round_number: roundNumber,
+      status: 'active',
+      started_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+  if (error || !data) throw new Error(error?.message ?? 'Failed to create round')
+
+  if (pairings.length > 0) {
+    const rows = pairings.map((p, i) => ({
+      id: `m_${roundId}_${i + 1}`,
+      round_id: roundId,
+      tournament_id: tournamentId,
+      court_label: p.courtLabel ?? `Court ${i + 1}`,
+      team1_player_ids: p.team1,
+      team2_player_ids: p.team2,
+    }))
+    const { error: mErr } = await supabase.from('community_tournament_matches').insert(rows)
+    if (mErr) throw new Error(mErr.message)
+  }
+
+  return toRound(data)
+}
+
+export async function recordMatchScore(
+  matchId: string,
+  team1Points: number,
+  team2Points: number
+): Promise<void> {
+  // Fetch the match to know who plays
+  const { data: matchRow } = await supabase
+    .from('community_tournament_matches')
+    .select('*')
+    .eq('id', matchId)
+    .single()
+  if (!matchRow) throw new Error('Match not found')
+  const match = toMatch(matchRow)
+
+  await supabase
+    .from('community_tournament_matches')
+    .update({
+      team1_points: team1Points,
+      team2_points: team2Points,
+      status: 'completed',
+    })
+    .eq('id', matchId)
+
+  const winnerIds = team1Points > team2Points
+    ? match.team1PlayerIds
+    : team2Points > team1Points
+    ? match.team2PlayerIds
+    : []
+
+  // Update per-player aggregates: each player gets their team's points, +1 match played, +1 win if won
+  const updates: { ids: string[]; points: number; won: boolean }[] = [
+    { ids: match.team1PlayerIds, points: team1Points, won: team1Points > team2Points },
+    { ids: match.team2PlayerIds, points: team2Points, won: team2Points > team1Points },
+  ]
+
+  for (const u of updates) {
+    for (const pid of u.ids) {
+      const { data: tpRow } = await supabase
+        .from('community_tournament_players')
+        .select('*')
+        .eq('tournament_id', match.tournamentId)
+        .eq('community_player_id', pid)
+        .single()
+      if (!tpRow) continue
+      const tp = toTournamentPlayer(tpRow)
+      await supabase
+        .from('community_tournament_players')
+        .update({
+          total_points: tp.totalPoints + u.points,
+          matches_played: tp.matchesPlayed + 1,
+          matches_won: tp.matchesWon + (u.won ? 1 : 0),
+        })
+        .eq('id', tp.id)
+    }
+  }
+
+  void winnerIds
+}
+
+export async function completeRound(roundId: string): Promise<void> {
+  await supabase
+    .from('community_tournament_rounds')
+    .update({ status: 'completed', completed_at: new Date().toISOString() })
+    .eq('id', roundId)
+}
+
+export async function completeTournament(
+  tournamentId: string,
+  winnerPlayerIds: string[]
+): Promise<void> {
+  // Increment tournaments_won on community_players + tournament_player tournaments_won
+  await supabase
+    .from('community_tournaments')
+    .update({
+      status: 'completed',
+      winner_player_ids: winnerPlayerIds,
+      end_date: new Date().toISOString().slice(0, 10),
+    })
+    .eq('id', tournamentId)
+
+  for (const pid of winnerPlayerIds) {
+    const { data } = await supabase
+      .from('community_players')
+      .select('tournaments_won')
+      .eq('id', pid)
+      .single()
+    if (!data) continue
+    await supabase
+      .from('community_players')
+      .update({ tournaments_won: ((data.tournaments_won as number) ?? 0) + 1 })
+      .eq('id', pid)
+  }
+}
+
+export async function getStandings(tournamentId: string): Promise<TournamentStandingRow[]> {
+  const tournament = await getTournament(tournamentId)
+  if (!tournament) return []
+
+  const tournamentPlayers = await getTournamentPlayers(tournamentId)
+  const players = await getCommunityPlayers(tournament.communityId)
+  const playerMap = new Map(players.map((p) => [p.id, p]))
+
+  return tournamentPlayers
+    .map((tp) => {
+      const player = playerMap.get(tp.communityPlayerId)
+      if (!player) return null
+      return { player, tournamentPlayer: tp }
+    })
+    .filter((x): x is { player: CommunityPlayer; tournamentPlayer: CommunityTournamentPlayer } => x !== null)
+    .sort((a, b) => {
+      if (b.tournamentPlayer.totalPoints !== a.tournamentPlayer.totalPoints) {
+        return b.tournamentPlayer.totalPoints - a.tournamentPlayer.totalPoints
+      }
+      return b.tournamentPlayer.matchesWon - a.tournamentPlayer.matchesWon
+    })
+    .map((x, idx) => ({ ...x, rank: idx + 1 }))
+}
