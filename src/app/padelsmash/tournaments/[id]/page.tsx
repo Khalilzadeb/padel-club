@@ -256,7 +256,8 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Standings column */}
-        <div className="lg:col-span-1 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+        <div className="lg:col-span-1">
+          <div className="lg:sticky lg:top-20">
           <Card className="p-5">
             <h2 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <Trophy className="w-4 h-4 text-padel-green" />
@@ -318,6 +319,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
               </div>
             )}
           </Card>
+          </div>
         </div>
       </div>
     </div>
