@@ -85,6 +85,8 @@
     "sitoutLabel": "Отдыхают в этом раунде",
     "americanoSitoutInfo": "{players} игроков, {courts} кортов — {sitouts} отдыхают каждый раунд. ~{rounds} раундов.",
     "americanoTooFewPlayers": "{courts} кортов требуют минимум {needed} игроков (выбрано: {actual})",
+    "championshipInfo": "Чемпионат: {teams} команд × 2 игрока = {target} игроков. Система разбивает по парам и распределяет в группы A, B, C, D.",
+    "championshipBadPlayerCount": "Чемпионату нужно 16 или 32 игрока (выбрано: {actual})",
     "back": "Назад",
     "next": "Далее",
     "create": "Создать",

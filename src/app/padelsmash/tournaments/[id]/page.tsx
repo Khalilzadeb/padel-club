@@ -366,17 +366,28 @@ function RoundCard({
       </div>
 
       <div className="space-y-2">
-        {matches.map((match) => (
-          <MatchRow
-            key={match.id}
-            match={match}
-            playerName={playerName}
-            isAdmin={isAdmin}
-            pointsPerRound={pointsPerRound}
-            tournamentId={tournamentId}
-            onScored={onScored}
-          />
-        ))}
+        {matches.map((match) =>
+          match.stage ? (
+            <ChampionshipMatchRow
+              key={match.id}
+              match={match}
+              playerName={playerName}
+              isAdmin={isAdmin}
+              tournamentId={tournamentId}
+              onScored={onScored}
+            />
+          ) : (
+            <MatchRow
+              key={match.id}
+              match={match}
+              playerName={playerName}
+              isAdmin={isAdmin}
+              pointsPerRound={pointsPerRound}
+              tournamentId={tournamentId}
+              onScored={onScored}
+            />
+          )
+        )}
       </div>
 
       {sitouts.length > 0 && (
@@ -553,6 +564,154 @@ function MatchRow({
         </div>
         <div className={`flex-1 min-w-0 text-right ${team2Won ? "font-semibold" : ""}`}>
           <p className="text-sm text-gray-900 dark:text-white truncate">{match.team2PlayerIds.map(playerName).join(" + ")}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Championship match row: 3 set inputs, set-based scoring (best of 3).
+function ChampionshipMatchRow({
+  match,
+  playerName,
+  isAdmin,
+  tournamentId,
+  onScored,
+}: {
+  match: CommunityTournamentMatch;
+  playerName: (id: string) => string;
+  isAdmin: boolean;
+  tournamentId: string;
+  onScored: () => void;
+}) {
+  type SetRow = { t1: string; t2: string };
+  const initialSets: SetRow[] = (match.sets ?? []).map((s) => ({
+    t1: String(s.team1Games),
+    t2: String(s.team2Games),
+  }));
+  while (initialSets.length < 3) initialSets.push({ t1: "", t2: "" });
+
+  const [sets, setSets] = useState<SetRow[]>(initialSets);
+  const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const lastSavedRef = useRef<SetRow[]>(initialSets.map((s) => ({ ...s })));
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const next: SetRow[] = (match.sets ?? []).map((s) => ({
+      t1: String(s.team1Games),
+      t2: String(s.team2Games),
+    }));
+    while (next.length < 3) next.push({ t1: "", t2: "" });
+    setSets(next);
+    lastSavedRef.current = next.map((s) => ({ ...s }));
+  }, [match.sets]);
+
+  const changed = (a: SetRow[], b: SetRow[]) =>
+    a.some((s, i) => s.t1 !== b[i].t1 || s.t2 !== b[i].t2);
+
+  const scheduleSave = (nextSets: SetRow[]) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      if (!changed(nextSets, lastSavedRef.current)) return;
+      // Only save sets that have both values filled.
+      const completedSets = nextSets
+        .filter((s) => s.t1 !== "" && s.t2 !== "")
+        .map((s) => ({ team1Games: Number(s.t1), team2Games: Number(s.t2) }))
+        .filter((s) => Number.isFinite(s.team1Games) && Number.isFinite(s.team2Games));
+      if (completedSets.length < 2) return;
+      // Winner must be decisive
+      const t1Wins = completedSets.filter((s) => s.team1Games > s.team2Games).length;
+      const t2Wins = completedSets.filter((s) => s.team2Games > s.team1Games).length;
+      if (t1Wins < 2 && t2Wins < 2) return;
+
+      setSaving(true);
+      const res = await fetch(`/api/community/tournaments/${tournamentId}/matches/${match.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sets: completedSets }),
+      });
+      setSaving(false);
+      if (res.ok) {
+        lastSavedRef.current = nextSets.map((s) => ({ ...s }));
+        setJustSaved(true);
+        setTimeout(() => setJustSaved(false), 1200);
+        onScored();
+      }
+    }, 800);
+  };
+
+  const updateSet = (idx: number, field: "t1" | "t2", v: string) => {
+    const next = sets.map((s, i) => (i === idx ? { ...s, [field]: v } : s));
+    setSets(next);
+    scheduleSave(next);
+  };
+
+  const t1Sets = sets.filter((s) => s.t1 !== "" && s.t2 !== "" && Number(s.t1) > Number(s.t2)).length;
+  const t2Sets = sets.filter((s) => s.t1 !== "" && s.t2 !== "" && Number(s.t2) > Number(s.t1)).length;
+  const team1Won = match.status === "completed" && t1Sets > t2Sets;
+  const team2Won = match.status === "completed" && t2Sets > t1Sets;
+
+  return (
+    <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="px-3 py-1 bg-gray-50 dark:bg-gray-700/50 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center justify-between">
+        <span>{match.courtLabel}</span>
+        {saving && <span className="text-gray-400 normal-case">Saving…</span>}
+        {!saving && justSaved && (
+          <span className="text-padel-green normal-case flex items-center gap-0.5">
+            <Check className="w-3 h-3" /> Saved
+          </span>
+        )}
+      </div>
+      <div className="p-3">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div className={`min-w-0 ${team1Won ? "font-semibold" : ""}`}>
+            <p className="text-sm text-gray-900 dark:text-white truncate">
+              {match.team1PlayerIds.map(playerName).join(" + ")}
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            {sets.map((s, i) => (
+              <div key={i} className="flex flex-col items-center gap-0.5">
+                {isAdmin ? (
+                  <>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="9"
+                      value={s.t1}
+                      onChange={(e) => updateSet(i, "t1", e.target.value)}
+                      className="w-10 px-1 py-0.5 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green"
+                    />
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="9"
+                      value={s.t2}
+                      onChange={(e) => updateSet(i, "t2", e.target.value)}
+                      className="w-10 px-1 py-0.5 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <span className="w-10 text-center text-sm font-bold text-gray-900 dark:text-white">
+                      {s.t1 || "–"}
+                    </span>
+                    <span className="w-10 text-center text-sm font-bold text-gray-900 dark:text-white">
+                      {s.t2 || "–"}
+                    </span>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className={`min-w-0 text-right ${team2Won ? "font-semibold" : ""}`}>
+            <p className="text-sm text-gray-900 dark:text-white truncate">
+              {match.team2PlayerIds.map(playerName).join(" + ")}
+            </p>
+          </div>
         </div>
       </div>
     </div>

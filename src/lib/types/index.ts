@@ -282,12 +282,28 @@ export interface CommunityTournamentPlayer {
   tournamentId: string;
   communityPlayerId: string;
   teamId: string | null;
+  teamName: string | null;
+  groupLabel: string | null;
   seed: number | null;
   totalPoints: number;
   pointsAgainst: number;
   matchesPlayed: number;
   matchesWon: number;
 }
+
+export interface MatchSetScore {
+  team1Games: number;
+  team2Games: number;
+  tiebreak?: { team1Points: number; team2Points: number };
+}
+
+export type ChampionshipStage =
+  | "group"
+  | "round-of-16"
+  | "quarterfinal"
+  | "semifinal"
+  | "final"
+  | "bronze";
 
 export interface CommunityTournamentRound {
   id: string;
@@ -307,6 +323,10 @@ export interface CommunityTournamentMatch {
   team2PlayerIds: string[];
   team1Points: number | null;
   team2Points: number | null;
+  sets: MatchSetScore[] | null;
+  stage: ChampionshipStage | null;
+  groupLabel: string | null;
+  bracketPosition: number | null;
   status: "pending" | "completed";
   createdAt: string;
 }

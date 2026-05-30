@@ -83,6 +83,14 @@ export default function NewTournamentPage() {
 
     const orderedIds = allPlayers.filter((p) => selected.has(p.id)).map((p) => p.id);
 
+    // Championship: pair consecutive players into 2-player teams.
+    const teams =
+      format === "championship"
+        ? Array.from({ length: Math.floor(orderedIds.length / 2) }, (_, i) => ({
+            playerIds: [orderedIds[i * 2], orderedIds[i * 2 + 1]],
+          }))
+        : undefined;
+
     const res = await fetch("/api/community/tournaments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -96,6 +104,7 @@ export default function NewTournamentPage() {
         prizePositions,
         startDate,
         playerIds: orderedIds,
+        teams,
       }),
     });
     setSaving(false);
@@ -122,6 +131,10 @@ export default function NewTournamentPage() {
   const americanoSuggestedSitoutRounds = suggestedAmericanoRounds(selected.size, courtCount);
   const americanoTooFewPlayers = format === "americano" && selected.size > 0 && selected.size < playingPerRound;
   const americanoMultipleInvalid = format === "americano" && selected.size > 0 && selected.size % 4 !== 0;
+  const championshipTeamsNeeded = 16; // default; 8 also accepted
+  const championshipTargetPlayers = championshipTeamsNeeded * 2; // 32
+  const championshipInvalid =
+    format === "championship" && selected.size > 0 && selected.size !== 16 && selected.size !== 32;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -357,6 +370,19 @@ export default function NewTournamentPage() {
             </Badge>
           </div>
 
+          {format === "championship" && (
+            <p className="text-xs text-blue-900 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+              {t.communityTournaments.championshipInfo
+                .replace("{target}", String(championshipTargetPlayers))
+                .replace("{teams}", String(championshipTeamsNeeded))}
+            </p>
+          )}
+          {championshipInvalid && (
+            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+              {t.communityTournaments.championshipBadPlayerCount
+                .replace("{actual}", String(selected.size))}
+            </p>
+          )}
           {format === "americano" && selected.size > 0 && selected.size === playingPerRound && (
             <p className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               {t.communityTournaments.americanoRoundsCount
@@ -435,7 +461,14 @@ export default function NewTournamentPage() {
             </Button>
             <Button
               onClick={submit}
-              disabled={saving || selected.size < 4 || americanoMultipleInvalid || americanoTooFewPlayers}
+              disabled={
+                saving ||
+                selected.size < 4 ||
+                americanoMultipleInvalid ||
+                americanoTooFewPlayers ||
+                championshipInvalid ||
+                (format === "championship" && selected.size !== 16 && selected.size !== 32)
+              }
             >
               {saving ? t.communityTournaments.creating : t.communityTournaments.create}
             </Button>

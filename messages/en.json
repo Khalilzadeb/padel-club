@@ -85,6 +85,8 @@
     "sitoutLabel": "Sitting out this round",
     "americanoSitoutInfo": "{players} players on {courts} courts — {sitouts} sit out each round. ~{rounds} rounds.",
     "americanoTooFewPlayers": "{courts} courts need at least {needed} players (selected: {actual})",
+    "championshipInfo": "Championship: {teams} teams × 2 players = {target} players. System pairs them sequentially and assigns to groups A, B, C, D.",
+    "championshipBadPlayerCount": "Championship needs 16 or 32 players (selected: {actual})",
     "back": "Back",
     "next": "Next",
     "create": "Create tournament",

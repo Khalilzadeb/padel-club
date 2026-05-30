@@ -11,6 +11,7 @@ import type {
 } from '@/lib/types'
 import { getCommunityPlayers } from '@/lib/data/communities'
 import { generateAmericanoSchedule, suggestedAmericanoRounds } from '@/lib/tournament-pairing'
+import { groupRoundRobinPairings } from '@/lib/championship-bracket'
 
 function toTournament(row: Record<string, unknown>): CommunityTournament {
   return {
@@ -39,6 +40,8 @@ function toTournamentPlayer(row: Record<string, unknown>): CommunityTournamentPl
     tournamentId: row.tournament_id as string,
     communityPlayerId: row.community_player_id as string,
     teamId: row.team_id as string | null,
+    teamName: row.team_name as string | null,
+    groupLabel: row.group_label as string | null,
     seed: row.seed as number | null,
     totalPoints: (row.total_points as number) ?? 0,
     pointsAgainst: (row.points_against as number) ?? 0,
@@ -68,6 +71,10 @@ function toMatch(row: Record<string, unknown>): CommunityTournamentMatch {
     team2PlayerIds: (row.team2_player_ids as string[]) ?? [],
     team1Points: row.team1_points as number | null,
     team2Points: row.team2_points as number | null,
+    sets: (row.sets as CommunityTournamentMatch['sets']) ?? null,
+    stage: row.stage as CommunityTournamentMatch['stage'],
+    groupLabel: row.group_label as string | null,
+    bracketPosition: row.bracket_position as number | null,
     status: row.status as CommunityTournamentMatch['status'],
     createdAt: row.created_at as string,
   }
@@ -106,6 +113,9 @@ export interface CreateTournamentInput {
   endDate?: string | null
   createdBy?: string | null
   playerIds: string[] // community_player ids in seed order
+  // Championship-only: 2 player ids per team in selection order.
+  // teams[i] becomes Team i+1; first 4 teams go to group A, next 4 to B, etc.
+  teams?: { name?: string; playerIds: string[] }[]
 }
 
 export async function createTournament(input: CreateTournamentInput): Promise<CommunityTournament> {
@@ -131,7 +141,29 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
     .single()
   if (error || !data) throw new Error(error?.message ?? 'Failed to create tournament')
 
-  if (input.playerIds.length > 0) {
+  // Player rows. For championship, each player belongs to a team and a group.
+  if (input.format === 'championship' && input.teams && input.teams.length > 0) {
+    const rows: Record<string, unknown>[] = []
+    input.teams.forEach((team, teamIdx) => {
+      const teamId = `team_${id}_${teamIdx + 1}`
+      const groupIdx = Math.floor(teamIdx / 4)
+      const groupLabel = String.fromCharCode(65 + groupIdx) // 0→A, 1→B, ...
+      const teamName = team.name ?? `${groupLabel}${(teamIdx % 4) + 1}`
+      team.playerIds.forEach((pid, j) => {
+        rows.push({
+          id: `tp_${id}_${teamIdx + 1}_${j + 1}`,
+          tournament_id: id,
+          community_player_id: pid,
+          team_id: teamId,
+          team_name: teamName,
+          group_label: groupLabel,
+          seed: teamIdx + 1,
+        })
+      })
+    })
+    const { error: pErr } = await supabase.from('community_tournament_players').insert(rows)
+    if (pErr) throw new Error(pErr.message)
+  } else if (input.playerIds.length > 0) {
     const rows = input.playerIds.map((pid, i) => ({
       id: `tp_${id}_${i + 1}`,
       tournament_id: id,
@@ -190,6 +222,56 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
         .update({ rounds_count: schedule.length })
         .eq('id', id)
     }
+  }
+
+  // Championship: pre-create the group-stage matches. One round per group with
+  // 6 matches (round-robin of 4 teams). Bracket matches are created after the
+  // group stage finishes.
+  if (input.format === 'championship' && input.teams && input.teams.length > 0) {
+    const teams = input.teams
+    const groupCount = Math.ceil(teams.length / 4)
+    const roundRows: Record<string, unknown>[] = []
+    const matchRows: Record<string, unknown>[] = []
+
+    for (let g = 0; g < groupCount; g++) {
+      const groupLabel = String.fromCharCode(65 + g)
+      const groupTeams = teams.slice(g * 4, g * 4 + 4)
+      const roundId = `r_${id}_group_${groupLabel}`
+      roundRows.push({
+        id: roundId,
+        tournament_id: id,
+        round_number: g + 1,
+        status: g === 0 ? 'active' : 'pending',
+        started_at: g === 0 ? new Date().toISOString() : null,
+      })
+      const pairings = groupRoundRobinPairings()
+      pairings.forEach((p, i) => {
+        const t1 = groupTeams[p.team1Idx]
+        const t2 = groupTeams[p.team2Idx]
+        if (!t1 || !t2) return
+        matchRows.push({
+          id: `m_${roundId}_${i + 1}`,
+          round_id: roundId,
+          tournament_id: id,
+          court_label: `Group ${groupLabel} · Match ${i + 1}`,
+          team1_player_ids: t1.playerIds,
+          team2_player_ids: t2.playerIds,
+          stage: 'group',
+          group_label: groupLabel,
+        })
+      })
+    }
+    if (roundRows.length > 0) {
+      const { error: rErr } = await supabase.from('community_tournament_rounds').insert(roundRows)
+      if (rErr) throw new Error(rErr.message)
+    }
+    if (matchRows.length > 0) {
+      const { error: mErr } = await supabase.from('community_tournament_matches').insert(matchRows)
+      if (mErr) throw new Error(mErr.message)
+    }
+
+    // Activate the tournament immediately so groups can begin.
+    await supabase.from('community_tournaments').update({ status: 'active' }).eq('id', id)
   }
 
   return toTournament(data)
@@ -267,6 +349,23 @@ export async function createRoundWithMatches(
   }
 
   return toRound(data)
+}
+
+// Record set-based scores for a championship match. Determines the winner from set count
+// and updates the match row. Does NOT update per-player point totals (championship uses
+// match wins, not points).
+export async function recordMatchSets(
+  matchId: string,
+  sets: { team1Games: number; team2Games: number; tiebreak?: { team1Points: number; team2Points: number } }[]
+): Promise<void> {
+  const { error } = await supabase
+    .from('community_tournament_matches')
+    .update({
+      sets,
+      status: 'completed',
+    })
+    .eq('id', matchId)
+  if (error) throw new Error(error.message)
 }
 
 export async function recordMatchScore(

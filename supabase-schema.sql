@@ -330,12 +330,25 @@ create table if not exists community_tournament_matches (
   team2_player_ids text[] not null,
   team1_points integer,
   team2_points integer,
+  sets jsonb, -- championship: [{team1Games, team2Games, tiebreak?}, ...]
+  stage text, -- championship: 'group' | 'round-of-16' | 'quarterfinal' | 'semifinal' | 'final'
+  group_label text, -- championship group matches: 'A' | 'B' | 'C' | 'D'
+  bracket_position integer, -- bracket stage: 1..N (1=top match in that stage)
   status text not null default 'pending', -- 'pending' | 'completed'
   created_at timestamptz default now()
 );
 
+alter table community_tournament_matches add column if not exists sets jsonb;
+alter table community_tournament_matches add column if not exists stage text;
+alter table community_tournament_matches add column if not exists group_label text;
+alter table community_tournament_matches add column if not exists bracket_position integer;
+
+alter table community_tournament_players add column if not exists team_name text;
+alter table community_tournament_players add column if not exists group_label text;
+
 create index if not exists idx_ct_matches_round on community_tournament_matches(round_id);
 create index if not exists idx_ct_matches_tournament on community_tournament_matches(tournament_id);
+create index if not exists idx_ct_matches_stage on community_tournament_matches(tournament_id, stage);
 
 -- Seed the PadelSmash community itself.
 insert into communities (id, slug, name, description, logo_url, cover_url) values
