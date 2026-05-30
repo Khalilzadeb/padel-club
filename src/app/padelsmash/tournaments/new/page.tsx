@@ -598,10 +598,7 @@ function Step4Teams({
   const playerById = new Map(allPlayers.map((p) => [p.id, p]));
   const paired = new Set(teamPairs.flat());
   const available = selectedIds.filter((id) => !paired.has(id));
-  const teamsNeeded = selectedIds.length / 2;
-  const targetTeams = teamsNeeded; // 8 or 16
-  const groupCount = Math.ceil(targetTeams / 4);
-  const groupLabels = ["A", "B", "C", "D"].slice(0, groupCount);
+  const targetTeams = selectedIds.length / 2; // 8 or 16
 
   const handlePlayerTap = (id: string) => {
     if (pendingFirst === id) {
@@ -693,56 +690,48 @@ function Step4Teams({
         )}
       </div>
 
-      {/* Formed teams, grouped by A/B/C/D */}
-      <div className="space-y-3">
-        {groupLabels.map((groupLabel, gIdx) => {
-          const startIdx = gIdx * 4;
-          const groupTeams = teamPairs.slice(startIdx, startIdx + 4);
-          return (
-            <div key={groupLabel}>
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
-                {t.communityTournaments.group} {groupLabel}
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[0, 1, 2, 3].map((slot) => {
-                  const team = groupTeams[slot];
-                  const teamPosLabel = `${groupLabel}${slot + 1}`;
-                  if (!team) {
-                    return (
-                      <div
-                        key={slot}
-                        className="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-400 italic"
-                      >
-                        {teamPosLabel} — {t.communityTournaments.emptySlot}
-                      </div>
-                    );
-                  }
-                  const [p1Id, p2Id] = team;
-                  const p1 = playerById.get(p1Id);
-                  const p2 = playerById.get(p2Id);
-                  return (
-                    <div
-                      key={slot}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/10 flex items-center gap-2"
-                    >
-                      <span className="text-xs font-bold text-padel-green w-8">{teamPosLabel}</span>
-                      <span className="text-sm text-gray-900 dark:text-white flex-1 truncate">
-                        {p1?.name} + {p2?.name}
-                      </span>
-                      <button
-                        onClick={() => removeTeam(startIdx + slot)}
-                        className="text-red-500 hover:text-red-600 text-sm font-medium"
-                        title={t.communityTournaments.removeTeam}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  );
-                })}
+      {/* Formed teams — flat list. Group assignment happens via draw after creation. */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
+          {t.communityTournaments.formedTeams}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {Array.from({ length: targetTeams }).map((_, slot) => {
+            const team = teamPairs[slot];
+            const teamPosLabel = `${slot + 1}`;
+            if (!team) {
+              return (
+                <div
+                  key={slot}
+                  className="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm text-gray-400 italic"
+                >
+                  #{teamPosLabel} — {t.communityTournaments.emptySlot}
+                </div>
+              );
+            }
+            const [p1Id, p2Id] = team;
+            const p1 = playerById.get(p1Id);
+            const p2 = playerById.get(p2Id);
+            return (
+              <div
+                key={slot}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/10 flex items-center gap-2"
+              >
+                <span className="text-xs font-bold text-padel-green w-8">#{teamPosLabel}</span>
+                <span className="text-sm text-gray-900 dark:text-white flex-1 truncate">
+                  {p1?.name} + {p2?.name}
+                </span>
+                <button
+                  onClick={() => removeTeam(slot)}
+                  className="text-red-500 hover:text-red-600 text-sm font-medium"
+                  title={t.communityTournaments.removeTeam}
+                >
+                  ×
+                </button>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

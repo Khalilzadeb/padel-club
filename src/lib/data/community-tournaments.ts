@@ -147,14 +147,13 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
     .single()
   if (error || !data) throw new Error(error?.message ?? 'Failed to create tournament')
 
-  // Player rows. For championship, each player belongs to a team and a group.
+  // Player rows. For championship, each player belongs to a team. Group assignment
+  // happens later via the draw — so group_label stays NULL until then.
   if (input.format === 'championship' && input.teams && input.teams.length > 0) {
     const rows: Record<string, unknown>[] = []
     input.teams.forEach((team, teamIdx) => {
       const teamId = `team_${id}_${teamIdx + 1}`
-      const groupIdx = Math.floor(teamIdx / 4)
-      const groupLabel = String.fromCharCode(65 + groupIdx) // 0→A, 1→B, ...
-      const teamName = team.name ?? `${groupLabel}${(teamIdx % 4) + 1}`
+      const teamName = team.name ?? `Team ${teamIdx + 1}`
       team.playerIds.forEach((pid, j) => {
         rows.push({
           id: `tp_${id}_${teamIdx + 1}_${j + 1}`,
@@ -162,7 +161,7 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
           community_player_id: pid,
           team_id: teamId,
           team_name: teamName,
-          group_label: groupLabel,
+          group_label: null,
           seed: teamIdx + 1,
         })
       })
@@ -230,57 +229,79 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
     }
   }
 
-  // Championship: pre-create the group-stage matches. One round per group with
-  // 6 matches (round-robin of 4 teams). Bracket matches are created after the
-  // group stage finishes.
-  if (input.format === 'championship' && input.teams && input.teams.length > 0) {
-    const teams = input.teams
-    const groupCount = Math.ceil(teams.length / 4)
-    const roundRows: Record<string, unknown>[] = []
-    const matchRows: Record<string, unknown>[] = []
-
-    for (let g = 0; g < groupCount; g++) {
-      const groupLabel = String.fromCharCode(65 + g)
-      const groupTeams = teams.slice(g * 4, g * 4 + 4)
-      const roundId = `r_${id}_group_${groupLabel}`
-      roundRows.push({
-        id: roundId,
-        tournament_id: id,
-        round_number: g + 1,
-        status: g === 0 ? 'active' : 'pending',
-        started_at: g === 0 ? new Date().toISOString() : null,
-      })
-      const pairings = groupRoundRobinPairings()
-      pairings.forEach((p, i) => {
-        const t1 = groupTeams[p.team1Idx]
-        const t2 = groupTeams[p.team2Idx]
-        if (!t1 || !t2) return
-        matchRows.push({
-          id: `m_${roundId}_${i + 1}`,
-          round_id: roundId,
-          tournament_id: id,
-          court_label: `Group ${groupLabel} · Match ${i + 1}`,
-          team1_player_ids: t1.playerIds,
-          team2_player_ids: t2.playerIds,
-          stage: 'group',
-          group_label: groupLabel,
-        })
-      })
-    }
-    if (roundRows.length > 0) {
-      const { error: rErr } = await supabase.from('community_tournament_rounds').insert(roundRows)
-      if (rErr) throw new Error(rErr.message)
-    }
-    if (matchRows.length > 0) {
-      const { error: mErr } = await supabase.from('community_tournament_matches').insert(matchRows)
-      if (mErr) throw new Error(mErr.message)
-    }
-
-    // Activate the tournament immediately so groups can begin.
-    await supabase.from('community_tournaments').update({ status: 'active' }).eq('id', id)
-  }
+  // Championship: do NOT pre-create matches here. They are created after the
+  // draw assigns each team to a group, in the draw endpoint.
 
   return toTournament(data)
+}
+
+// Used by the draw endpoint once all 16 teams have a group assignment.
+// Creates the 24 group-stage matches and activates the tournament.
+export async function createGroupStageMatches(tournamentId: string): Promise<void> {
+  const players = await getTournamentPlayers(tournamentId)
+  // Group players by team_id
+  const teamMap = new Map<string, { teamId: string; playerIds: string[]; groupLabel: string; teamName: string; seed: number }>()
+  for (const p of players) {
+    if (!p.teamId) continue
+    if (!teamMap.has(p.teamId)) {
+      teamMap.set(p.teamId, {
+        teamId: p.teamId,
+        playerIds: [],
+        groupLabel: p.groupLabel ?? '',
+        teamName: p.teamName ?? p.teamId,
+        seed: p.seed ?? 0,
+      })
+    }
+    teamMap.get(p.teamId)!.playerIds.push(p.communityPlayerId)
+  }
+  const teams = Array.from(teamMap.values())
+  const byGroup: Record<string, typeof teams> = {}
+  for (const t of teams) {
+    if (!t.groupLabel) continue
+    if (!byGroup[t.groupLabel]) byGroup[t.groupLabel] = []
+    byGroup[t.groupLabel].push(t)
+  }
+
+  const roundRows: Record<string, unknown>[] = []
+  const matchRows: Record<string, unknown>[] = []
+  let roundIdx = 0
+  for (const groupLabel of Object.keys(byGroup).sort()) {
+    const groupTeams = byGroup[groupLabel]
+    const roundId = `r_${tournamentId}_group_${groupLabel}`
+    roundRows.push({
+      id: roundId,
+      tournament_id: tournamentId,
+      round_number: roundIdx + 1,
+      status: roundIdx === 0 ? 'active' : 'pending',
+      started_at: roundIdx === 0 ? new Date().toISOString() : null,
+    })
+    const pairings = groupRoundRobinPairings()
+    pairings.forEach((p, i) => {
+      const t1 = groupTeams[p.team1Idx]
+      const t2 = groupTeams[p.team2Idx]
+      if (!t1 || !t2) return
+      matchRows.push({
+        id: `m_${roundId}_${i + 1}`,
+        round_id: roundId,
+        tournament_id: tournamentId,
+        court_label: `Group ${groupLabel} · Match ${i + 1}`,
+        team1_player_ids: t1.playerIds,
+        team2_player_ids: t2.playerIds,
+        stage: 'group',
+        group_label: groupLabel,
+      })
+    })
+    roundIdx++
+  }
+  if (roundRows.length > 0) {
+    const { error: rErr } = await supabase.from('community_tournament_rounds').insert(roundRows)
+    if (rErr) throw new Error(rErr.message)
+  }
+  if (matchRows.length > 0) {
+    const { error: mErr } = await supabase.from('community_tournament_matches').insert(matchRows)
+    if (mErr) throw new Error(mErr.message)
+  }
+  await supabase.from('community_tournaments').update({ status: 'active' }).eq('id', tournamentId)
 }
 
 export async function getTournamentPlayers(tournamentId: string): Promise<CommunityTournamentPlayer[]> {

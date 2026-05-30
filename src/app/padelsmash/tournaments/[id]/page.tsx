@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check } from "lucide-react";
 import BracketView from "@/components/community/BracketView";
+import DrawPanel from "@/components/community/DrawPanel";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -223,6 +224,21 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
           </div>
         )}
       </Card>
+
+      {/* Championship: draw panel while teams still need group assignment. */}
+      {tournament.format === "championship" &&
+        tournament.status !== "completed" &&
+        data.players.some((p) => p.teamId && !p.groupLabel) && (
+          <div className="mb-6">
+            <DrawPanel
+              tournamentId={tournament.id}
+              players={data.players}
+              playerName={playerName}
+              isAdmin={isAdmin}
+              onProgress={load}
+            />
+          </div>
+        )}
 
       {/* Championship: show bracket diagram once R16 starts. */}
       {tournament.format === "championship" &&
