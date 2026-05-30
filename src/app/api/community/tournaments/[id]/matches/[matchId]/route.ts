@@ -7,6 +7,7 @@ import {
   getRoundMatches,
   getRounds,
   getTournament,
+  getTournamentMatches,
   getTournamentPlayers,
   recordMatchScore,
 } from "@/lib/data/community-tournaments";
@@ -75,11 +76,41 @@ export async function PATCH(
       }
     } else if (tournament.format === "mexicano" && tournament.roundsCount) {
       // Only auto-generate when admin set a fixed round count.
-      // In manual mode (no rounds_count), the admin clicks "Start next round" themselves.
       const nextRoundNumber = rounds.length + 1;
       if (nextRoundNumber <= tournament.roundsCount) {
         const tournamentPlayers = await getTournamentPlayers(id);
-        const pairings = mexicanoRoundPairings(tournamentPlayers, nextRoundNumber);
+
+        // Build sit-out counts from past rounds.
+        const pastMatches = await getTournamentMatches(id);
+        const matchesByRound = new Map<string, typeof pastMatches>();
+        for (const m of pastMatches) {
+          if (!matchesByRound.has(m.roundId)) matchesByRound.set(m.roundId, []);
+          matchesByRound.get(m.roundId)!.push(m);
+        }
+        const sitoutCounts = new Map<string, number>();
+        for (const round of rounds) {
+          const roundMatches = matchesByRound.get(round.id) ?? [];
+          const playing = new Set<string>();
+          for (const m of roundMatches) {
+            m.team1PlayerIds.forEach((p) => playing.add(p));
+            m.team2PlayerIds.forEach((p) => playing.add(p));
+          }
+          for (const tp of tournamentPlayers) {
+            if (!playing.has(tp.communityPlayerId)) {
+              sitoutCounts.set(
+                tp.communityPlayerId,
+                (sitoutCounts.get(tp.communityPlayerId) ?? 0) + 1
+              );
+            }
+          }
+        }
+
+        const { pairings } = mexicanoRoundPairings(
+          tournamentPlayers,
+          nextRoundNumber,
+          tournament.courtCount,
+          sitoutCounts
+        );
         if (pairings.length > 0) {
           const withCourts = pairings.map((p, i) => ({ ...p, courtLabel: `Court ${i + 1}` }));
           await createRoundWithMatches(id, nextRoundNumber, withCourts);

@@ -127,6 +127,20 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
 
   const playerName = (id: string) => communityPlayers[id]?.name ?? id;
 
+  // Sit-outs per round = tournament players not appearing in any of that round's matches.
+  const sitoutsByRound: Record<string, string[]> = {};
+  for (const round of rounds) {
+    const matches = matchesByRound[round.id] ?? [];
+    const playing = new Set<string>();
+    for (const m of matches) {
+      m.team1PlayerIds.forEach((p) => playing.add(p));
+      m.team2PlayerIds.forEach((p) => playing.add(p));
+    }
+    sitoutsByRound[round.id] = data.players
+      .map((p) => p.communityPlayerId)
+      .filter((id) => !playing.has(id));
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Link
@@ -232,6 +246,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                   key={round.id}
                   round={round}
                   matches={matchesByRound[round.id] ?? []}
+                  sitouts={sitoutsByRound[round.id] ?? []}
                   playerName={playerName}
                   isAdmin={isAdmin}
                   pointsPerRound={tournament.pointsPerRound}
@@ -315,6 +330,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
 function RoundCard({
   round,
   matches,
+  sitouts,
   playerName,
   isAdmin,
   pointsPerRound,
@@ -324,6 +340,7 @@ function RoundCard({
 }: {
   round: CommunityTournamentRound;
   matches: CommunityTournamentMatch[];
+  sitouts: string[];
   playerName: (id: string) => string;
   isAdmin: boolean;
   pointsPerRound: number;
@@ -362,6 +379,24 @@ function RoundCard({
           />
         ))}
       </div>
+
+      {sitouts.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">
+            {t.communityTournaments.sitoutLabel}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {sitouts.map((id) => (
+              <span
+                key={id}
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+              >
+                {playerName(id)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

@@ -51,16 +51,19 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  if (format === "americano" && playerIds.length !== courtCount * 4) {
+  if (format === "americano" && playerIds.length < courtCount * 4) {
     return NextResponse.json(
-      { error: `Americano needs exactly courts × 4 players (${courtCount * 4} for ${courtCount} courts)` },
+      { error: `Not enough players: ${courtCount} courts need at least ${courtCount * 4} players` },
       { status: 400 }
     );
   }
 
-  // Americano round count is fixed (N-1). Other formats use the admin-provided value.
+  // Round count:
+  //  - Americano with N === C*4: N-1 rounds (everyone partners with everyone).
+  //  - Americano with N >  C*4: admin-specified or sensible default (data layer handles).
+  //  - Other formats: admin-provided.
   const roundsCount =
-    format === "americano"
+    format === "americano" && playerIds.length === courtCount * 4
       ? americanoTotalRounds(playerIds.length)
       : body.roundsCount ?? null;
 

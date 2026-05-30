@@ -10,7 +10,7 @@ import type {
   TournamentStandingRow,
 } from '@/lib/types'
 import { getCommunityPlayers } from '@/lib/data/communities'
-import { americanoRoundPairings, americanoTotalRounds } from '@/lib/tournament-pairing'
+import { generateAmericanoSchedule, suggestedAmericanoRounds } from '@/lib/tournament-pairing'
 
 function toTournament(row: Record<string, unknown>): CommunityTournament {
   return {
@@ -144,29 +144,36 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
 
   // Americano: pre-create all rounds and matches upfront (schedule is deterministic).
   if (input.format === 'americano') {
-    const totalRounds = americanoTotalRounds(input.playerIds.length)
+    const N = input.playerIds.length
+    const C = input.courtCount
+    const desiredRounds =
+      input.roundsCount ??
+      (N === C * 4 ? N - 1 : suggestedAmericanoRounds(N, C))
+    const schedule = generateAmericanoSchedule(N, C, desiredRounds)
+
     const roundRows: Record<string, unknown>[] = []
     const matchRows: Record<string, unknown>[] = []
-    for (let r = 1; r <= totalRounds; r++) {
-      const roundId = `r_${id}_${r}`
+
+    schedule.forEach((round, rIdx) => {
+      const roundNumber = rIdx + 1
+      const roundId = `r_${id}_${roundNumber}`
       roundRows.push({
         id: roundId,
         tournament_id: id,
-        round_number: r,
+        round_number: roundNumber,
         status: 'pending',
       })
-      const pairings = americanoRoundPairings(input.playerIds, r)
-      pairings.forEach((p, i) => {
+      round.matches.forEach((m, i) => {
         matchRows.push({
           id: `m_${roundId}_${i + 1}`,
           round_id: roundId,
           tournament_id: id,
           court_label: `Court ${i + 1}`,
-          team1_player_ids: p.team1,
-          team2_player_ids: p.team2,
+          team1_player_ids: [input.playerIds[m.team1[0]], input.playerIds[m.team1[1]]],
+          team2_player_ids: [input.playerIds[m.team2[0]], input.playerIds[m.team2[1]]],
         })
       })
-    }
+    })
     if (roundRows.length > 0) {
       const { error: rErr } = await supabase.from('community_tournament_rounds').insert(roundRows)
       if (rErr) throw new Error(rErr.message)
@@ -174,6 +181,14 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
     if (matchRows.length > 0) {
       const { error: mErr } = await supabase.from('community_tournament_matches').insert(matchRows)
       if (mErr) throw new Error(mErr.message)
+    }
+
+    // Persist the actual round count we generated, so completion logic knows the cap.
+    if (desiredRounds !== input.roundsCount) {
+      await supabase
+        .from('community_tournaments')
+        .update({ rounds_count: schedule.length })
+        .eq('id', id)
     }
   }
 

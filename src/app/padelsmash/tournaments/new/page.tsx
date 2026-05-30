@@ -9,7 +9,7 @@ import Badge from "@/components/ui/Badge";
 import Avatar from "@/components/ui/Avatar";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { CommunityPlayer, CommunityTournamentFormat } from "@/lib/types";
-import { americanoTotalRounds } from "@/lib/tournament-pairing";
+import { americanoTotalRounds, suggestedAmericanoRounds } from "@/lib/tournament-pairing";
 
 type Step = 1 | 2 | 3;
 
@@ -116,9 +116,12 @@ export default function NewTournamentPage() {
     );
   }
 
-  const americanoRounds = format === "americano" ? americanoTotalRounds(selected.size) : 0;
-  const americanoInvalid = format === "americano" && selected.size > 0 && selected.size !== courtCount * 4;
-  const expectedPlayers = courtCount * 4;
+  const playingPerRound = courtCount * 4;
+  const sitoutsPerRound = format === "americano" ? Math.max(0, selected.size - playingPerRound) : 0;
+  const americanoExactRounds = americanoTotalRounds(selected.size);
+  const americanoSuggestedSitoutRounds = suggestedAmericanoRounds(selected.size, courtCount);
+  const americanoTooFewPlayers = format === "americano" && selected.size > 0 && selected.size < playingPerRound;
+  const americanoMultipleInvalid = format === "americano" && selected.size > 0 && selected.size % 4 !== 0;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -237,7 +240,7 @@ export default function NewTournamentPage() {
               ))}
             </div>
             <p className="text-xs text-gray-400 mt-1.5">
-              {t.communityTournaments.courtCountHint.replace("{players}", String(expectedPlayers))}
+              {t.communityTournaments.courtCountHint.replace("{players}", String(playingPerRound))}
             </p>
           </div>
 
@@ -284,8 +287,27 @@ export default function NewTournamentPage() {
           </div>
 
           {format === "americano" ? (
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-900 dark:text-blue-200">
-              {t.communityTournaments.americanoRoundsNote}
+            <div className="space-y-2">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-900 dark:text-blue-200">
+                {t.communityTournaments.americanoRoundsNote}
+              </div>
+              {/* If admin will create with sit-outs, expose rounds count input */}
+              {selected.size > 0 && selected.size > playingPerRound && selected.size % 4 === 0 && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    {t.communityTournaments.roundsLabel}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={roundsCount}
+                    onChange={(e) => setRoundsCount(e.target.value)}
+                    placeholder={String(americanoSuggestedSitoutRounds)}
+                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+              )}
             </div>
           ) : format !== "championship" ? (
             <div>
@@ -335,19 +357,33 @@ export default function NewTournamentPage() {
             </Badge>
           </div>
 
-          {format === "americano" && americanoRounds > 0 && !americanoInvalid && (
+          {format === "americano" && selected.size > 0 && selected.size === playingPerRound && (
             <p className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               {t.communityTournaments.americanoRoundsCount
                 .replace("{players}", String(selected.size))
-                .replace("{rounds}", String(americanoRounds))
+                .replace("{rounds}", String(americanoExactRounds))
                 .replace("{courts}", String(courtCount))}
             </p>
           )}
-          {americanoInvalid && (
-            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-              {t.communityTournaments.americanoCourtMismatch
+          {format === "americano" && sitoutsPerRound > 0 && selected.size % 4 === 0 && (
+            <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
+              {t.communityTournaments.americanoSitoutInfo
+                .replace("{players}", String(selected.size))
                 .replace("{courts}", String(courtCount))
-                .replace("{expected}", String(expectedPlayers))
+                .replace("{sitouts}", String(sitoutsPerRound))
+                .replace("{rounds}", String(roundsCount ? Number(roundsCount) : americanoSuggestedSitoutRounds))}
+            </p>
+          )}
+          {americanoMultipleInvalid && (
+            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+              {t.communityTournaments.americanoMustBeMultipleOf4}
+            </p>
+          )}
+          {americanoTooFewPlayers && (
+            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+              {t.communityTournaments.americanoTooFewPlayers
+                .replace("{courts}", String(courtCount))
+                .replace("{needed}", String(playingPerRound))
                 .replace("{actual}", String(selected.size))}
             </p>
           )}
@@ -397,7 +433,10 @@ export default function NewTournamentPage() {
             <Button variant="ghost" onClick={() => setStep(2)} disabled={saving}>
               {t.communityTournaments.back}
             </Button>
-            <Button onClick={submit} disabled={saving || selected.size < 4 || americanoInvalid}>
+            <Button
+              onClick={submit}
+              disabled={saving || selected.size < 4 || americanoMultipleInvalid || americanoTooFewPlayers}
+            >
               {saving ? t.communityTournaments.creating : t.communityTournaments.create}
             </Button>
           </div>

@@ -5,6 +5,7 @@ import {
   createRoundWithMatches,
   getRounds,
   getTournament,
+  getTournamentMatches,
   getTournamentPlayers,
 } from "@/lib/data/community-tournaments";
 import { mexicanoRoundPairings } from "@/lib/tournament-pairing";
@@ -62,24 +63,53 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   }
   const tournamentPlayers = await getTournamentPlayers(id);
 
-  let pairings;
-  if (tournament.format === "mexicano") {
-    pairings = mexicanoRoundPairings(tournamentPlayers, nextRoundNumber);
-  } else {
+  if (tournament.format !== "mexicano") {
     return NextResponse.json(
       { error: `Auto-pairing not yet supported for format: ${tournament.format}` },
       { status: 400 }
     );
   }
 
+  // Build sit-out counts from past rounds: a player "sat out" a round if they
+  // don't appear in any of that round's matches.
+  const pastMatches = await getTournamentMatches(id);
+  const matchesByRound = new Map<string, typeof pastMatches>();
+  for (const m of pastMatches) {
+    if (!matchesByRound.has(m.roundId)) matchesByRound.set(m.roundId, []);
+    matchesByRound.get(m.roundId)!.push(m);
+  }
+  const sitoutCounts = new Map<string, number>();
+  for (const round of rounds) {
+    const roundMatches = matchesByRound.get(round.id) ?? [];
+    const playing = new Set<string>();
+    for (const m of roundMatches) {
+      m.team1PlayerIds.forEach((p) => playing.add(p));
+      m.team2PlayerIds.forEach((p) => playing.add(p));
+    }
+    for (const tp of tournamentPlayers) {
+      if (!playing.has(tp.communityPlayerId)) {
+        sitoutCounts.set(
+          tp.communityPlayerId,
+          (sitoutCounts.get(tp.communityPlayerId) ?? 0) + 1
+        );
+      }
+    }
+  }
+
+  const { pairings } = mexicanoRoundPairings(
+    tournamentPlayers,
+    nextRoundNumber,
+    tournament.courtCount,
+    sitoutCounts
+  );
+
   if (pairings.length === 0) {
     return NextResponse.json(
-      { error: "Could not generate pairings — need a multiple of 4 players" },
+      { error: "Could not generate pairings — need a multiple of 4 playing players" },
       { status: 400 }
     );
   }
 
-  // Assign court labels in order.
   const pairingsWithCourts = pairings.map((p, i) => ({ ...p, courtLabel: `Court ${i + 1}` }));
   const round = await createRoundWithMatches(id, nextRoundNumber, pairingsWithCourts);
   return NextResponse.json(round);
