@@ -67,7 +67,11 @@ export default function DrawPanel({
   const nextSlot = drawnCount < teams.length ? Math.floor(drawnCount / groupCount) + 1 : null;
 
   const [drawing, setDrawing] = useState(false);
-  const [reveal, setReveal] = useState<{ teamName: string; groupLabel: string; slot: number; newName: string } | null>(null);
+  const [reveal, setReveal] = useState<{
+    playerNames: string;
+    groupLabel: string;
+    newName: string;
+  } | null>(null);
   const [shuffleId, setShuffleId] = useState<string | null>(null);
 
   // Shuffling animation: cycle through undrawn team names every 80ms.
@@ -89,6 +93,7 @@ export default function DrawPanel({
   const drawNext = async () => {
     if (drawing) return;
     setDrawing(true);
+    // Hide previous reveal as the new draw begins.
     setReveal(null);
     // Visual shuffle for ~1.2s before showing the result.
     await new Promise((r) => setTimeout(r, 1200));
@@ -100,19 +105,19 @@ export default function DrawPanel({
       return;
     }
     const data = await res.json();
+    // Find the picked team's players to show their names.
+    const picked = teams.find((tm) => tm.teamId === data.picked.teamId);
+    const playerNames = picked ? picked.playerIds.map(playerName).join(" + ") : data.picked.previousName;
     setReveal({
-      teamName: data.picked.previousName,
+      playerNames,
       groupLabel: data.picked.groupLabel,
-      slot: data.picked.slot,
       newName: data.picked.newName,
     });
     setShuffleId(null);
-    // Show the reveal briefly, then refresh parent data.
-    setTimeout(() => {
-      setReveal(null);
-      setDrawing(false);
-      onProgress();
-    }, 1500);
+    setDrawing(false);
+    // Refresh parent data so the team appears in its group box.
+    // The reveal stays visible until the next draw is started.
+    onProgress();
   };
 
   const teamLine = (team: Team) => {
@@ -132,12 +137,13 @@ export default function DrawPanel({
         </span>
       </div>
 
-      {/* Reveal overlay */}
+      {/* Reveal overlay — stays visible until the next draw starts. */}
       {reveal && (
         <div className="bg-gradient-to-br from-padel-green via-emerald-500 to-teal-600 text-white rounded-xl p-6 mb-4 text-center animate-in fade-in zoom-in duration-300">
           <Sparkles className="w-8 h-8 mx-auto mb-2" />
           <p className="text-xs uppercase tracking-wide opacity-80">{t.communityTournaments.drawnTo}</p>
-          <p className="text-2xl font-black mt-1">
+          <p className="text-2xl font-black mt-2">{reveal.playerNames}</p>
+          <p className="text-lg font-semibold opacity-90 mt-1">
             {t.communityTournaments.group} {reveal.groupLabel} — {reveal.newName}
           </p>
         </div>
