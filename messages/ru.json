@@ -13,7 +13,39 @@
     "adminPanel": "Панель админа",
     "signIn": "Войти",
     "signUp": "Регистрация",
-    "challenges": "Вызовы"
+    "challenges": "Вызовы",
+    "padelsmash": "PadelSmash"
+  },
+  "community": {
+    "tabs": {
+      "members": "Игроки",
+      "events": "События",
+      "announcements": "Объявления",
+      "stats": "Статистика"
+    },
+    "playerCount": "{count} игроков",
+    "youAreAdmin": "Вы админ",
+    "searchPlaceholder": "Поиск игроков...",
+    "noPlayers": "Пока нет игроков",
+    "notFound": "Сообщество не найдено",
+    "comingSoon": "Скоро",
+    "profileSectionTitle": "Мои сообщества",
+    "addPlayer": "Добавить игрока",
+    "addFirstPlayer": "Добавить первого игрока",
+    "nameLabel": "Имя",
+    "namePlaceholder": "Имя игрока",
+    "nameRequired": "Имя обязательно",
+    "phoneLabel": "Телефон",
+    "emailLabel": "Email",
+    "linkedPlayerLabel": "Padelon player ID (необязательно)",
+    "linkedPlayerHint": "Если у игрока есть аккаунт в Padelon, введите его ID для связи статистики",
+    "viewPadelonProfile": "Профиль Padelon",
+    "matches": "Матчи",
+    "wins": "Победы",
+    "trophies": "Трофеи",
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "cancel": "Отмена"
   },
   "hero": {
     "tagline": "Найди игру, отслеживай матчи, участвуй в турнирах.",

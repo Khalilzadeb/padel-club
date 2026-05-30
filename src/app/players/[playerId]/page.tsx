@@ -4,10 +4,11 @@ import { cookies } from "next/headers";
 import { getPlayer, getPlayers } from "@/lib/data/players";
 import { getMatches } from "@/lib/data/matches";
 import { getCourts } from "@/lib/data/courts";
+import { getCommunitiesForLinkedPlayer } from "@/lib/data/communities";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
-import { TrendingUp, TrendingDown, Trophy, Calendar, Target, MessageCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Trophy, Calendar, Target, MessageCircle, Sparkles, Users } from "lucide-react";
 import EditProfileButton from "@/components/players/EditProfileButton";
 import ChallengeButton from "@/components/players/ChallengeButton";
 import EloChart from "@/components/players/EloChart";
@@ -20,11 +21,12 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
   const locale = cookieStore.get(LOCALE_COOKIE)?.value ?? "az";
   const t = getTranslations(locale);
 
-  const [player, allPlayers, myMatches, courts] = await Promise.all([
+  const [player, allPlayers, myMatches, courts, communities] = await Promise.all([
     getPlayer(playerId),
     getPlayers(),
     getMatches({ playerId }),
     getCourts(),
+    getCommunitiesForLinkedPlayer(playerId),
   ]);
 
   if (!player) return notFound();
@@ -168,6 +170,32 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
             <h2 className="font-semibold text-gray-900 dark:text-white mb-3">ELO History</h2>
             <EloChart history={chartHistory} currentElo={s.eloRating} />
           </Card>
+
+          {communities.length > 0 && (
+            <Card className="p-5">
+              <h2 className="font-semibold text-gray-900 dark:text-white mb-3">{t.community.profileSectionTitle}</h2>
+              <div className="space-y-2">
+                {communities.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/${c.slug}`}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-padel-green to-emerald-600 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{c.name}</p>
+                      <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {t.community.playerCount.replace("{count}", String(c.playerCount))}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          )}
 
           {Object.keys(partnerCount).length > 0 && (
             <Card className="p-5">

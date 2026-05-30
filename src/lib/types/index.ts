@@ -210,6 +210,45 @@ export interface Challenge {
   createdAt: string;
 }
 
+// ─── Community ────────────────────────────────────────────────────────────────
+
+export interface Community {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  createdAt: string;
+}
+
+export interface CommunityPlayer {
+  id: string;
+  communityId: string;
+  name: string;
+  avatarUrl: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  linkedUserId: string | null;
+  linkedPlayerId: string | null;
+  ntrp: number | null;
+  eloRating: number;
+  matchesPlayed: number;
+  matchesWon: number;
+  tournamentsWon: number;
+  createdAt: string;
+}
+
+export interface CommunityAdmin {
+  communityId: string;
+  userId: string;
+  createdAt: string;
+}
+
+export interface CommunitySummary extends Community {
+  playerCount: number;
+}
+
 export interface Tournament {
   id: string;
   name: string;

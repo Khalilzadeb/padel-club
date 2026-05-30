@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Search, MessageCircle, Shield, Target, Sun, Moon } from "lucide-react";
+import { Menu, X, Calendar, Users, Trophy, Swords, LogOut, User, ChevronDown, Search, MessageCircle, Shield, Target, Sun, Moon, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
@@ -28,6 +28,7 @@ export default function Navbar() {
     { href: "/players", label: t.nav.players, icon: Users },
     { href: "/matches", label: t.nav.results, icon: Swords },
     { href: "/tournaments", label: t.nav.tournaments, icon: Trophy },
+    { href: "/padelsmash", label: t.nav.padelsmash, icon: Sparkles },
     { href: "/messages", label: t.nav.messages, icon: MessageCircle },
     { href: "/challenges", label: t.nav.challenges, icon: Target },
   ];

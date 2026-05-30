@@ -13,7 +13,39 @@
     "adminPanel": "Admin Panel",
     "signIn": "Daxil ol",
     "signUp": "Qeydiyyat",
-    "challenges": "Çağırışlar"
+    "challenges": "Çağırışlar",
+    "padelsmash": "PadelSmash"
+  },
+  "community": {
+    "tabs": {
+      "members": "Üzvlər",
+      "events": "Eventlər",
+      "announcements": "Elanlar",
+      "stats": "Statistika"
+    },
+    "playerCount": "{count} oyunçu",
+    "youAreAdmin": "Sən adminsən",
+    "searchPlaceholder": "Oyunçu axtar...",
+    "noPlayers": "Hələ oyunçu yoxdur",
+    "notFound": "Community tapılmadı",
+    "comingSoon": "Tezliklə",
+    "profileSectionTitle": "Community-lərim",
+    "addPlayer": "Oyunçu əlavə et",
+    "addFirstPlayer": "İlk oyunçunu əlavə et",
+    "nameLabel": "Ad",
+    "namePlaceholder": "Oyunçunun adı",
+    "nameRequired": "Ad tələb olunur",
+    "phoneLabel": "Telefon",
+    "emailLabel": "Email",
+    "linkedPlayerLabel": "Padelon oyunçu ID (ixtiyari)",
+    "linkedPlayerHint": "Əgər bu şəxsin Padelon hesabı varsa, statistikaları birləşdirmək üçün ID-sini daxil et",
+    "viewPadelonProfile": "Padelon profili",
+    "matches": "Oyun",
+    "wins": "Qələbə",
+    "trophies": "Kubok",
+    "save": "Yadda saxla",
+    "saving": "Saxlanır...",
+    "cancel": "Ləğv et"
   },
   "hero": {
     "tagline": "Oyun tap, nəticələri izlə, turnirlərdə yarış.",

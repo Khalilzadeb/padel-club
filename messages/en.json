@@ -13,7 +13,39 @@
     "adminPanel": "Admin Panel",
     "signIn": "Sign in",
     "signUp": "Sign up",
-    "challenges": "Challenges"
+    "challenges": "Challenges",
+    "padelsmash": "PadelSmash"
+  },
+  "community": {
+    "tabs": {
+      "members": "Players",
+      "events": "Events",
+      "announcements": "Announcements",
+      "stats": "Stats"
+    },
+    "playerCount": "{count} players",
+    "youAreAdmin": "You're an admin",
+    "searchPlaceholder": "Search players...",
+    "noPlayers": "No players yet",
+    "notFound": "Community not found",
+    "comingSoon": "Soon",
+    "profileSectionTitle": "My Communities",
+    "addPlayer": "Add player",
+    "addFirstPlayer": "Add the first player",
+    "nameLabel": "Name",
+    "namePlaceholder": "Player name",
+    "nameRequired": "Name is required",
+    "phoneLabel": "Phone",
+    "emailLabel": "Email",
+    "linkedPlayerLabel": "Padelon player ID (optional)",
+    "linkedPlayerHint": "If this person has a Padelon account, enter their player ID to link stats",
+    "viewPadelonProfile": "Padelon profile",
+    "matches": "Matches",
+    "wins": "Wins",
+    "trophies": "Trophies",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel"
   },
   "hero": {
     "tagline": "Find a game, track your matches, compete in tournaments.",

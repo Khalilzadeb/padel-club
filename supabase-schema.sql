@@ -208,3 +208,151 @@ insert into matches (id, court_id, type, format, status, team1_player_ids, team2
   ('m9',  'c4', 'casual',     'best-of-3', 'completed', '{"p6","p7"}', '{"p8","p10"}', '[{"setNumber":1,"team1Games":4,"team2Games":6},{"setNumber":2,"team1Games":6,"team2Games":3},{"setNumber":3,"team1Games":6,"team2Games":4}]', 'team1', (current_date-5)::text, '17:00', 90,  null),
   ('m10', 'c1', 'ranked',     'best-of-3', 'completed', '{"p5","p3"}', '{"p4","p9"}', '[{"setNumber":1,"team1Games":3,"team2Games":6},{"setNumber":2,"team1Games":6,"team2Games":2},{"setNumber":3,"team1Games":4,"team2Games":6}]', 'team2', (current_date-6)::text, '10:00', 100, '{"p5":-12,"p3":-12,"p4":12,"p9":12}')
 on conflict (id) do nothing;
+
+-- ============================================================
+-- COMMUNITIES (PadelSmash)
+-- ============================================================
+-- A community is an autonomous group inside Padelon with its own
+-- player roster, admins, tournaments and history.
+
+create table if not exists communities (
+  id text primary key,
+  slug text unique not null,
+  name text not null,
+  description text,
+  logo_url text,
+  cover_url text,
+  created_at timestamptz default now()
+);
+
+-- Community players: each community keeps its own roster.
+-- A community player can OPTIONALLY be linked to a Padelon user
+-- (so that user sees the community on their profile) or a Padelon
+-- player profile (to reuse global stats). Both links are nullable.
+create table if not exists community_players (
+  id text primary key,
+  community_id text references communities(id) on delete cascade,
+  name text not null,
+  avatar_url text,
+  contact_phone text,
+  contact_email text,
+  linked_user_id text references users(id) on delete set null,
+  linked_player_id text references players(id) on delete set null,
+  ntrp numeric(3,1),
+  elo_rating integer default 1000,
+  matches_played integer default 0,
+  matches_won integer default 0,
+  tournaments_won integer default 0,
+  created_at timestamptz default now()
+);
+
+-- Migration for existing tables created before ntrp was added:
+alter table community_players add column if not exists ntrp numeric(3,1);
+
+create index if not exists idx_community_players_community on community_players(community_id);
+create index if not exists idx_community_players_linked_user on community_players(linked_user_id);
+create index if not exists idx_community_players_linked_player on community_players(linked_player_id);
+
+-- Admins of a community. Set by super-admin (Padelon owner).
+-- An admin is a Padelon user that can manage this community's roster,
+-- tournaments and announcements.
+create table if not exists community_admins (
+  community_id text references communities(id) on delete cascade,
+  user_id text references users(id) on delete cascade,
+  created_at timestamptz default now(),
+  primary key (community_id, user_id)
+);
+
+create index if not exists idx_community_admins_user on community_admins(user_id);
+
+-- Seed the PadelSmash community itself.
+insert into communities (id, slug, name, description, logo_url, cover_url) values
+  ('padelsmash', 'padelsmash', 'PadelSmash',
+   'PadelSmash community — Mexicano və Americano turnirləri, dostluq oyunları və daimi üzvlər.',
+   null, null)
+on conflict (id) do nothing;
+
+-- Seed PadelSmash players (SMASH PADEL PLAYERS NTRP 20.05 — 80 players in rank order).
+-- ELO = 2000 - (rank - 1) * 9 so that default sort by elo_rating preserves the image order.
+insert into community_players (id, community_id, name, ntrp, elo_rating) values
+  ('ps1',  'padelsmash', 'PHILL',     3.5, 2000),
+  ('ps2',  'padelsmash', 'ERNAR',     4.0, 1991),
+  ('ps3',  'padelsmash', 'Ismail',    4.0, 1982),
+  ('ps4',  'padelsmash', 'KAMRAN V.', 3.5, 1973),
+  ('ps5',  'padelsmash', 'FUAD',      3.5, 1964),
+  ('ps6',  'padelsmash', 'MAX',       3.5, 1955),
+  ('ps7',  'padelsmash', 'SHAUN',     3.5, 1946),
+  ('ps8',  'padelsmash', 'SERGEY',    3.5, 1937),
+  ('ps9',  'padelsmash', 'INARA',     3.0, 1928),
+  ('ps10', 'padelsmash', 'PARVIZ',    3.0, 1919),
+  ('ps11', 'padelsmash', 'ROMAN',     3.0, 1910),
+  ('ps12', 'padelsmash', 'DANIZ',     3.0, 1901),
+  ('ps13', 'padelsmash', 'ILYA K',    3.0, 1892),
+  ('ps14', 'padelsmash', 'ILYA R.',   3.0, 1883),
+  ('ps15', 'padelsmash', 'FAIK',      3.0, 1874),
+  ('ps16', 'padelsmash', 'ATESH',     3.0, 1865),
+  ('ps17', 'padelsmash', 'SABUHI',    3.0, 1856),
+  ('ps18', 'padelsmash', 'SANAM',     3.0, 1847),
+  ('ps19', 'padelsmash', 'VADIM',     3.0, 1838),
+  ('ps20', 'padelsmash', 'EMILIYA',   3.0, 1829),
+  ('ps21', 'padelsmash', 'NIJAT',     3.0, 1820),
+  ('ps22', 'padelsmash', 'JALIL',     3.0, 1811),
+  ('ps23', 'padelsmash', 'FARID',     3.0, 1802),
+  ('ps24', 'padelsmash', 'AYDIN',     3.0, 1793),
+  ('ps25', 'padelsmash', 'HUSEYN M.', 3.0, 1784),
+  ('ps26', 'padelsmash', 'ALI',       3.0, 1775),
+  ('ps27', 'padelsmash', 'AYNAR',     3.0, 1766),
+  ('ps28', 'padelsmash', 'KRISTS',    3.0, 1757),
+  ('ps29', 'padelsmash', 'Saimon',    3.0, 1748),
+  ('ps30', 'padelsmash', 'ADIL',      2.5, 1739),
+  ('ps31', 'padelsmash', 'Eldar',     2.5, 1730),
+  ('ps32', 'padelsmash', 'BEK',       2.5, 1721),
+  ('ps33', 'padelsmash', 'VADIM CH.', 2.5, 1712),
+  ('ps34', 'padelsmash', 'HUSEYN N.', 2.5, 1703),
+  ('ps35', 'padelsmash', 'HUSEYN B.', 2.5, 1694),
+  ('ps36', 'padelsmash', 'OXSHAN',    2.5, 1685),
+  ('ps37', 'padelsmash', 'SEYMUR',    2.5, 1676),
+  ('ps38', 'padelsmash', 'TOKAY',     3.0, 1667),
+  ('ps39', 'padelsmash', 'ELNUR',     3.0, 1658),
+  ('ps40', 'padelsmash', 'Chinara',   2.0, 1649),
+  ('ps41', 'padelsmash', 'BAYRAM',    2.5, 1640),
+  ('ps42', 'padelsmash', 'VLADIMIR',  2.5, 1631),
+  ('ps43', 'padelsmash', 'Teymur',    2.5, 1622),
+  ('ps44', 'padelsmash', 'IRINA',     2.5, 1613),
+  ('ps45', 'padelsmash', 'ABDULLA',   2.5, 1604),
+  ('ps46', 'padelsmash', 'KAMRAN',    3.0, 1595),
+  ('ps47', 'padelsmash', 'AYDAN',     2.5, 1586),
+  ('ps48', 'padelsmash', 'GUMUS',     2.5, 1577),
+  ('ps49', 'padelsmash', 'Rufat',     2.5, 1568),
+  ('ps50', 'padelsmash', 'ALEX',      2.5, 1559),
+  ('ps51', 'padelsmash', 'NILUFAR',   2.0, 1550),
+  ('ps52', 'padelsmash', 'HANIFA',    2.5, 1541),
+  ('ps53', 'padelsmash', 'ARIF',      2.5, 1532),
+  ('ps54', 'padelsmash', 'MAHMUD',    2.5, 1523),
+  ('ps55', 'padelsmash', 'SLAVA',     2.5, 1514),
+  ('ps56', 'padelsmash', 'HIDAYAT',   3.0, 1505),
+  ('ps57', 'padelsmash', 'RAUL',      2.5, 1496),
+  ('ps58', 'padelsmash', 'HEZI',      2.5, 1487),
+  ('ps59', 'padelsmash', 'ELENA',     2.0, 1478),
+  ('ps60', 'padelsmash', 'ANATOLIY',  2.5, 1469),
+  ('ps61', 'padelsmash', 'ALEKSANDR', 2.0, 1460),
+  ('ps62', 'padelsmash', 'CHINGIZ',   2.5, 1451),
+  ('ps63', 'padelsmash', 'ELDAR..',   2.5, 1442),
+  ('ps64', 'padelsmash', 'EMIL',      2.0, 1433),
+  ('ps65', 'padelsmash', 'ZIYA',      2.5, 1424),
+  ('ps66', 'padelsmash', 'PEDRO',     2.5, 1415),
+  ('ps67', 'padelsmash', 'RIAD',      2.0, 1406),
+  ('ps68', 'padelsmash', 'KHAYAL',    2.0, 1397),
+  ('ps69', 'padelsmash', 'TALEH',     2.5, 1388),
+  ('ps70', 'padelsmash', 'JAVID',     2.5, 1379),
+  ('ps71', 'padelsmash', 'GÜNEL',     2.0, 1370),
+  ('ps72', 'padelsmash', 'ORXAN...',  2.5, 1361),
+  ('ps73', 'padelsmash', 'FARXAD',    2.0, 1352),
+  ('ps74', 'padelsmash', 'TAYYAR',    2.5, 1343),
+  ('ps75', 'padelsmash', 'NARMINA',   2.0, 1334),
+  ('ps76', 'padelsmash', 'VLADIMIR',  3.0, 1325),
+  ('ps77', 'padelsmash', 'NARGIZ',    2.0, 1316),
+  ('ps78', 'padelsmash', 'ORXAN',     2.0, 1307),
+  ('ps79', 'padelsmash', 'JAMIL',     2.0, 1298),
+  ('ps80', 'padelsmash', 'KAMIL',     2.5, 1289)
+on conflict (id) do nothing;
