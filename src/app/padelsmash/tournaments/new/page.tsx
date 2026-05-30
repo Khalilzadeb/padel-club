@@ -24,6 +24,7 @@ export default function NewTournamentPage() {
   const [pointsPerRound, setPointsPerRound] = useState<16 | 24 | 32>(24);
   const [roundsCount, setRoundsCount] = useState<string>("");
   const [courtCount, setCourtCount] = useState<number>(2);
+  const [courtNames, setCourtNames] = useState<string[]>(["Court 1", "Court 2"]);
   const [prizePositions, setPrizePositions] = useState<1 | 2 | 3>(1);
   const [groupSetsPerMatch, setGroupSetsPerMatch] = useState<1 | 3 | 5>(1);
   const [bracketSetsPerMatch, setBracketSetsPerMatch] = useState<1 | 3 | 5>(3);
@@ -111,6 +112,7 @@ export default function NewTournamentPage() {
         pointsPerRound,
         roundsCount: roundsCount ? Number(roundsCount) : null,
         courtCount,
+        courtNames: courtNames.slice(0, courtCount).map((n, i) => n.trim() || `Court ${i + 1}`),
         prizePositions,
         groupSetsPerMatch,
         bracketSetsPerMatch,
@@ -253,7 +255,14 @@ export default function NewTournamentPage() {
               {[1, 2, 3, 4, 5].map((v) => (
                 <button
                   key={v}
-                  onClick={() => setCourtCount(v)}
+                  onClick={() => {
+                    setCourtCount(v);
+                    setCourtNames((prev) => {
+                      const next = [...prev];
+                      while (next.length < v) next.push(`Court ${next.length + 1}`);
+                      return next.slice(0, v);
+                    });
+                  }}
                   className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
                     courtCount === v
                       ? "border-padel-green bg-padel-green text-white"
@@ -267,6 +276,28 @@ export default function NewTournamentPage() {
             <p className="text-xs text-gray-400 mt-1.5">
               {t.communityTournaments.courtCountHint.replace("{players}", String(playingPerRound))}
             </p>
+          </div>
+
+          {/* Court names: one input per court so admin can label them. */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              {t.communityTournaments.courtNamesLabel}
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {Array.from({ length: courtCount }).map((_, i) => (
+                <input
+                  key={i}
+                  value={courtNames[i] ?? ""}
+                  onChange={(e) => {
+                    const next = [...courtNames];
+                    next[i] = e.target.value;
+                    setCourtNames(next);
+                  }}
+                  placeholder={`Court ${i + 1}`}
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              ))}
+            </div>
           </div>
 
           {format === "championship" && (

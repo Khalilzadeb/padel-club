@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
   const format = body.format as string | undefined;
   const pointsPerRound = Number(body.pointsPerRound ?? 24);
   const courtCount = Number(body.courtCount ?? 1);
+  const courtNames = (body.courtNames as string[] | undefined) ?? [];
   const prizePositions = Number(body.prizePositions ?? 1);
   const groupSetsPerMatch = Number(body.groupSetsPerMatch ?? 1);
   const bracketSetsPerMatch = Number(body.bracketSetsPerMatch ?? 3);
@@ -97,6 +98,7 @@ export async function POST(req: NextRequest) {
       pointsPerRound,
       roundsCount,
       courtCount,
+      courtNames,
       prizePositions,
       groupSetsPerMatch,
       bracketSetsPerMatch,

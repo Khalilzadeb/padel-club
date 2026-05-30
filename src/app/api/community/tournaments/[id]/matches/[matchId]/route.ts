@@ -135,7 +135,11 @@ export async function PATCH(
           sitoutCounts
         );
         if (pairings.length > 0) {
-          const withCourts = pairings.map((p, i) => ({ ...p, courtLabel: `Court ${i + 1}` }));
+          const courtNames =
+            tournament.courtNames.length > 0
+              ? tournament.courtNames
+              : Array.from({ length: tournament.courtCount }, (_, i) => `Court ${i + 1}`);
+          const withCourts = pairings.map((p, i) => ({ ...p, courtLabel: courtNames[i] ?? `Court ${i + 1}` }));
           await createRoundWithMatches(id, nextRoundNumber, withCourts);
         }
       }
@@ -299,7 +303,12 @@ async function createBracketStage(
   teams: { teamId: string; playerIds: string[] }[]
 ) {
   const teamById = new Map(teams.map((t) => [t.teamId, t]));
-  // Create a round to hold the bracket stage.
+  const tournament = await getTournament(tournamentId);
+  const courtNames =
+    tournament && tournament.courtNames.length > 0
+      ? tournament.courtNames
+      : Array.from({ length: tournament?.courtCount ?? 1 }, (_, i) => `Court ${i + 1}`);
+
   const { data: lastRound } = await supabase
     .from("community_tournament_rounds")
     .select("round_number")
@@ -317,14 +326,14 @@ async function createBracketStage(
     started_at: new Date().toISOString(),
   });
 
-  const matchRows = pairings.map((p) => {
+  const matchRows = pairings.map((p, i) => {
     const t1 = teamById.get(p.team1Id);
     const t2 = teamById.get(p.team2Id);
     return {
       id: `m_${roundId}_${p.bracketPosition}`,
       round_id: roundId,
       tournament_id: tournamentId,
-      court_label: stageLabel(stage, p.bracketPosition),
+      court_label: courtNames[i % courtNames.length],
       team1_player_ids: t1?.playerIds ?? [],
       team2_player_ids: t2?.playerIds ?? [],
       stage,
@@ -334,6 +343,7 @@ async function createBracketStage(
   if (matchRows.length > 0) {
     await supabase.from("community_tournament_matches").insert(matchRows);
   }
+  void stageLabel;
 }
 
 function stageLabel(stage: ChampionshipStage, position: number): string {

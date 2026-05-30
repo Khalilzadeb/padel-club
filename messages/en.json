@@ -105,6 +105,7 @@
     "drawComplete": "Draw complete! Group stage starts now.",
     "teamCountLabel": "Number of teams",
     "teamCountHint": "Must be a multiple of 4 (8, 12, 16, 20, ...). Each group holds 4 teams.",
+    "courtNamesLabel": "Court names",
     "availablePlayers": "Available players",
     "allPaired": "All players paired",
     "autoPairRemaining": "Auto-pair remaining",

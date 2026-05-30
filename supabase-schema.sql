@@ -290,6 +290,7 @@ alter table community_tournaments add column if not exists court_count integer n
 alter table community_tournaments add column if not exists prize_positions integer not null default 1;
 alter table community_tournaments add column if not exists group_sets_per_match integer not null default 1;
 alter table community_tournaments add column if not exists bracket_sets_per_match integer not null default 3;
+alter table community_tournaments add column if not exists court_names jsonb;
 
 create index if not exists idx_community_tournaments_community on community_tournaments(community_id);
 create index if not exists idx_community_tournaments_status on community_tournaments(status);

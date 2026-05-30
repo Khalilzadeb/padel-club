@@ -27,6 +27,7 @@ function toTournament(row: Record<string, unknown>): CommunityTournament {
     prizePositions: (row.prize_positions as number) ?? 1,
     groupSetsPerMatch: (row.group_sets_per_match as number) ?? 1,
     bracketSetsPerMatch: (row.bracket_sets_per_match as number) ?? 3,
+    courtNames: (row.court_names as string[] | null) ?? [],
     startDate: row.start_date as string | null,
     endDate: row.end_date as string | null,
     winnerPlayerIds: (row.winner_player_ids as string[] | null) ?? null,
@@ -113,6 +114,7 @@ export interface CreateTournamentInput {
   prizePositions: number
   groupSetsPerMatch?: number
   bracketSetsPerMatch?: number
+  courtNames?: string[]
   startDate?: string | null
   endDate?: string | null
   createdBy?: string | null
@@ -139,6 +141,10 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
       prize_positions: input.prizePositions,
       group_sets_per_match: input.groupSetsPerMatch ?? 1,
       bracket_sets_per_match: input.bracketSetsPerMatch ?? 3,
+      court_names:
+        input.courtNames && input.courtNames.length > 0
+          ? input.courtNames
+          : Array.from({ length: input.courtCount }, (_, i) => `Court ${i + 1}`),
       start_date: input.startDate ?? null,
       end_date: input.endDate ?? null,
       created_by: input.createdBy ?? null,
@@ -187,6 +193,10 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
       input.roundsCount ??
       (N === C * 4 ? N - 1 : suggestedAmericanoRounds(N, C))
     const schedule = generateAmericanoSchedule(N, C, desiredRounds)
+    const courtNames =
+      input.courtNames && input.courtNames.length > 0
+        ? input.courtNames
+        : Array.from({ length: C }, (_, i) => `Court ${i + 1}`)
 
     const roundRows: Record<string, unknown>[] = []
     const matchRows: Record<string, unknown>[] = []
@@ -205,7 +215,7 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
           id: `m_${roundId}_${i + 1}`,
           round_id: roundId,
           tournament_id: id,
-          court_label: `Court ${i + 1}`,
+          court_label: courtNames[i] ?? `Court ${i + 1}`,
           team1_player_ids: [input.playerIds[m.team1[0]], input.playerIds[m.team1[1]]],
           team2_player_ids: [input.playerIds[m.team2[0]], input.playerIds[m.team2[1]]],
         })
@@ -235,9 +245,15 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
   return toTournament(data)
 }
 
-// Used by the draw endpoint once all 16 teams have a group assignment.
-// Creates the 24 group-stage matches and activates the tournament.
+// Used by the draw endpoint once all teams have a group assignment.
+// Creates the group-stage matches and activates the tournament.
+// Round-robin within each group, distributed across the tournament's courts.
 export async function createGroupStageMatches(tournamentId: string): Promise<void> {
+  const tournament = await getTournament(tournamentId)
+  const courtNames =
+    tournament && tournament.courtNames.length > 0
+      ? tournament.courtNames
+      : Array.from({ length: tournament?.courtCount ?? 1 }, (_, i) => `Court ${i + 1}`)
   const players = await getTournamentPlayers(tournamentId)
   // Group players by team_id
   const teamMap = new Map<string, { teamId: string; playerIds: string[]; groupLabel: string; teamName: string; seed: number }>()
@@ -265,6 +281,8 @@ export async function createGroupStageMatches(tournamentId: string): Promise<voi
   const roundRows: Record<string, unknown>[] = []
   const matchRows: Record<string, unknown>[] = []
   let roundIdx = 0
+  // Counter used to distribute matches across available courts in round-robin.
+  let courtIdx = 0
   for (const groupLabel of Object.keys(byGroup).sort()) {
     const groupTeams = byGroup[groupLabel]
     const roundId = `r_${tournamentId}_group_${groupLabel}`
@@ -280,11 +298,13 @@ export async function createGroupStageMatches(tournamentId: string): Promise<voi
       const t1 = groupTeams[p.team1Idx]
       const t2 = groupTeams[p.team2Idx]
       if (!t1 || !t2) return
+      const courtName = courtNames[courtIdx % courtNames.length]
+      courtIdx++
       matchRows.push({
         id: `m_${roundId}_${i + 1}`,
         round_id: roundId,
         tournament_id: tournamentId,
-        court_label: `Group ${groupLabel} · Match ${i + 1}`,
+        court_label: courtName,
         team1_player_ids: t1.playerIds,
         team2_player_ids: t2.playerIds,
         stage: 'group',

@@ -105,6 +105,7 @@
     "drawComplete": "Püşkatma tamamlandı! Qrup oyunları başlayır.",
     "teamCountLabel": "Komanda sayı",
     "teamCountHint": "4-ə bölünən rəqəm (8, 12, 16, 20, ...). Hər qrup 4 komanda saxlayır.",
+    "courtNamesLabel": "Kortların adları",
     "availablePlayers": "Boş oyunçular",
     "allPaired": "Hamı komanda oldu",
     "autoPairRemaining": "Qalanlarını avto-cütlə",

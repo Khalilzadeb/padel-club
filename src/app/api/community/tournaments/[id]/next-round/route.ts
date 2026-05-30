@@ -110,7 +110,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     );
   }
 
-  const pairingsWithCourts = pairings.map((p, i) => ({ ...p, courtLabel: `Court ${i + 1}` }));
+  const courtNames =
+    tournament.courtNames.length > 0
+      ? tournament.courtNames
+      : Array.from({ length: tournament.courtCount }, (_, i) => `Court ${i + 1}`);
+  const pairingsWithCourts = pairings.map((p, i) => ({ ...p, courtLabel: courtNames[i] ?? `Court ${i + 1}` }));
   const round = await createRoundWithMatches(id, nextRoundNumber, pairingsWithCourts);
   return NextResponse.json(round);
 }
