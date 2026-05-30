@@ -11,7 +11,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import type { CommunityPlayer, CommunityTournamentFormat } from "@/lib/types";
 import { americanoTotalRounds, suggestedAmericanoRounds } from "@/lib/tournament-pairing";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3;
 
 export default function NewTournamentPage() {
   const { t } = useLocale();
@@ -154,29 +154,26 @@ export default function NewTournamentPage() {
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-8 mt-4">
-        {(format === "championship" ? [1, 2, 3, 4] : [1, 2, 3]).map((s) => {
-          const totalSteps = format === "championship" ? 4 : 3;
-          return (
-            <div key={s} className="flex-1 flex items-center gap-2">
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                  step >= s
-                    ? "bg-padel-green text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-500"
-                }`}
-              >
-                {step > s ? <Check className="w-4 h-4" /> : s}
-              </div>
-              {s < totalSteps && (
-                <div
-                  className={`flex-1 h-1 rounded-full ${
-                    step > s ? "bg-padel-green" : "bg-gray-200 dark:bg-gray-700"
-                  }`}
-                />
-              )}
+        {[1, 2, 3].map((s) => (
+          <div key={s} className="flex-1 flex items-center gap-2">
+            <div
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                step >= s
+                  ? "bg-padel-green text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-500"
+              }`}
+            >
+              {step > s ? <Check className="w-4 h-4" /> : s}
             </div>
-          );
-        })}
+            {s < 3 && (
+              <div
+                className={`flex-1 h-1 rounded-full ${
+                  step > s ? "bg-padel-green" : "bg-gray-200 dark:bg-gray-700"
+                }`}
+              />
+            )}
+          </div>
+        ))}
       </div>
 
       {step === 1 && (
@@ -413,7 +410,21 @@ export default function NewTournamentPage() {
         </Card>
       )}
 
-      {step === 3 && (
+      {step === 3 && format === "championship" && (
+        <ChampionshipTeamBuilder
+          allPlayers={allPlayers}
+          teamPairs={teamPairs}
+          setTeamPairs={setTeamPairs}
+          pendingFirst={pendingFirst}
+          setPendingFirst={setPendingFirst}
+          onBack={() => setStep(2)}
+          onSubmit={submit}
+          saving={saving}
+          error={error}
+        />
+      )}
+
+      {step === 3 && format !== "championship" && (
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-900 dark:text-white">{t.communityTournaments.step3Title}</h2>
@@ -423,19 +434,6 @@ export default function NewTournamentPage() {
             </Badge>
           </div>
 
-          {format === "championship" && (
-            <p className="text-xs text-blue-900 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-              {t.communityTournaments.championshipInfo
-                .replace("{target}", String(championshipTargetPlayers))
-                .replace("{teams}", String(championshipTeamsNeeded))}
-            </p>
-          )}
-          {championshipInvalid && (
-            <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-              {t.communityTournaments.championshipBadPlayerCount
-                .replace("{actual}", String(selected.size))}
-            </p>
-          )}
           {format === "americano" && selected.size > 0 && selected.size === playingPerRound && (
             <p className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               {t.communityTournaments.americanoRoundsCount
@@ -512,68 +510,26 @@ export default function NewTournamentPage() {
             <Button variant="ghost" onClick={() => setStep(2)} disabled={saving}>
               {t.communityTournaments.back}
             </Button>
-            {format === "championship" ? (
-              <Button
-                onClick={() => {
-                  // Initialize team pairs from selection order if not already done.
-                  if (teamPairs.length === 0) {
-                    const ordered = allPlayers
-                      .filter((p) => selected.has(p.id))
-                      .map((p) => p.id);
-                    const pairs: [string, string][] = [];
-                    for (let i = 0; i + 1 < ordered.length; i += 2) {
-                      pairs.push([ordered[i], ordered[i + 1]]);
-                    }
-                    setTeamPairs(pairs);
-                  }
-                  setStep(4);
-                }}
-                disabled={
-                  saving ||
-                  championshipInvalid ||
-                  (selected.size !== 16 && selected.size !== 32)
-                }
-              >
-                {t.communityTournaments.next}
-              </Button>
-            ) : (
-              <Button
-                onClick={submit}
-                disabled={
-                  saving ||
-                  selected.size < 4 ||
-                  americanoMultipleInvalid ||
-                  americanoTooFewPlayers
-                }
-              >
-                {saving ? t.communityTournaments.creating : t.communityTournaments.create}
-              </Button>
-            )}
+            <Button
+              onClick={submit}
+              disabled={
+                saving ||
+                selected.size < 4 ||
+                americanoMultipleInvalid ||
+                americanoTooFewPlayers
+              }
+            >
+              {saving ? t.communityTournaments.creating : t.communityTournaments.create}
+            </Button>
           </div>
         </Card>
-      )}
-
-      {step === 4 && format === "championship" && (
-        <Step4Teams
-          allPlayers={allPlayers}
-          selectedIds={Array.from(selected)}
-          teamPairs={teamPairs}
-          setTeamPairs={setTeamPairs}
-          pendingFirst={pendingFirst}
-          setPendingFirst={setPendingFirst}
-          onBack={() => setStep(3)}
-          onSubmit={submit}
-          saving={saving}
-          error={error}
-        />
       )}
     </div>
   );
 }
 
-function Step4Teams({
+function ChampionshipTeamBuilder({
   allPlayers,
-  selectedIds,
   teamPairs,
   setTeamPairs,
   pendingFirst,
@@ -584,7 +540,6 @@ function Step4Teams({
   error,
 }: {
   allPlayers: CommunityPlayer[];
-  selectedIds: string[];
   teamPairs: [string, string][];
   setTeamPairs: (pairs: [string, string][]) => void;
   pendingFirst: string | null;
@@ -595,10 +550,15 @@ function Step4Teams({
   error: string | null;
 }) {
   const { t } = useLocale();
+  const [search, setSearch] = useState("");
   const playerById = new Map(allPlayers.map((p) => [p.id, p]));
   const paired = new Set(teamPairs.flat());
-  const available = selectedIds.filter((id) => !paired.has(id));
-  const targetTeams = selectedIds.length / 2; // 8 or 16
+  // Available = any community player not yet on a team.
+  const available = allPlayers.filter((p) => !paired.has(p.id));
+  const filteredAvailable = available.filter(
+    (p) => !search || p.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const targetTeams = 16; // championship default — could be 8 in future
 
   const handlePlayerTap = (id: string) => {
     if (pendingFirst === id) {
@@ -619,8 +579,8 @@ function Step4Teams({
 
   const autoPair = () => {
     const newPairs = [...teamPairs];
-    const remaining = [...available];
-    while (remaining.length >= 2) {
+    const remaining = available.map((p) => p.id);
+    while (newPairs.length < targetTeams && remaining.length >= 2) {
       newPairs.push([remaining.shift()!, remaining.shift()!]);
     }
     setTeamPairs(newPairs);
@@ -649,18 +609,24 @@ function Step4Teams({
 
       {/* Available players */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-          {t.communityTournaments.availablePlayers} ({available.length})
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {available.map((id) => {
-            const p = playerById.get(id);
-            if (!p) return null;
-            const isPending = pendingFirst === id;
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            {t.communityTournaments.availablePlayers} ({filteredAvailable.length})
+          </p>
+        </div>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t.communityTournaments.searchPlayers}
+          className="w-full px-3 py-2 mb-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        />
+        <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto p-1">
+          {filteredAvailable.map((p) => {
+            const isPending = pendingFirst === p.id;
             return (
               <button
-                key={id}
-                onClick={() => handlePlayerTap(id)}
+                key={p.id}
+                onClick={() => handlePlayerTap(p.id)}
                 className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   isPending
                     ? "bg-padel-green text-white"
@@ -669,14 +635,17 @@ function Step4Teams({
               >
                 <Avatar name={p.name} imageUrl={p.avatarUrl} size="sm" />
                 <span>{p.name}</span>
+                {p.ntrp !== null && (
+                  <span className="text-[10px] opacity-70">{p.ntrp.toFixed(1)}</span>
+                )}
               </button>
             );
           })}
-          {available.length === 0 && (
+          {filteredAvailable.length === 0 && (
             <p className="text-sm text-gray-400 italic">{t.communityTournaments.allPaired}</p>
           )}
         </div>
-        {available.length > 0 && (
+        {available.length > 0 && teamPairs.length < targetTeams && (
           <div className="flex gap-2 mt-3">
             <Button size="sm" variant="ghost" onClick={autoPair}>
               {t.communityTournaments.autoPairRemaining}
