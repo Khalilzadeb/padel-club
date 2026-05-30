@@ -16,6 +16,7 @@ import { mexicanoRoundPairings } from "@/lib/tournament-pairing";
 import {
   buildTeams,
   computeGroupStandings,
+  generateQuarterfinalFromTwoGroups,
   generateRoundOf16,
   nextStageFromWinners,
 } from "@/lib/championship-bracket";
@@ -163,15 +164,34 @@ async function maybeProgressChampionship(tournamentId: string) {
   const players = await getTournamentPlayers(tournamentId);
   const teams = buildTeams(players);
 
-  // 1. Round of 16 — created once after all groups finish.
-  const existingR16 = allMatches.filter((m) => m.stage === "round-of-16");
-  if (existingR16.length === 0) {
-    const standingsByGroup: Record<string, ReturnType<typeof computeGroupStandings>> = {};
-    for (const label of ["A", "B", "C", "D"]) {
-      standingsByGroup[label] = computeGroupStandings(teams, allMatches, label);
+  // Discover the group labels actually used (A, B for 8-team; A-D for 16-team).
+  const groupLabels = Array.from(new Set(teams.map((t) => t.groupLabel))).filter(Boolean).sort();
+  const groupCount = groupLabels.length;
+
+  // 1. First bracket stage — created once after all groups finish.
+  //    4 groups (16 teams) → Round of 16.
+  //    2 groups (8 teams)  → Quarterfinals directly.
+  const standingsByGroup: Record<string, ReturnType<typeof computeGroupStandings>> = {};
+  for (const label of groupLabels) {
+    standingsByGroup[label] = computeGroupStandings(teams, allMatches, label);
+  }
+
+  if (groupCount === 4) {
+    const existingR16 = allMatches.filter((m) => m.stage === "round-of-16");
+    if (existingR16.length === 0) {
+      const r16 = generateRoundOf16(standingsByGroup);
+      await createBracketStage(tournamentId, "round-of-16", r16, teams);
+      return;
     }
-    const r16 = generateRoundOf16(standingsByGroup);
-    await createBracketStage(tournamentId, "round-of-16", r16, teams);
+  } else if (groupCount === 2) {
+    const existingQf = allMatches.filter((m) => m.stage === "quarterfinal");
+    if (existingQf.length === 0) {
+      const qf = generateQuarterfinalFromTwoGroups(standingsByGroup);
+      await createBracketStage(tournamentId, "quarterfinal", qf, teams);
+      return;
+    }
+  } else {
+    // 12 teams or other counts: not auto-handled yet.
     return;
   }
 

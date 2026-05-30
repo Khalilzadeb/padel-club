@@ -38,10 +38,10 @@ export async function POST(req: NextRequest) {
   if (!format) return NextResponse.json({ error: "format required" }, { status: 400 });
 
   if (format === "championship") {
-    // Championship has different validation: needs teams of 2.
-    if (![8, 16].includes(teams.length)) {
+    // Championship: teams of 2 players; total teams must be a multiple of 4.
+    if (teams.length < 4 || teams.length % 4 !== 0) {
       return NextResponse.json(
-        { error: "Championship requires 8 or 16 teams" },
+        { error: "Championship requires a multiple of 4 teams (8, 12, 16, ...)" },
         { status: 400 }
       );
     }

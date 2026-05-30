@@ -103,6 +103,8 @@
     "drawNextTo": "Növbəti püşk — {group}{slot}",
     "drawing": "Püşk atılır...",
     "drawComplete": "Püşkatma tamamlandı! Qrup oyunları başlayır.",
+    "teamCountLabel": "Komanda sayı",
+    "teamCountHint": "4-ə bölünən rəqəm (8, 12, 16, 20, ...). Hər qrup 4 komanda saxlayır.",
     "availablePlayers": "Boş oyunçular",
     "allPaired": "Hamı komanda oldu",
     "autoPairRemaining": "Qalanlarını avto-cütlə",
@@ -162,7 +164,8 @@
     },
     "errors": {
       "nameRequired": "Ad tələb olunur",
-      "minPlayers": "Ən az 4 oyunçu seçin"
+      "minPlayers": "Ən az 4 oyunçu seçin",
+      "notAllTeamsFormed": "Bütün komandalar yaranmayıb"
     }
   },
   "hero": {

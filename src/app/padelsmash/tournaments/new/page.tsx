@@ -27,6 +27,7 @@ export default function NewTournamentPage() {
   const [prizePositions, setPrizePositions] = useState<1 | 2 | 3>(1);
   const [groupSetsPerMatch, setGroupSetsPerMatch] = useState<1 | 3 | 5>(1);
   const [bracketSetsPerMatch, setBracketSetsPerMatch] = useState<1 | 3 | 5>(3);
+  const [teamCount, setTeamCount] = useState<string>("16");
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const [allPlayers, setAllPlayers] = useState<CommunityPlayer[]>([]);
@@ -80,7 +81,13 @@ export default function NewTournamentPage() {
       setError(t.communityTournaments.errors.nameRequired);
       return;
     }
-    if (selected.size < 4) {
+    const tcNum = Number(teamCount);
+    if (format === "championship") {
+      if (teamPairs.length !== tcNum) {
+        setError(t.communityTournaments.errors.notAllTeamsFormed);
+        return;
+      }
+    } else if (selected.size < 4) {
       setError(t.communityTournaments.errors.minPlayers);
       return;
     }
@@ -262,6 +269,23 @@ export default function NewTournamentPage() {
             </p>
           </div>
 
+          {format === "championship" && (
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                {t.communityTournaments.teamCountLabel}
+              </label>
+              <input
+                type="number"
+                min="4"
+                step="4"
+                value={teamCount}
+                onChange={(e) => setTeamCount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-400 mt-1">{t.communityTournaments.teamCountHint}</p>
+            </div>
+          )}
+
           {format !== "championship" ? (
             <div>
               <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
@@ -413,6 +437,7 @@ export default function NewTournamentPage() {
       {step === 3 && format === "championship" && (
         <ChampionshipTeamBuilder
           allPlayers={allPlayers}
+          targetTeams={Number(teamCount) || 16}
           teamPairs={teamPairs}
           setTeamPairs={setTeamPairs}
           pendingFirst={pendingFirst}
@@ -530,6 +555,7 @@ export default function NewTournamentPage() {
 
 function ChampionshipTeamBuilder({
   allPlayers,
+  targetTeams,
   teamPairs,
   setTeamPairs,
   pendingFirst,
@@ -540,6 +566,7 @@ function ChampionshipTeamBuilder({
   error,
 }: {
   allPlayers: CommunityPlayer[];
+  targetTeams: number;
   teamPairs: [string, string][];
   setTeamPairs: (pairs: [string, string][]) => void;
   pendingFirst: string | null;
@@ -553,12 +580,10 @@ function ChampionshipTeamBuilder({
   const [search, setSearch] = useState("");
   const playerById = new Map(allPlayers.map((p) => [p.id, p]));
   const paired = new Set(teamPairs.flat());
-  // Available = any community player not yet on a team.
   const available = allPlayers.filter((p) => !paired.has(p.id));
   const filteredAvailable = available.filter(
     (p) => !search || p.name.toLowerCase().includes(search.toLowerCase())
   );
-  const targetTeams = 16; // championship default — could be 8 in future
 
   const handlePlayerTap = (id: string) => {
     if (pendingFirst === id) {

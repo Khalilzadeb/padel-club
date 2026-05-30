@@ -148,6 +148,15 @@ export function crossoverPairings(
   return pairings;
 }
 
+// Generate Quarterfinal bracket directly when there are only 2 groups (8 teams).
+// A1 vs B4, A2 vs B3, A3 vs B2, A4 vs B1 — straight crossover, no R16.
+export function generateQuarterfinalFromTwoGroups(
+  standingsByGroup: Record<string, GroupStandingRow[]>
+): { team1Id: string; team2Id: string; bracketPosition: number }[] {
+  const ab = crossoverPairings(standingsByGroup["A"], standingsByGroup["B"]);
+  return ab.map((p, i) => ({ ...p, bracketPosition: i + 1 }));
+}
+
 // Generate Round-of-16 bracket from all 4 group standings.
 // Standard layout: AB winners stay on the left half, CD winners on the right.
 // Positions 1-4 = left (AB crossover), 5-8 = right (CD crossover).
