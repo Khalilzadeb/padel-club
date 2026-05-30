@@ -25,6 +25,8 @@ export default function NewTournamentPage() {
   const [roundsCount, setRoundsCount] = useState<string>("");
   const [courtCount, setCourtCount] = useState<number>(2);
   const [prizePositions, setPrizePositions] = useState<1 | 2 | 3>(1);
+  const [groupSetsPerMatch, setGroupSetsPerMatch] = useState<1 | 3 | 5>(1);
+  const [bracketSetsPerMatch, setBracketSetsPerMatch] = useState<1 | 3 | 5>(3);
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const [allPlayers, setAllPlayers] = useState<CommunityPlayer[]>([]);
@@ -102,6 +104,8 @@ export default function NewTournamentPage() {
         roundsCount: roundsCount ? Number(roundsCount) : null,
         courtCount,
         prizePositions,
+        groupSetsPerMatch,
+        bracketSetsPerMatch,
         startDate,
         playerIds: orderedIds,
         teams,
@@ -257,26 +261,71 @@ export default function NewTournamentPage() {
             </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-              {t.communityTournaments.pointsLabel}
-            </label>
-            <div className="flex gap-2">
-              {[16, 24, 32].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setPointsPerRound(v as 16 | 24 | 32)}
-                  className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
-                    pointsPerRound === v
-                      ? "border-padel-green bg-padel-green text-white"
-                      : "border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {v}
-                </button>
-              ))}
+          {format !== "championship" ? (
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                {t.communityTournaments.pointsLabel}
+              </label>
+              <div className="flex gap-2">
+                {[16, 24, 32].map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setPointsPerRound(v as 16 | 24 | 32)}
+                    className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
+                      pointsPerRound === v
+                        ? "border-padel-green bg-padel-green text-white"
+                        : "border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                  {t.communityTournaments.groupSetsLabel}
+                </label>
+                <div className="flex gap-2">
+                  {[1, 3, 5].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setGroupSetsPerMatch(v as 1 | 3 | 5)}
+                      className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
+                        groupSetsPerMatch === v
+                          ? "border-padel-green bg-padel-green text-white"
+                          : "border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {v === 1 ? t.communityTournaments.oneSet : v === 3 ? t.communityTournaments.bestOf3 : t.communityTournaments.bestOf5}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                  {t.communityTournaments.bracketSetsLabel}
+                </label>
+                <div className="flex gap-2">
+                  {[1, 3, 5].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setBracketSetsPerMatch(v as 1 | 3 | 5)}
+                      className={`flex-1 py-2 rounded-lg border text-sm font-medium ${
+                        bracketSetsPerMatch === v
+                          ? "border-padel-green bg-padel-green text-white"
+                          : "border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {v === 1 ? t.communityTournaments.oneSet : v === 3 ? t.communityTournaments.bestOf3 : t.communityTournaments.bestOf5}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">

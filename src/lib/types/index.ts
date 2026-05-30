@@ -269,6 +269,8 @@ export interface CommunityTournament {
   roundsCount: number | null;
   courtCount: number;
   prizePositions: number;
+  groupSetsPerMatch: number;
+  bracketSetsPerMatch: number;
   startDate: string | null;
   endDate: string | null;
   winnerPlayerIds: string[] | null;

@@ -20,7 +20,7 @@ import {
   nextStageFromWinners,
 } from "@/lib/championship-bracket";
 import { supabase } from "@/lib/supabase";
-import type { ChampionshipStage } from "@/lib/types";
+import type { ChampionshipStage, CommunityTournamentMatch } from "@/lib/types";
 
 const COMMUNITY_SLUG = "padelsmash";
 
@@ -191,28 +191,85 @@ async function maybeProgressChampionship(tournamentId: string) {
     const pairings = nextStageFromWinners(stageMatches, teams);
     if (pairings.length === 0) return;
     await createBracketStage(tournamentId, next, pairings, teams);
+
+    // When SF just completed: also create the Bronze (3rd-place) match between SF losers.
+    if (stage === "semifinal") {
+      const bronzeExisting = allMatches.filter((m) => m.stage === "bronze");
+      if (bronzeExisting.length === 0) {
+        const losers = losersFromStage(stageMatches, teams);
+        if (losers.length === 2) {
+          await createBracketStage(
+            tournamentId,
+            "bronze",
+            [{ team1Id: losers[0], team2Id: losers[1], bracketPosition: 1 }],
+            teams
+          );
+        }
+      }
+    }
     return;
   }
 
-  // 3. Final completed → mark tournament completed and pick winner team.
+  // 3. Final + Bronze completed → mark tournament completed and collect podium.
   const finalMatches = allMatches.filter((m) => m.stage === "final");
-  if (finalMatches.length > 0 && finalMatches.every((m) => m.status === "completed")) {
+  const bronzeMatches = allMatches.filter((m) => m.stage === "bronze");
+  const finalDone = finalMatches.length > 0 && finalMatches.every((m) => m.status === "completed");
+  const bronzeDone = bronzeMatches.length === 0 || bronzeMatches.every((m) => m.status === "completed");
+  if (finalDone && bronzeDone) {
     const final = finalMatches[0];
-    const winnerSide =
-      (final.sets ?? []).reduce((s, x) => s + (x.team1Games > x.team2Games ? 1 : 0), 0) >
-      (final.sets ?? []).reduce((s, x) => s + (x.team2Games > x.team1Games ? 1 : 0), 0)
-        ? "team1"
-        : "team2";
-    const winnerPlayerIds = winnerSide === "team1" ? final.team1PlayerIds : final.team2PlayerIds;
+    const finalWinner = winningPlayerIds(final);
+    const finalLoser = losingPlayerIds(final);
+    const bronze = bronzeMatches[0];
+    const bronzeWinner = bronze ? winningPlayerIds(bronze) : null;
+
+    // Podium order: 1st, 2nd, 3rd. UI slices by tournament.prize_positions.
+    const podium: string[] = [];
+    if (finalWinner) podium.push(...finalWinner);
+    if (finalLoser) podium.push(...finalLoser);
+    if (bronzeWinner) podium.push(...bronzeWinner);
+
     await supabase
       .from("community_tournaments")
       .update({
         status: "completed",
-        winner_player_ids: winnerPlayerIds,
+        winner_player_ids: podium,
         end_date: new Date().toISOString().slice(0, 10),
       })
       .eq("id", tournamentId);
   }
+}
+
+function winningPlayerIds(match: { sets: CommunityTournamentMatch["sets"]; team1PlayerIds: string[]; team2PlayerIds: string[] }): string[] | null {
+  if (!match.sets) return null;
+  const t1Sets = match.sets.filter((s) => s.team1Games > s.team2Games).length;
+  const t2Sets = match.sets.filter((s) => s.team2Games > s.team1Games).length;
+  if (t1Sets > t2Sets) return match.team1PlayerIds;
+  if (t2Sets > t1Sets) return match.team2PlayerIds;
+  return null;
+}
+
+function losingPlayerIds(match: { sets: CommunityTournamentMatch["sets"]; team1PlayerIds: string[]; team2PlayerIds: string[] }): string[] | null {
+  if (!match.sets) return null;
+  const t1Sets = match.sets.filter((s) => s.team1Games > s.team2Games).length;
+  const t2Sets = match.sets.filter((s) => s.team2Games > s.team1Games).length;
+  if (t1Sets > t2Sets) return match.team2PlayerIds;
+  if (t2Sets > t1Sets) return match.team1PlayerIds;
+  return null;
+}
+
+function losersFromStage(stageMatches: CommunityTournamentMatch[], teams: { teamId: string; playerIds: string[] }[]): string[] {
+  const sorted = [...stageMatches].sort((a, b) => (a.bracketPosition ?? 0) - (b.bracketPosition ?? 0));
+  const playerToTeam = new Map<string, string>();
+  for (const t of teams) for (const pid of t.playerIds) playerToTeam.set(pid, t.teamId);
+  const losers: string[] = [];
+  for (const m of sorted) {
+    const loserPlayers = losingPlayerIds(m);
+    if (!loserPlayers) return [];
+    const tid = playerToTeam.get(loserPlayers[0]);
+    if (!tid) return [];
+    losers.push(tid);
+  }
+  return losers;
 }
 
 async function createBracketStage(

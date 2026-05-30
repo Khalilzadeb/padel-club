@@ -288,6 +288,8 @@ create table if not exists community_tournaments (
 -- Migration for tables created before these columns existed:
 alter table community_tournaments add column if not exists court_count integer not null default 1;
 alter table community_tournaments add column if not exists prize_positions integer not null default 1;
+alter table community_tournaments add column if not exists group_sets_per_match integer not null default 1;
+alter table community_tournaments add column if not exists bracket_sets_per_match integer not null default 3;
 
 create index if not exists idx_community_tournaments_community on community_tournaments(community_id);
 create index if not exists idx_community_tournaments_status on community_tournaments(status);

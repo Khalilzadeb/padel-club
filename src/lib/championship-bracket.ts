@@ -149,21 +149,25 @@ export function crossoverPairings(
 }
 
 // Generate Round-of-16 bracket from all 4 group standings.
-// Groups (A,B) cross, groups (C,D) cross.
-// Standard layout: A vs B, C vs D pairs in the bracket so winners can meet.
+// Standard layout: AB winners stay on the left half, CD winners on the right.
+// Positions 1-4 = left (AB crossover), 5-8 = right (CD crossover).
+// QF pairs (1,2) and (3,4) on the left, (5,6) and (7,8) on the right.
+// SF pairs the two QF winners per side; AB and CD finalists only meet in Final.
 export function generateRoundOf16(
   standingsByGroup: Record<string, GroupStandingRow[]>
 ): { team1Id: string; team2Id: string; bracketPosition: number }[] {
   const ab = crossoverPairings(standingsByGroup["A"], standingsByGroup["B"]);
   const cd = crossoverPairings(standingsByGroup["C"], standingsByGroup["D"]);
-
-  // Interleave so QF can pair AB-winner vs CD-winner.
-  const matches: { team1Id: string; team2Id: string; bracketPosition: number }[] = [];
-  for (let i = 0; i < 4; i++) {
-    matches.push({ ...ab[i], bracketPosition: i * 2 + 1 }); // 1, 3, 5, 7
-    matches.push({ ...cd[i], bracketPosition: i * 2 + 2 }); // 2, 4, 6, 8
-  }
-  return matches;
+  return [
+    { ...ab[0], bracketPosition: 1 },
+    { ...ab[1], bracketPosition: 2 },
+    { ...ab[2], bracketPosition: 3 },
+    { ...ab[3], bracketPosition: 4 },
+    { ...cd[0], bracketPosition: 5 },
+    { ...cd[1], bracketPosition: 6 },
+    { ...cd[2], bracketPosition: 7 },
+    { ...cd[3], bracketPosition: 8 },
+  ];
 }
 
 // Determine the winner of a match (by sets won).

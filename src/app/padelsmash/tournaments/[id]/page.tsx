@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check } from "lucide-react";
+import BracketView from "@/components/community/BracketView";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -223,6 +224,26 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
         )}
       </Card>
 
+      {/* Championship: show bracket diagram once R16 starts. */}
+      {tournament.format === "championship" &&
+        Object.values(matchesByRound)
+          .flat()
+          .some((m) => m.stage && m.stage !== "group") && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+              {t.communityTournaments.bracketTitle}
+            </h2>
+            <BracketView
+              matches={Object.values(matchesByRound).flat()}
+              playerName={playerName}
+              isAdmin={isAdmin}
+              tournamentId={tournament.id}
+              bracketSetsPerMatch={tournament.bracketSetsPerMatch}
+              onScored={load}
+            />
+          </div>
+        )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Rounds + matches column */}
         <div className="lg:col-span-2 space-y-4">
@@ -247,6 +268,8 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                   playerName={playerName}
                   isAdmin={isAdmin}
                   pointsPerRound={tournament.pointsPerRound}
+                  groupSetsPerMatch={tournament.groupSetsPerMatch}
+                  bracketSetsPerMatch={tournament.bracketSetsPerMatch}
                   tournamentId={tournament.id}
                   onScored={load}
                   isCurrent={currentRound?.id === round.id}
@@ -333,6 +356,8 @@ function RoundCard({
   playerName,
   isAdmin,
   pointsPerRound,
+  groupSetsPerMatch,
+  bracketSetsPerMatch,
   tournamentId,
   onScored,
   isCurrent,
@@ -343,6 +368,8 @@ function RoundCard({
   playerName: (id: string) => string;
   isAdmin: boolean;
   pointsPerRound: number;
+  groupSetsPerMatch: number;
+  bracketSetsPerMatch: number;
   tournamentId: string;
   onScored: () => void;
   isCurrent: boolean;
@@ -375,6 +402,9 @@ function RoundCard({
               isAdmin={isAdmin}
               tournamentId={tournamentId}
               onScored={onScored}
+              setsPerMatch={
+                match.stage === "group" ? groupSetsPerMatch : bracketSetsPerMatch
+              }
             />
           ) : (
             <MatchRow
@@ -570,26 +600,28 @@ function MatchRow({
   );
 }
 
-// Championship match row: 3 set inputs, set-based scoring (best of 3).
+// Championship match row: N set inputs (N = setsPerMatch, e.g. 1, 3, or 5).
 function ChampionshipMatchRow({
   match,
   playerName,
   isAdmin,
   tournamentId,
   onScored,
+  setsPerMatch,
 }: {
   match: CommunityTournamentMatch;
   playerName: (id: string) => string;
   isAdmin: boolean;
   tournamentId: string;
   onScored: () => void;
+  setsPerMatch: number;
 }) {
   type SetRow = { t1: string; t2: string };
   const initialSets: SetRow[] = (match.sets ?? []).map((s) => ({
     t1: String(s.team1Games),
     t2: String(s.team2Games),
   }));
-  while (initialSets.length < 3) initialSets.push({ t1: "", t2: "" });
+  while (initialSets.length < setsPerMatch) initialSets.push({ t1: "", t2: "" });
 
   const [sets, setSets] = useState<SetRow[]>(initialSets);
   const [saving, setSaving] = useState(false);
@@ -602,10 +634,10 @@ function ChampionshipMatchRow({
       t1: String(s.team1Games),
       t2: String(s.team2Games),
     }));
-    while (next.length < 3) next.push({ t1: "", t2: "" });
+    while (next.length < setsPerMatch) next.push({ t1: "", t2: "" });
     setSets(next);
     lastSavedRef.current = next.map((s) => ({ ...s }));
-  }, [match.sets]);
+  }, [match.sets, setsPerMatch]);
 
   const changed = (a: SetRow[], b: SetRow[]) =>
     a.some((s, i) => s.t1 !== b[i].t1 || s.t2 !== b[i].t2);
@@ -619,11 +651,11 @@ function ChampionshipMatchRow({
         .filter((s) => s.t1 !== "" && s.t2 !== "")
         .map((s) => ({ team1Games: Number(s.t1), team2Games: Number(s.t2) }))
         .filter((s) => Number.isFinite(s.team1Games) && Number.isFinite(s.team2Games));
-      if (completedSets.length < 2) return;
-      // Winner must be decisive
+      const winsNeeded = Math.ceil(setsPerMatch / 2); // best-of-N: need ceil(N/2) sets
+      if (completedSets.length < winsNeeded) return;
       const t1Wins = completedSets.filter((s) => s.team1Games > s.team2Games).length;
       const t2Wins = completedSets.filter((s) => s.team2Games > s.team1Games).length;
-      if (t1Wins < 2 && t2Wins < 2) return;
+      if (t1Wins < winsNeeded && t2Wins < winsNeeded) return;
 
       setSaving(true);
       const res = await fetch(`/api/community/tournaments/${tournamentId}/matches/${match.id}`, {

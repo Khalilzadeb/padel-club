@@ -29,6 +29,8 @@ export async function POST(req: NextRequest) {
   const pointsPerRound = Number(body.pointsPerRound ?? 24);
   const courtCount = Number(body.courtCount ?? 1);
   const prizePositions = Number(body.prizePositions ?? 1);
+  const groupSetsPerMatch = Number(body.groupSetsPerMatch ?? 1);
+  const bracketSetsPerMatch = Number(body.bracketSetsPerMatch ?? 3);
   const playerIds = (body.playerIds as string[] | undefined) ?? [];
   const teams = (body.teams as { name?: string; playerIds: string[] }[] | undefined) ?? [];
 
@@ -96,6 +98,8 @@ export async function POST(req: NextRequest) {
       roundsCount,
       courtCount,
       prizePositions,
+      groupSetsPerMatch,
+      bracketSetsPerMatch,
       startDate: body.startDate ?? null,
       createdBy: session.userId,
       playerIds: format === "championship" ? teams.flatMap((t) => t.playerIds) : playerIds,

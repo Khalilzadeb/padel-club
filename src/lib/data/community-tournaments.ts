@@ -25,6 +25,8 @@ function toTournament(row: Record<string, unknown>): CommunityTournament {
     roundsCount: row.rounds_count as number | null,
     courtCount: (row.court_count as number) ?? 1,
     prizePositions: (row.prize_positions as number) ?? 1,
+    groupSetsPerMatch: (row.group_sets_per_match as number) ?? 1,
+    bracketSetsPerMatch: (row.bracket_sets_per_match as number) ?? 3,
     startDate: row.start_date as string | null,
     endDate: row.end_date as string | null,
     winnerPlayerIds: (row.winner_player_ids as string[] | null) ?? null,
@@ -109,6 +111,8 @@ export interface CreateTournamentInput {
   roundsCount?: number | null
   courtCount: number
   prizePositions: number
+  groupSetsPerMatch?: number
+  bracketSetsPerMatch?: number
   startDate?: string | null
   endDate?: string | null
   createdBy?: string | null
@@ -133,6 +137,8 @@ export async function createTournament(input: CreateTournamentInput): Promise<Co
       rounds_count: input.roundsCount ?? null,
       court_count: input.courtCount,
       prize_positions: input.prizePositions,
+      group_sets_per_match: input.groupSetsPerMatch ?? 1,
+      bracket_sets_per_match: input.bracketSetsPerMatch ?? 3,
       start_date: input.startDate ?? null,
       end_date: input.endDate ?? null,
       created_by: input.createdBy ?? null,
