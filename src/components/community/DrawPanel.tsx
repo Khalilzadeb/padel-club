@@ -70,16 +70,21 @@ export default function DrawPanel({
   const [reveal, setReveal] = useState<{ teamName: string; groupLabel: string; slot: number; newName: string } | null>(null);
   const [shuffleId, setShuffleId] = useState<string | null>(null);
 
-  // Shuffling animation: cycle through undrawn team names every 80ms for ~1.4s.
+  // Shuffling animation: cycle through undrawn team names every 80ms.
+  // Snapshot the list when the draw starts so re-renders of the parent
+  // don't re-create the array reference and reset the interval.
   useEffect(() => {
-    if (!drawing || undrawn.length === 0) return;
+    if (!drawing) return;
+    const list = undrawn.map((tm) => tm.teamId);
+    if (list.length === 0) return;
     let i = 0;
     const interval = setInterval(() => {
-      setShuffleId(undrawn[i % undrawn.length].teamId);
+      setShuffleId(list[i % list.length]);
       i++;
     }, 80);
     return () => clearInterval(interval);
-  }, [drawing, undrawn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawing]);
 
   const drawNext = async () => {
     if (drawing) return;
