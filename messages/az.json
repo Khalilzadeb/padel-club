@@ -83,6 +83,8 @@
     "startTournament": "Turniri başlat",
     "startNextRound": "Növbəti raund",
     "finishTournament": "Turniri bitir",
+    "deleteTournament": "Turniri sil",
+    "confirmDelete": "Bu turniri silmək istədiyinizə əminsiniz? Bütün raundlar və hesablar silinəcək.",
     "confirmComplete": "Turniri bitirmək istədiyinizə əminsiniz? Qalibləri standings-dən təyin edəcəm.",
     "round": "Raund",
     "live": "Canlı",

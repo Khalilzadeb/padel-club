@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Play, CheckCircle2, Edit3, Crown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Trophy, Play, CheckCircle2, Edit3, Crown, Trash2 } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -27,6 +28,7 @@ interface TournamentData {
 
 export default function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useLocale();
+  const router = useRouter();
   const { id } = use(params);
 
   const [data, setData] = useState<TournamentData | null>(null);
@@ -103,6 +105,19 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
     load();
   };
 
+  const deleteTournament = async () => {
+    if (!confirm(t.communityTournaments.confirmDelete)) return;
+    setWorking(true);
+    const res = await fetch(`/api/community/tournaments/${id}`, { method: "DELETE" });
+    setWorking(false);
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      alert(e.error ?? "Failed");
+      return;
+    }
+    router.push("/padelsmash/tournaments");
+  };
+
   const playerName = (id: string) => communityPlayers[id]?.name ?? id;
 
   return (
@@ -157,20 +172,24 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        {isAdmin && tournament.status !== "completed" && (
+        {isAdmin && (
           <div className="mt-4 flex gap-2 flex-wrap">
-            {canStartNext && (
+            {tournament.status !== "completed" && canStartNext && (
               <Button onClick={startNextRound} disabled={working}>
                 <Play className="w-4 h-4 mr-1" />
                 {rounds.length === 0 ? t.communityTournaments.startTournament : t.communityTournaments.startNextRound}
               </Button>
             )}
-            {allRoundsDone && (
+            {tournament.status !== "completed" && allRoundsDone && (
               <Button variant="secondary" onClick={completeTournament} disabled={working}>
                 <CheckCircle2 className="w-4 h-4 mr-1" />
                 {t.communityTournaments.finishTournament}
               </Button>
             )}
+            <Button variant="danger" onClick={deleteTournament} disabled={working} className="ml-auto">
+              <Trash2 className="w-4 h-4 mr-1" />
+              {t.communityTournaments.deleteTournament}
+            </Button>
           </div>
         )}
       </Card>
@@ -353,6 +372,30 @@ function MatchRow({
   const [t2, setT2] = useState(String(match.team2Points ?? ""));
   const [saving, setSaving] = useState(false);
 
+  const handleT1Change = (v: string) => {
+    setT1(v);
+    if (v === "") {
+      setT2("");
+      return;
+    }
+    const n = Number(v);
+    if (Number.isFinite(n) && n >= 0 && n <= pointsPerRound) {
+      setT2(String(pointsPerRound - n));
+    }
+  };
+
+  const handleT2Change = (v: string) => {
+    setT2(v);
+    if (v === "") {
+      setT1("");
+      return;
+    }
+    const n = Number(v);
+    if (Number.isFinite(n) && n >= 0 && n <= pointsPerRound) {
+      setT1(String(pointsPerRound - n));
+    }
+  };
+
   const save = async () => {
     const team1Points = Number(t1);
     const team2Points = Number(t2);
@@ -396,15 +439,19 @@ function MatchRow({
             <>
               <input
                 type="number"
+                min="0"
+                max={pointsPerRound}
                 value={t1}
-                onChange={(e) => setT1(e.target.value)}
+                onChange={(e) => handleT1Change(e.target.value)}
                 className="w-14 px-2 py-1 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
               <span className="text-gray-400">–</span>
               <input
                 type="number"
+                min="0"
+                max={pointsPerRound}
                 value={t2}
-                onChange={(e) => setT2(e.target.value)}
+                onChange={(e) => handleT2Change(e.target.value)}
                 className="w-14 px-2 py-1 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </>

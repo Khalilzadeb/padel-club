@@ -241,33 +241,37 @@ export async function recordMatchScore(
     ? match.team2PlayerIds
     : []
 
-  // Update per-player aggregates: each player gets their team's points (for) and the opponent's points (against)
+  // Fetch all 4 affected player rows in a single query, then update them in parallel.
+  const allIds = [...match.team1PlayerIds, ...match.team2PlayerIds]
+  const { data: tpRows } = await supabase
+    .from('community_tournament_players')
+    .select('*')
+    .eq('tournament_id', match.tournamentId)
+    .in('community_player_id', allIds)
+  const tpMap = new Map((tpRows ?? []).map((r) => [r.community_player_id as string, toTournamentPlayer(r)]))
+
   const updates: { ids: string[]; points: number; against: number; won: boolean }[] = [
     { ids: match.team1PlayerIds, points: team1Points, against: team2Points, won: team1Points > team2Points },
     { ids: match.team2PlayerIds, points: team2Points, against: team1Points, won: team2Points > team1Points },
   ]
 
-  for (const u of updates) {
-    for (const pid of u.ids) {
-      const { data: tpRow } = await supabase
-        .from('community_tournament_players')
-        .select('*')
-        .eq('tournament_id', match.tournamentId)
-        .eq('community_player_id', pid)
-        .single()
-      if (!tpRow) continue
-      const tp = toTournamentPlayer(tpRow)
-      await supabase
-        .from('community_tournament_players')
-        .update({
-          total_points: tp.totalPoints + u.points,
-          points_against: tp.pointsAgainst + u.against,
-          matches_played: tp.matchesPlayed + 1,
-          matches_won: tp.matchesWon + (u.won ? 1 : 0),
-        })
-        .eq('id', tp.id)
-    }
-  }
+  await Promise.all(
+    updates.flatMap((u) =>
+      u.ids.map(async (pid) => {
+        const tp = tpMap.get(pid)
+        if (!tp) return
+        await supabase
+          .from('community_tournament_players')
+          .update({
+            total_points: tp.totalPoints + u.points,
+            points_against: tp.pointsAgainst + u.against,
+            matches_played: tp.matchesPlayed + 1,
+            matches_won: tp.matchesWon + (u.won ? 1 : 0),
+          })
+          .eq('id', tp.id)
+      })
+    )
+  )
 
   void winnerIds
 }

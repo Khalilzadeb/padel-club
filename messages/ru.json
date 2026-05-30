@@ -83,6 +83,8 @@
     "startTournament": "Начать турнир",
     "startNextRound": "Следующий раунд",
     "finishTournament": "Завершить турнир",
+    "deleteTournament": "Удалить турнир",
+    "confirmDelete": "Удалить турнир? Все раунды и счета будут удалены.",
     "confirmComplete": "Завершить турнир? Победителей определим по текущей таблице.",
     "round": "Раунд",
     "live": "Идёт",

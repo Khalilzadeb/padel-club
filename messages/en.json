@@ -83,6 +83,8 @@
     "startTournament": "Start tournament",
     "startNextRound": "Next round",
     "finishTournament": "Finish tournament",
+    "deleteTournament": "Delete tournament",
+    "confirmDelete": "Delete this tournament? All rounds and scores will be removed.",
     "confirmComplete": "Finish this tournament? Winners will be set from current standings.",
     "round": "Round",
     "live": "Live",
