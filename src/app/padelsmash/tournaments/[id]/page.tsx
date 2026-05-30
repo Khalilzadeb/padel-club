@@ -247,6 +247,21 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                       </p>
                       <p className="text-[10px] text-gray-400">
                         {row.tournamentPlayer.matchesWon}W · {row.tournamentPlayer.matchesPlayed} {t.communityTournaments.matches}
+                        {row.tournamentPlayer.matchesPlayed > 0 && (
+                          <>
+                            {" · "}
+                            <span className={
+                              row.tournamentPlayer.totalPoints > row.tournamentPlayer.pointsAgainst
+                                ? "text-green-600"
+                                : row.tournamentPlayer.totalPoints < row.tournamentPlayer.pointsAgainst
+                                ? "text-red-500"
+                                : ""
+                            }>
+                              {row.tournamentPlayer.totalPoints - row.tournamentPlayer.pointsAgainst > 0 ? "+" : ""}
+                              {row.tournamentPlayer.totalPoints - row.tournamentPlayer.pointsAgainst}
+                            </span>
+                          </>
+                        )}
                       </p>
                     </div>
                     <span className="text-sm font-bold text-gray-900 dark:text-white">

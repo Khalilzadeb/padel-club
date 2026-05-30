@@ -282,6 +282,7 @@ export interface CommunityTournamentPlayer {
   teamId: string | null;
   seed: number | null;
   totalPoints: number;
+  pointsAgainst: number;
   matchesPlayed: number;
   matchesWon: number;
 }

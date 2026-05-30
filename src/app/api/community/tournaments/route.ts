@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getCommunityBySlug, isCommunityAdmin } from "@/lib/data/communities";
 import { createTournament, listTournaments } from "@/lib/data/community-tournaments";
+import { americanoTotalRounds } from "@/lib/tournament-pairing";
 
 const COMMUNITY_SLUG = "padelsmash";
 
@@ -36,6 +37,18 @@ export async function POST(req: NextRequest) {
   if (playerIds.length < 4) {
     return NextResponse.json({ error: "at least 4 players required" }, { status: 400 });
   }
+  if (format === "americano" && playerIds.length % 4 !== 0) {
+    return NextResponse.json(
+      { error: "Americano requires a multiple of 4 players" },
+      { status: 400 }
+    );
+  }
+
+  // Americano round count is fixed (N-1). Other formats use the admin-provided value.
+  const roundsCount =
+    format === "americano"
+      ? americanoTotalRounds(playerIds.length)
+      : body.roundsCount ?? null;
 
   try {
     const tournament = await createTournament({
@@ -44,7 +57,7 @@ export async function POST(req: NextRequest) {
       description: body.description ?? null,
       format: format as never,
       pointsPerRound,
-      roundsCount: body.roundsCount ?? null,
+      roundsCount,
       startDate: body.startDate ?? null,
       createdBy: session.userId,
       playerIds,

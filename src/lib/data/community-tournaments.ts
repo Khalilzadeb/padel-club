@@ -38,6 +38,7 @@ function toTournamentPlayer(row: Record<string, unknown>): CommunityTournamentPl
     teamId: row.team_id as string | null,
     seed: row.seed as number | null,
     totalPoints: (row.total_points as number) ?? 0,
+    pointsAgainst: (row.points_against as number) ?? 0,
     matchesPlayed: (row.matches_played as number) ?? 0,
     matchesWon: (row.matches_won as number) ?? 0,
   }
@@ -240,10 +241,10 @@ export async function recordMatchScore(
     ? match.team2PlayerIds
     : []
 
-  // Update per-player aggregates: each player gets their team's points, +1 match played, +1 win if won
-  const updates: { ids: string[]; points: number; won: boolean }[] = [
-    { ids: match.team1PlayerIds, points: team1Points, won: team1Points > team2Points },
-    { ids: match.team2PlayerIds, points: team2Points, won: team2Points > team1Points },
+  // Update per-player aggregates: each player gets their team's points (for) and the opponent's points (against)
+  const updates: { ids: string[]; points: number; against: number; won: boolean }[] = [
+    { ids: match.team1PlayerIds, points: team1Points, against: team2Points, won: team1Points > team2Points },
+    { ids: match.team2PlayerIds, points: team2Points, against: team1Points, won: team2Points > team1Points },
   ]
 
   for (const u of updates) {
@@ -260,6 +261,7 @@ export async function recordMatchScore(
         .from('community_tournament_players')
         .update({
           total_points: tp.totalPoints + u.points,
+          points_against: tp.pointsAgainst + u.against,
           matches_played: tp.matchesPlayed + 1,
           matches_won: tp.matchesWon + (u.won ? 1 : 0),
         })
@@ -321,10 +323,18 @@ export async function getStandings(tournamentId: string): Promise<TournamentStan
     })
     .filter((x): x is { player: CommunityPlayer; tournamentPlayer: CommunityTournamentPlayer } => x !== null)
     .sort((a, b) => {
+      // 1. Total points desc
       if (b.tournamentPlayer.totalPoints !== a.tournamentPlayer.totalPoints) {
         return b.tournamentPlayer.totalPoints - a.tournamentPlayer.totalPoints
       }
-      return b.tournamentPlayer.matchesWon - a.tournamentPlayer.matchesWon
+      // 2. Matches won desc
+      if (b.tournamentPlayer.matchesWon !== a.tournamentPlayer.matchesWon) {
+        return b.tournamentPlayer.matchesWon - a.tournamentPlayer.matchesWon
+      }
+      // 3. Point differential desc (head-to-head skipped for now — complex with rotating partners)
+      const aDiff = a.tournamentPlayer.totalPoints - a.tournamentPlayer.pointsAgainst
+      const bDiff = b.tournamentPlayer.totalPoints - b.tournamentPlayer.pointsAgainst
+      return bDiff - aDiff
     })
     .map((x, idx) => ({ ...x, rank: idx + 1 }))
 }

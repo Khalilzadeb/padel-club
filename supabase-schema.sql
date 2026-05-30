@@ -293,10 +293,13 @@ create table if not exists community_tournament_players (
   team_id text, -- for team formats: players sharing the same team_id are partners
   seed integer, -- initial ranking (used by mexicano for round 1)
   total_points integer default 0,
+  points_against integer default 0,
   matches_played integer default 0,
   matches_won integer default 0,
   unique(tournament_id, community_player_id)
 );
+
+alter table community_tournament_players add column if not exists points_against integer default 0;
 
 create index if not exists idx_ct_players_tournament on community_tournament_players(tournament_id);
 
