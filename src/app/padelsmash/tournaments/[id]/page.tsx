@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check } from "lucide-react";
+import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check, ImagePlus } from "lucide-react";
 import BracketView from "@/components/community/BracketView";
 import DrawPanel from "@/components/community/DrawPanel";
 import GroupStandingsView from "@/components/community/GroupStandingsView";
@@ -116,6 +116,23 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
     load();
   };
 
+  const uploadCover = async (file: File) => {
+    setWorking(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`/api/community/tournaments/${id}/cover`, {
+      method: "POST",
+      body: fd,
+    });
+    setWorking(false);
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      alert(e.error ?? "Failed");
+      return;
+    }
+    load();
+  };
+
   const deleteTournament = async () => {
     if (!confirm(t.communityTournaments.confirmDelete)) return;
     setWorking(true);
@@ -153,6 +170,18 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
       >
         <ArrowLeft className="w-4 h-4" /> {t.communityTournaments.backToList}
       </Link>
+
+      {/* Cover photo hero — completed tournaments with a winner photo. */}
+      {tournament.coverUrl && (
+        <div className="rounded-2xl overflow-hidden mb-6 max-h-[420px] bg-gray-100 dark:bg-gray-800">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={tournament.coverUrl}
+            alt={tournament.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
       {/* Header */}
       <Card className="p-6 mb-6">
@@ -231,6 +260,21 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                 {t.communityTournaments.finishTournament}
               </Button>
             )}
+            <label className="inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 px-3 py-1.5 text-sm gap-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+              <ImagePlus className="w-4 h-4" />
+              {tournament.coverUrl ? t.communityTournaments.changeCover : t.communityTournaments.uploadCover}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={working}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadCover(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
             <Button variant="danger" onClick={deleteTournament} disabled={working} className="ml-auto">
               <Trash2 className="w-4 h-4 mr-1" />
               {t.communityTournaments.deleteTournament}

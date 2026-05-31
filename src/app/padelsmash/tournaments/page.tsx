@@ -119,26 +119,38 @@ function TournamentCard({ tournament }: { tournament: CommunityTournament }) {
   const { t } = useLocale();
   return (
     <Link href={`/padelsmash/tournaments/${tournament.id}`}>
-      <Card hover className="p-5 h-full">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-semibold text-gray-900 dark:text-white truncate flex-1">{tournament.name}</h3>
-          <Badge variant={statusVariant(tournament.status)}>
-            {t.communityTournaments.statuses[tournament.status]}
-          </Badge>
-        </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{formatLabel(tournament.format, t)}</p>
-        {tournament.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">{tournament.description}</p>
+      <Card hover className="overflow-hidden h-full">
+        {tournament.coverUrl && (
+          <div className="aspect-[16/9] bg-gray-100 dark:bg-gray-800 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={tournament.coverUrl}
+              alt={tournament.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
         )}
-        <div className="flex items-center gap-3 text-xs text-gray-400">
-          {tournament.startDate && (
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" /> {tournament.startDate}
-            </span>
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h3 className="font-semibold text-gray-900 dark:text-white truncate flex-1">{tournament.name}</h3>
+            <Badge variant={statusVariant(tournament.status)}>
+              {t.communityTournaments.statuses[tournament.status]}
+            </Badge>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{formatLabel(tournament.format, t)}</p>
+          {tournament.description && (
+            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">{tournament.description}</p>
           )}
-          <span className="ml-auto inline-flex items-center text-padel-green">
-            {t.communityTournaments.viewDetails} <ChevronRight className="w-3 h-3" />
-          </span>
+          <div className="flex items-center gap-3 text-xs text-gray-400">
+            {tournament.startDate && (
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" /> {tournament.startDate}
+              </span>
+            )}
+            <span className="ml-auto inline-flex items-center text-padel-green">
+              {t.communityTournaments.viewDetails} <ChevronRight className="w-3 h-3" />
+            </span>
+          </div>
         </div>
       </Card>
     </Link>

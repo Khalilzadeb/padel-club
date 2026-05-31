@@ -57,7 +57,7 @@ export default function PadelSmashPage() {
     { key: "members", label: t.community.tabs.members, icon: Users },
     { key: "events", label: t.community.tabs.events, icon: Trophy, href: "/padelsmash/tournaments" },
     { key: "announcements", label: t.community.tabs.announcements, icon: MessageSquare, comingSoon: true },
-    { key: "stats", label: t.community.tabs.stats, icon: BarChart3, comingSoon: true },
+    { key: "stats", label: t.community.tabs.stats, icon: BarChart3 },
   ];
 
   if (loading) {
@@ -250,6 +250,8 @@ export default function PadelSmashPage() {
         </>
       )}
 
+      {tab === "stats" && <LeaderboardTab />}
+
       {addOpen && (
         <AddPlayerModal
           onClose={() => setAddOpen(false)}
@@ -260,5 +262,111 @@ export default function PadelSmashPage() {
         />
       )}
     </div>
+  );
+}
+
+interface LeaderboardEntryDTO {
+  player: CommunityPlayer;
+  golds: number;
+  silvers: number;
+  bronzes: number;
+  total: number;
+}
+
+function LeaderboardTab() {
+  const { t } = useLocale();
+  const [entries, setEntries] = useState<LeaderboardEntryDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/community/leaderboard")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        setEntries(data);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <span className="w-8 h-8 border-2 border-padel-green border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <Card className="p-12 text-center">
+        <Trophy className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+        <p className="text-gray-400">{t.community.leaderboardEmpty}</p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-5">
+      <h2 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <Trophy className="w-5 h-5 text-padel-green" />
+        {t.community.leaderboardTitle}
+      </h2>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="text-xs text-gray-400 border-b border-gray-100 dark:border-gray-700">
+              <th className="text-left font-medium pb-2 w-12">#</th>
+              <th className="text-left font-medium pb-2">{t.community.player}</th>
+              <th className="text-center font-medium pb-2 w-16">🥇</th>
+              <th className="text-center font-medium pb-2 w-16">🥈</th>
+              <th className="text-center font-medium pb-2 w-16">🥉</th>
+              <th className="text-right font-medium pb-2 w-20">{t.community.total}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((e, idx) => (
+              <tr
+                key={e.player.id}
+                className={`border-b border-gray-50 dark:border-gray-700/50 ${
+                  idx === 0
+                    ? "bg-amber-50/40 dark:bg-amber-900/10"
+                    : idx === 1
+                    ? "bg-gray-50 dark:bg-gray-800/40"
+                    : idx === 2
+                    ? "bg-orange-50/40 dark:bg-orange-900/10"
+                    : ""
+                }`}
+              >
+                <td className="py-2 font-bold text-padel-green">{idx + 1}</td>
+                <td className="py-2">
+                  <Link
+                    href={
+                      e.player.linkedPlayerId
+                        ? `/players/${e.player.linkedPlayerId}`
+                        : `/padelsmash`
+                    }
+                    className="flex items-center gap-2"
+                  >
+                    <Avatar name={e.player.name} imageUrl={e.player.avatarUrl} size="sm" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {e.player.name}
+                    </span>
+                  </Link>
+                </td>
+                <td className="py-2 text-center font-semibold text-gray-900 dark:text-white">
+                  {e.golds || ""}
+                </td>
+                <td className="py-2 text-center font-semibold text-gray-900 dark:text-white">
+                  {e.silvers || ""}
+                </td>
+                <td className="py-2 text-center font-semibold text-gray-900 dark:text-white">
+                  {e.bronzes || ""}
+                </td>
+                <td className="py-2 text-right font-bold text-padel-green">{e.total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
   );
 }

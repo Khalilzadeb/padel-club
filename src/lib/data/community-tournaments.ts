@@ -514,6 +514,71 @@ export async function completeTournament(
   }
 }
 
+export interface LeaderboardEntry {
+  player: CommunityPlayer
+  golds: number
+  silvers: number
+  bronzes: number
+  total: number
+}
+
+// Aggregate podium finishes per player across every completed tournament in this community.
+// For team-based formats, each position (1st, 2nd, 3rd) is two player IDs; for individual
+// formats it's one ID. Only players who reached at least one podium appear.
+export async function getCommunityLeaderboard(communityId: string): Promise<LeaderboardEntry[]> {
+  const { data: tournaments } = await supabase
+    .from('community_tournaments')
+    .select('id, format, winner_player_ids')
+    .eq('community_id', communityId)
+    .eq('status', 'completed')
+
+  const players = await getCommunityPlayers(communityId)
+  const playerMap = new Map(players.map((p) => [p.id, p]))
+  const counts = new Map<string, { golds: number; silvers: number; bronzes: number }>()
+
+  for (const t of tournaments ?? []) {
+    const winners = ((t as Record<string, unknown>).winner_player_ids as string[] | null) ?? []
+    if (winners.length === 0) continue
+    const format = (t as Record<string, unknown>).format as string
+    const isTeam =
+      format === 'championship' || format === 'team-americano' || format === 'team-mexicano'
+    const groupSize = isTeam ? 2 : 1
+
+    for (let pos = 0; pos < 3; pos++) {
+      const ids = winners.slice(pos * groupSize, (pos + 1) * groupSize)
+      for (const pid of ids) {
+        if (!counts.has(pid)) counts.set(pid, { golds: 0, silvers: 0, bronzes: 0 })
+        const c = counts.get(pid)!
+        if (pos === 0) c.golds++
+        else if (pos === 1) c.silvers++
+        else if (pos === 2) c.bronzes++
+      }
+    }
+  }
+
+  const entries: LeaderboardEntry[] = []
+  for (const [pid, c] of counts) {
+    const player = playerMap.get(pid)
+    if (!player) continue
+    entries.push({
+      player,
+      golds: c.golds,
+      silvers: c.silvers,
+      bronzes: c.bronzes,
+      total: c.golds + c.silvers + c.bronzes,
+    })
+  }
+
+  entries.sort((a, b) => {
+    if (b.golds !== a.golds) return b.golds - a.golds
+    if (b.silvers !== a.silvers) return b.silvers - a.silvers
+    if (b.bronzes !== a.bronzes) return b.bronzes - a.bronzes
+    return b.total - a.total
+  })
+
+  return entries
+}
+
 export async function getStandings(tournamentId: string): Promise<TournamentStandingRow[]> {
   const tournament = await getTournament(tournamentId)
   if (!tournament) return []
