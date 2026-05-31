@@ -16,6 +16,23 @@ export interface TeamRef {
   teamName: string;
 }
 
+// Validates a single set score against padel rules:
+//   - 6-0, 6-1, 6-2, 6-3, 6-4 (winning at 6 with 2-game lead)
+//   - 7-5 (winning at 7 after 5-5)
+//   - 7-6 (winning via tiebreak at 6-6)
+// And the reverse for the other side.
+// Returns true if the set is a valid completed result.
+export function isValidPadelSet(t1: number, t2: number): boolean {
+  if (!Number.isFinite(t1) || !Number.isFinite(t2)) return false;
+  if (t1 < 0 || t2 < 0 || t1 > 7 || t2 > 7) return false;
+  if (t1 === t2) return false;
+  const hi = Math.max(t1, t2);
+  const lo = Math.min(t1, t2);
+  if (hi === 6) return lo <= 4;
+  if (hi === 7) return lo === 5 || lo === 6;
+  return false;
+}
+
 // Round-robin pairings for a single group of 4 teams (returns 6 match templates,
 // each identifying two teams by index 0..3 within the group).
 export function groupRoundRobinPairings(): { team1Idx: number; team2Idx: number }[] {

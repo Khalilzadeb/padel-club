@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Check } from "lucide-react";
 import Card from "@/components/ui/Card";
+import { isValidPadelSet } from "@/lib/championship-bracket";
 import type { CommunityTournamentMatch } from "@/lib/types";
 
 interface BracketViewProps {
@@ -224,7 +225,13 @@ function BracketMatchCard({
   }
 
   const updateSet = (idx: number, field: "t1" | "t2", v: string) => {
-    const next = sets.map((s, i) => (i === idx ? { ...s, [field]: v } : s));
+    let cleaned = v;
+    if (cleaned !== "") {
+      const n = Number(cleaned);
+      if (!Number.isFinite(n)) return;
+      cleaned = String(Math.max(0, Math.min(7, Math.floor(n))));
+    }
+    const next = sets.map((s, i) => (i === idx ? { ...s, [field]: cleaned } : s));
     setSets(next);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
@@ -236,6 +243,7 @@ function BracketMatchCard({
         .filter((s) => s.t1 !== "" && s.t2 !== "")
         .map((s) => ({ team1Games: Number(s.t1), team2Games: Number(s.t2) }))
         .filter((s) => Number.isFinite(s.team1Games) && Number.isFinite(s.team2Games));
+      if (completedSets.some((s) => !isValidPadelSet(s.team1Games, s.team2Games))) return;
       const winsNeeded = Math.ceil(setsPerMatch / 2);
       if (completedSets.length < winsNeeded) return;
       const t1 = completedSets.filter((s) => s.team1Games > s.team2Games).length;
@@ -285,17 +293,21 @@ function BracketMatchCard({
               {ids.map(playerName).join(" + ") || "—"}
             </span>
             <div className="flex gap-0.5">
-              {sets.map((s, i) =>
-                isAdmin ? (
+              {sets.map((s, i) => {
+                const invalid =
+                  s.t1 !== "" && s.t2 !== "" && !isValidPadelSet(Number(s.t1), Number(s.t2));
+                return isAdmin ? (
                   <input
                     key={i}
                     type="number"
                     inputMode="numeric"
                     min="0"
-                    max="9"
+                    max="7"
                     value={teamIdx === 0 ? s.t1 : s.t2}
                     onChange={(e) => updateSet(i, teamIdx === 0 ? "t1" : "t2", e.target.value)}
-                    className="w-7 px-0.5 py-0 text-center border border-gray-200 dark:border-gray-600 rounded text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green"
+                    className={`w-7 px-0.5 py-0 text-center border rounded text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
+                      invalid ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
+                    }`}
                   />
                 ) : (
                   <span
@@ -304,8 +316,8 @@ function BracketMatchCard({
                   >
                     {(teamIdx === 0 ? s.t1 : s.t2) || "–"}
                   </span>
-                )
-              )}
+                );
+              })}
             </div>
           </div>
         );

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check } from "lucide-react";
 import BracketView from "@/components/community/BracketView";
 import DrawPanel from "@/components/community/DrawPanel";
+import GroupStandingsView from "@/components/community/GroupStandingsView";
+import { isValidPadelSet } from "@/lib/championship-bracket";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -297,6 +299,13 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
         {/* Standings column */}
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-20">
+          {tournament.format === "championship" ? (
+            <GroupStandingsView
+              players={data.players}
+              matches={Object.values(matchesByRound).flat()}
+              playerName={playerName}
+            />
+          ) : (
           <Card className="p-5">
             <h2 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <Trophy className="w-4 h-4 text-padel-green" />
@@ -358,6 +367,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
               </div>
             )}
           </Card>
+          )}
           </div>
         </div>
       </div>
@@ -667,6 +677,8 @@ function ChampionshipMatchRow({
         .filter((s) => s.t1 !== "" && s.t2 !== "")
         .map((s) => ({ team1Games: Number(s.t1), team2Games: Number(s.t2) }))
         .filter((s) => Number.isFinite(s.team1Games) && Number.isFinite(s.team2Games));
+      // Skip save if any completed set is not a valid padel set.
+      if (completedSets.some((s) => !isValidPadelSet(s.team1Games, s.team2Games))) return;
       const winsNeeded = Math.ceil(setsPerMatch / 2); // best-of-N: need ceil(N/2) sets
       if (completedSets.length < winsNeeded) return;
       const t1Wins = completedSets.filter((s) => s.team1Games > s.team2Games).length;
@@ -690,7 +702,14 @@ function ChampionshipMatchRow({
   };
 
   const updateSet = (idx: number, field: "t1" | "t2", v: string) => {
-    const next = sets.map((s, i) => (i === idx ? { ...s, [field]: v } : s));
+    // Clamp to 0-7 (padel rules: max valid game count in a set is 7).
+    let cleaned = v;
+    if (cleaned !== "") {
+      const n = Number(cleaned);
+      if (!Number.isFinite(n)) return;
+      cleaned = String(Math.max(0, Math.min(7, Math.floor(n))));
+    }
+    const next = sets.map((s, i) => (i === idx ? { ...s, [field]: cleaned } : s));
     setSets(next);
     scheduleSave(next);
   };
@@ -699,6 +718,8 @@ function ChampionshipMatchRow({
   const t2Sets = sets.filter((s) => s.t1 !== "" && s.t2 !== "" && Number(s.t2) > Number(s.t1)).length;
   const team1Won = match.status === "completed" && t1Sets > t2Sets;
   const team2Won = match.status === "completed" && t2Sets > t1Sets;
+  const setIsInvalid = (s: { t1: string; t2: string }) =>
+    s.t1 !== "" && s.t2 !== "" && !isValidPadelSet(Number(s.t1), Number(s.t2));
 
   return (
     <div className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden">
@@ -727,19 +748,23 @@ function ChampionshipMatchRow({
                       type="number"
                       inputMode="numeric"
                       min="0"
-                      max="9"
+                      max="7"
                       value={s.t1}
                       onChange={(e) => updateSet(i, "t1", e.target.value)}
-                      className="w-10 px-1 py-0.5 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green"
+                      className={`w-10 px-1 py-0.5 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
+                        setIsInvalid(s) ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
+                      }`}
                     />
                     <input
                       type="number"
                       inputMode="numeric"
                       min="0"
-                      max="9"
+                      max="7"
                       value={s.t2}
                       onChange={(e) => updateSet(i, "t2", e.target.value)}
-                      className="w-10 px-1 py-0.5 text-center border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green"
+                      className={`w-10 px-1 py-0.5 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
+                        setIsInvalid(s) ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
+                      }`}
                     />
                   </>
                 ) : (
