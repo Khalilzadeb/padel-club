@@ -18,7 +18,6 @@ import {
   computeGroupStandings,
   generateQuarterfinalFromTwoGroups,
   generateRoundOf16,
-  nextStageFromWinners,
 } from "@/lib/championship-bracket";
 import { supabase } from "@/lib/supabase";
 import type { ChampionshipStage, CommunityTournamentMatch } from "@/lib/types";
@@ -152,8 +151,9 @@ export async function PATCH(
 }
 
 // Championship progression:
-//  - When all group-stage matches are complete → create Round of 16 from standings.
-//  - When all R16 done → create QF. When QF done → SF. When SF done → Final.
+//  - When all group-stage matches are complete → create the first bracket stage.
+//  - During bracket: each completed match immediately advances its winner into the
+//    next stage's appropriate slot (creating the next match if needed).
 async function maybeProgressChampionship(tournamentId: string) {
   const tournament = await getTournament(tournamentId);
   if (!tournament || tournament.format !== "championship") return;
@@ -163,75 +163,62 @@ async function maybeProgressChampionship(tournamentId: string) {
   const groupMatches = allMatches.filter((m) => m.stage === "group");
   const groupsDone = groupMatches.length > 0 && groupMatches.every((m) => m.status === "completed");
 
-  if (!groupsDone) return;
-
   const players = await getTournamentPlayers(tournamentId);
   const teams = buildTeams(players);
 
-  // Discover the group labels actually used (A, B for 8-team; A-D for 16-team).
-  const groupLabels = Array.from(new Set(teams.map((t) => t.groupLabel))).filter(Boolean).sort();
-  const groupCount = groupLabels.length;
+  // ── Group → first bracket stage (Round of 16 or QF) ──
+  if (groupsDone) {
+    const groupLabels = Array.from(new Set(teams.map((t) => t.groupLabel))).filter(Boolean).sort();
+    const standingsByGroup: Record<string, ReturnType<typeof computeGroupStandings>> = {};
+    for (const label of groupLabels) {
+      standingsByGroup[label] = computeGroupStandings(teams, allMatches, label);
+    }
 
-  // 1. First bracket stage — created once after all groups finish.
-  //    4 groups (16 teams) → Round of 16.
-  //    2 groups (8 teams)  → Quarterfinals directly.
-  const standingsByGroup: Record<string, ReturnType<typeof computeGroupStandings>> = {};
-  for (const label of groupLabels) {
-    standingsByGroup[label] = computeGroupStandings(teams, allMatches, label);
-  }
-
-  if (groupCount === 4) {
-    const existingR16 = allMatches.filter((m) => m.stage === "round-of-16");
-    if (existingR16.length === 0) {
+    if (groupLabels.length === 4 && !allMatches.some((m) => m.stage === "round-of-16")) {
       const r16 = generateRoundOf16(standingsByGroup);
       await createBracketStage(tournamentId, "round-of-16", r16, teams);
-      return;
-    }
-  } else if (groupCount === 2) {
-    const existingQf = allMatches.filter((m) => m.stage === "quarterfinal");
-    if (existingQf.length === 0) {
+    } else if (groupLabels.length === 2 && !allMatches.some((m) => m.stage === "quarterfinal")) {
       const qf = generateQuarterfinalFromTwoGroups(standingsByGroup);
       await createBracketStage(tournamentId, "quarterfinal", qf, teams);
-      return;
     }
-  } else {
-    // 12 teams or other counts: not auto-handled yet.
-    return;
   }
 
-  // 2. Subsequent stages — check completion of the most recently created stage.
-  const stages: ChampionshipStage[] = ["round-of-16", "quarterfinal", "semifinal", "final"];
-  for (let i = 0; i < stages.length - 1; i++) {
-    const stage = stages[i];
-    const next = stages[i + 1];
-    const stageMatches = allMatches.filter((m) => m.stage === stage);
-    if (stageMatches.length === 0) continue;
-    const stageDone = stageMatches.every((m) => m.status === "completed");
-    if (!stageDone) return;
+  // ── Bracket → granular advancement ──
+  // For each completed bracket match, seed the winner into the next stage's slot.
+  const refreshed = await getTournamentMatches(tournamentId);
+  const playerToTeam = new Map<string, string>();
+  for (const t of teams) for (const pid of t.playerIds) playerToTeam.set(pid, t.teamId);
 
-    const nextExisting = allMatches.filter((m) => m.stage === next);
-    if (nextExisting.length > 0) continue; // already created
+  const STAGE_FLOW: { from: ChampionshipStage; to: ChampionshipStage }[] = [
+    { from: "round-of-16", to: "quarterfinal" },
+    { from: "quarterfinal", to: "semifinal" },
+    { from: "semifinal", to: "final" },
+  ];
 
-    const pairings = nextStageFromWinners(stageMatches, teams);
-    if (pairings.length === 0) return;
-    await createBracketStage(tournamentId, next, pairings, teams);
+  for (const { from, to } of STAGE_FLOW) {
+    const fromMatches = refreshed
+      .filter((m) => m.stage === from && m.status === "completed")
+      .sort((a, b) => (a.bracketPosition ?? 0) - (b.bracketPosition ?? 0));
+    for (const m of fromMatches) {
+      const winner = winningPlayerIds(m);
+      if (!winner) continue;
+      const pos = m.bracketPosition ?? 0;
+      if (pos < 1) continue;
+      const nextPos = Math.ceil(pos / 2);
+      const slot: "team1" | "team2" = pos % 2 === 1 ? "team1" : "team2";
+      await seedTeamIntoNextSlot(tournamentId, to, nextPos, slot, winner, teams, refreshed);
+    }
 
-    // When SF just completed: also create the Bronze (3rd-place) match between SF losers.
-    if (stage === "semifinal") {
-      const bronzeExisting = allMatches.filter((m) => m.stage === "bronze");
-      if (bronzeExisting.length === 0) {
-        const losers = losersFromStage(stageMatches, teams);
-        if (losers.length === 2) {
-          await createBracketStage(
-            tournamentId,
-            "bronze",
-            [{ team1Id: losers[0], team2Id: losers[1], bracketPosition: 1 }],
-            teams
-          );
-        }
+    // SF completion → also create / fill Bronze (3rd place) with the losers.
+    if (from === "semifinal") {
+      for (const m of fromMatches) {
+        const loser = losingPlayerIds(m);
+        if (!loser) continue;
+        const pos = m.bracketPosition ?? 0;
+        const slot: "team1" | "team2" = pos === 1 ? "team1" : "team2";
+        await seedTeamIntoNextSlot(tournamentId, "bronze", 1, slot, loser, teams, refreshed);
       }
     }
-    return;
   }
 
   // 3. Final + Bronze completed → mark tournament completed and collect podium.
@@ -281,19 +268,91 @@ function losingPlayerIds(match: { sets: CommunityTournamentMatch["sets"]; team1P
   return null;
 }
 
-function losersFromStage(stageMatches: CommunityTournamentMatch[], teams: { teamId: string; playerIds: string[] }[]): string[] {
-  const sorted = [...stageMatches].sort((a, b) => (a.bracketPosition ?? 0) - (b.bracketPosition ?? 0));
-  const playerToTeam = new Map<string, string>();
-  for (const t of teams) for (const pid of t.playerIds) playerToTeam.set(pid, t.teamId);
-  const losers: string[] = [];
-  for (const m of sorted) {
-    const loserPlayers = losingPlayerIds(m);
-    if (!loserPlayers) return [];
-    const tid = playerToTeam.get(loserPlayers[0]);
-    if (!tid) return [];
-    losers.push(tid);
+// Seed a team's player IDs into a specific bracket-stage match slot.
+// - If the round for `stage` doesn't exist, create it.
+// - If the match at `position` doesn't exist, create it with the OTHER slot empty.
+// - If the slot is already filled (idempotent), do nothing.
+async function seedTeamIntoNextSlot(
+  tournamentId: string,
+  stage: ChampionshipStage,
+  position: number,
+  slot: "team1" | "team2",
+  playerIds: string[],
+  teams: { teamId: string; playerIds: string[] }[],
+  _cached: CommunityTournamentMatch[]
+): Promise<void> {
+  void teams;
+  void _cached;
+  const roundId = `r_${tournamentId}_${stage}`;
+
+  // Ensure the stage round exists.
+  const { data: existingRound } = await supabase
+    .from("community_tournament_rounds")
+    .select("id")
+    .eq("id", roundId)
+    .maybeSingle();
+  if (!existingRound) {
+    const { data: lastRound } = await supabase
+      .from("community_tournament_rounds")
+      .select("round_number")
+      .eq("tournament_id", tournamentId)
+      .order("round_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextRoundNumber = ((lastRound?.round_number as number | null) ?? 0) + 1;
+    await supabase.from("community_tournament_rounds").insert({
+      id: roundId,
+      tournament_id: tournamentId,
+      round_number: nextRoundNumber,
+      status: "active",
+      started_at: new Date().toISOString(),
+    });
   }
-  return losers;
+
+  // Re-fetch the target match (avoid stale cached state from prior calls).
+  const { data: existing } = await supabase
+    .from("community_tournament_matches")
+    .select("*")
+    .eq("tournament_id", tournamentId)
+    .eq("stage", stage)
+    .eq("bracket_position", position)
+    .maybeSingle();
+
+  if (existing) {
+    const alreadyFilled =
+      slot === "team1"
+        ? ((existing.team1_player_ids as string[] | null)?.length ?? 0) > 0
+        : ((existing.team2_player_ids as string[] | null)?.length ?? 0) > 0;
+    if (alreadyFilled) return;
+    const update =
+      slot === "team1"
+        ? { team1_player_ids: playerIds }
+        : { team2_player_ids: playerIds };
+    await supabase
+      .from("community_tournament_matches")
+      .update(update)
+      .eq("id", existing.id as string);
+    return;
+  }
+
+  // Match doesn't exist yet — create with one team filled, the other empty.
+  const tournament = await getTournament(tournamentId);
+  const courtNames =
+    tournament && tournament.courtNames.length > 0
+      ? tournament.courtNames
+      : Array.from({ length: tournament?.courtCount ?? 1 }, (_, i) => `Court ${i + 1}`);
+  const courtLabel = courtNames[(position - 1) % courtNames.length];
+
+  await supabase.from("community_tournament_matches").insert({
+    id: `m_${roundId}_${position}`,
+    round_id: roundId,
+    tournament_id: tournamentId,
+    court_label: courtLabel,
+    team1_player_ids: slot === "team1" ? playerIds : [],
+    team2_player_ids: slot === "team2" ? playerIds : [],
+    stage,
+    bracket_position: position,
+  });
 }
 
 async function createBracketStage(

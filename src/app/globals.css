@@ -33,3 +33,14 @@ body {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
 }
+
+/* Hide spinner arrows on number inputs — score entry doesn't need them */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

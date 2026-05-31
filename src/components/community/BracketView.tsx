@@ -269,6 +269,9 @@ function BracketMatchCard({
   const won = setsWon(match);
   const team1Won = match.status === "completed" && won.t1 > won.t2;
   const team2Won = match.status === "completed" && won.t2 > won.t1;
+  const team1Empty = match.team1PlayerIds.length === 0;
+  const team2Empty = match.team2PlayerIds.length === 0;
+  const bothPresent = !team1Empty && !team2Empty;
 
   const accentClass =
     accent === "amber"
@@ -286,39 +289,50 @@ function BracketMatchCard({
       </div>
       {[0, 1].map((teamIdx) => {
         const ids = teamIdx === 0 ? match.team1PlayerIds : match.team2PlayerIds;
+        const isEmpty = ids.length === 0;
         const isWinner = teamIdx === 0 ? team1Won : team2Won;
         return (
           <div key={teamIdx} className="flex items-center gap-1 py-0.5">
-            <span className={`flex-1 truncate ${isWinner ? "font-semibold text-padel-green" : "text-gray-700 dark:text-gray-300"}`}>
-              {ids.map(playerName).join(" + ") || "—"}
+            <span
+              className={`flex-1 truncate ${
+                isEmpty
+                  ? "text-gray-300 dark:text-gray-600 italic"
+                  : isWinner
+                  ? "font-semibold text-padel-green"
+                  : "text-gray-700 dark:text-gray-300"
+              }`}
+            >
+              {isEmpty ? "Waiting…" : ids.map(playerName).join(" + ")}
             </span>
-            <div className="flex gap-0.5">
-              {sets.map((s, i) => {
-                const invalid =
-                  s.t1 !== "" && s.t2 !== "" && !isValidPadelSet(Number(s.t1), Number(s.t2));
-                return isAdmin ? (
-                  <input
-                    key={i}
-                    type="number"
-                    inputMode="numeric"
-                    min="0"
-                    max="7"
-                    value={teamIdx === 0 ? s.t1 : s.t2}
-                    onChange={(e) => updateSet(i, teamIdx === 0 ? "t1" : "t2", e.target.value)}
-                    className={`w-7 px-0.5 py-0 text-center border rounded text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
-                      invalid ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
-                    }`}
-                  />
-                ) : (
-                  <span
-                    key={i}
-                    className={`w-6 text-center font-bold ${isWinner ? "text-padel-green" : "text-gray-400"}`}
-                  >
-                    {(teamIdx === 0 ? s.t1 : s.t2) || "–"}
-                  </span>
-                );
-              })}
-            </div>
+            {bothPresent && (
+              <div className="flex gap-1">
+                {sets.map((s, i) => {
+                  const invalid =
+                    s.t1 !== "" && s.t2 !== "" && !isValidPadelSet(Number(s.t1), Number(s.t2));
+                  return isAdmin ? (
+                    <input
+                      key={i}
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="7"
+                      value={teamIdx === 0 ? s.t1 : s.t2}
+                      onChange={(e) => updateSet(i, teamIdx === 0 ? "t1" : "t2", e.target.value)}
+                      className={`w-9 px-1 py-1 text-center border rounded text-sm font-semibold bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
+                        invalid ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
+                      }`}
+                    />
+                  ) : (
+                    <span
+                      key={i}
+                      className={`w-9 text-center text-sm font-bold ${isWinner ? "text-padel-green" : "text-gray-400"}`}
+                    >
+                      {(teamIdx === 0 ? s.t1 : s.t2) || "–"}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
