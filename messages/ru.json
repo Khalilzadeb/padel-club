@@ -34,6 +34,8 @@
     "leaderboardEmpty": "Турниры пока не завершены",
     "player": "Игрок",
     "total": "Всего",
+    "uploadCover": "Загрузить обложку",
+    "uploadLogo": "Загрузить лого",
     "addPlayer": "Добавить игрока",
     "addFirstPlayer": "Добавить первого игрока",
     "nameLabel": "Имя",

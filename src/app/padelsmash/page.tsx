@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, Trophy, MessageSquare, BarChart3, Sparkles, Search, X, Phone, Mail, Plus } from "lucide-react";
+import { Users, Trophy, MessageSquare, BarChart3, Sparkles, Search, X, Phone, Mail, Plus, ImagePlus, Camera } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
@@ -53,6 +53,19 @@ export default function PadelSmashPage() {
     (p) => !search || p.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const uploadImage = async (kind: "cover" | "logo", file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("kind", kind);
+    const res = await fetch("/api/community/upload", { method: "POST", body: fd });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      alert(e.error ?? "Failed");
+      return;
+    }
+    load();
+  };
+
   const tabs: { key: Tab; label: string; icon: typeof Users; comingSoon?: boolean; href?: string }[] = [
     { key: "members", label: t.community.tabs.members, icon: Users },
     { key: "events", label: t.community.tabs.events, icon: Trophy, href: "/padelsmash/tournaments" },
@@ -78,18 +91,63 @@ export default function PadelSmashPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero / banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-padel-green via-emerald-500 to-teal-600 p-8 sm:p-12 mb-8 text-white shadow-lg">
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <Sparkles className="absolute top-6 right-6 w-32 h-32" />
-        </div>
+      {/* Hero / banner — cover_url overrides the gradient, with a dark overlay for text contrast. */}
+      <div
+        className={`relative overflow-hidden rounded-2xl p-8 sm:p-12 mb-8 text-white shadow-lg ${
+          community.coverUrl ? "" : "bg-gradient-to-br from-padel-green via-emerald-500 to-teal-600"
+        }`}
+        style={
+          community.coverUrl
+            ? { backgroundImage: `url(${community.coverUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : undefined
+        }
+      >
+        {community.coverUrl && <div className="absolute inset-0 bg-black/45" />}
+        {!community.coverUrl && (
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+            <Sparkles className="absolute top-6 right-6 w-32 h-32" />
+          </div>
+        )}
+
+        {/* Admin: edit cover */}
+        {isAdmin && (
+          <label className="absolute top-3 right-3 z-10 cursor-pointer bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 transition-colors" title={t.community.uploadCover}>
+            <Camera className="w-4 h-4" />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadImage("cover", f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        )}
+
         <div className="relative flex items-start gap-4 sm:gap-6">
-          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
+          <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 overflow-hidden">
             {community.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={community.logoUrl} alt={community.name} className="w-full h-full object-cover rounded-2xl" />
+              <img src={community.logoUrl} alt={community.name} className="w-full h-full object-cover" />
             ) : (
               <Sparkles className="w-10 h-10 sm:w-14 sm:h-14" />
+            )}
+            {isAdmin && (
+              <label className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 cursor-pointer transition-colors group" title={t.community.uploadLogo}>
+                <ImagePlus className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadImage("logo", f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
             )}
           </div>
           <div className="flex-1 min-w-0">

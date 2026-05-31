@@ -34,6 +34,8 @@
     "leaderboardEmpty": "No tournaments completed yet",
     "player": "Player",
     "total": "Total",
+    "uploadCover": "Upload community cover",
+    "uploadLogo": "Upload logo",
     "addPlayer": "Add player",
     "addFirstPlayer": "Add the first player",
     "nameLabel": "Name",
