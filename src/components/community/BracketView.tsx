@@ -302,7 +302,7 @@ function BracketMatchCard({
                   : "text-gray-700 dark:text-gray-300"
               }`}
             >
-              {isEmpty ? "Waiting…" : ids.map(playerName).join(" + ")}
+              {isEmpty ? "Waiting…" : ids.map(playerName).join(" & ")}
             </span>
             {bothPresent && (
               <div className="flex gap-1">

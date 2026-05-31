@@ -46,7 +46,7 @@ export default function GroupStandingsView({ players, matches, playerName }: Pro
               <tbody>
                 {rows.map((row, idx) => {
                   const team = teams.find((tm) => tm.teamId === row.teamId);
-                  const names = team ? team.playerIds.map(playerName).join(" + ") : row.teamName;
+                  const names = team ? team.playerIds.map(playerName).join(" & ") : row.teamName;
                   return (
                     <tr
                       key={row.teamId}

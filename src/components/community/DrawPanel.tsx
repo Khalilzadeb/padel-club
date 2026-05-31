@@ -107,7 +107,7 @@ export default function DrawPanel({
     const data = await res.json();
     // Find the picked team's players to show their names.
     const picked = teams.find((tm) => tm.teamId === data.picked.teamId);
-    const playerNames = picked ? picked.playerIds.map(playerName).join(" + ") : data.picked.previousName;
+    const playerNames = picked ? picked.playerIds.map(playerName).join(" & ") : data.picked.previousName;
     setReveal({
       playerNames,
       groupLabel: data.picked.groupLabel,
@@ -122,7 +122,7 @@ export default function DrawPanel({
 
   const teamLine = (team: Team) => {
     const names = team.playerIds.map(playerName);
-    return names.join(" + ");
+    return names.join(" & ");
   };
 
   return (

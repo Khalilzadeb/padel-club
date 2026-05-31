@@ -238,12 +238,14 @@ async function maybeProgressChampionship(tournamentId: string) {
     if (finalWinner) podium.push(...finalWinner);
     if (finalLoser) podium.push(...finalLoser);
     if (bronzeWinner) podium.push(...bronzeWinner);
+    // Save only as many team-pairs as the admin wanted on the podium.
+    const sliced = podium.slice(0, tournament.prizePositions * 2);
 
     await supabase
       .from("community_tournaments")
       .update({
         status: "completed",
-        winner_player_ids: podium,
+        winner_player_ids: sliced,
         end_date: new Date().toISOString().slice(0, 10),
       })
       .eq("id", tournamentId);

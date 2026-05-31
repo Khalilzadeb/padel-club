@@ -189,15 +189,27 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                 {t.communityTournaments.podium}
               </p>
               <div className="space-y-1">
-                {tournament.winnerPlayerIds.map((pid, idx) => {
-                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "•";
-                  return (
-                    <p key={pid} className="text-sm font-bold text-amber-900 dark:text-amber-100 flex items-center gap-2">
-                      <span>{medal}</span>
-                      <span>{playerName(pid)}</span>
-                    </p>
-                  );
-                })}
+                {(() => {
+                  // Team formats (championship, team-americano, team-mexicano) → group player IDs in pairs.
+                  const isTeamFormat =
+                    tournament.format === "championship" ||
+                    tournament.format === "team-americano" ||
+                    tournament.format === "team-mexicano";
+                  const groupSize = isTeamFormat ? 2 : 1;
+                  const groups: string[][] = [];
+                  for (let i = 0; i < tournament.winnerPlayerIds!.length; i += groupSize) {
+                    groups.push(tournament.winnerPlayerIds!.slice(i, i + groupSize));
+                  }
+                  return groups.map((group, idx) => {
+                    const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "•";
+                    return (
+                      <p key={idx} className="text-sm font-bold text-amber-900 dark:text-amber-100 flex items-center gap-2">
+                        <span>{medal}</span>
+                        <span>{group.map(playerName).join(" & ")}</span>
+                      </p>
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
@@ -573,7 +585,7 @@ function MatchRow({
       </div>
       <div className="p-3 flex items-center gap-2">
         <div className={`flex-1 min-w-0 ${team1Won ? "font-semibold" : ""}`}>
-          <p className="text-sm text-gray-900 dark:text-white truncate">{match.team1PlayerIds.map(playerName).join(" + ")}</p>
+          <p className="text-sm text-gray-900 dark:text-white truncate">{match.team1PlayerIds.map(playerName).join(" & ")}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {canEdit ? (
@@ -619,7 +631,7 @@ function MatchRow({
           )}
         </div>
         <div className={`flex-1 min-w-0 text-right ${team2Won ? "font-semibold" : ""}`}>
-          <p className="text-sm text-gray-900 dark:text-white truncate">{match.team2PlayerIds.map(playerName).join(" + ")}</p>
+          <p className="text-sm text-gray-900 dark:text-white truncate">{match.team2PlayerIds.map(playerName).join(" & ")}</p>
         </div>
       </div>
     </div>
@@ -736,7 +748,7 @@ function ChampionshipMatchRow({
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className={`min-w-0 ${team1Won ? "font-semibold" : ""}`}>
             <p className="text-sm text-gray-900 dark:text-white truncate">
-              {match.team1PlayerIds.map(playerName).join(" + ")}
+              {match.team1PlayerIds.map(playerName).join(" & ")}
             </p>
           </div>
           <div className="flex items-center gap-1">
@@ -782,7 +794,7 @@ function ChampionshipMatchRow({
           </div>
           <div className={`min-w-0 text-right ${team2Won ? "font-semibold" : ""}`}>
             <p className="text-sm text-gray-900 dark:text-white truncate">
-              {match.team2PlayerIds.map(playerName).join(" + ")}
+              {match.team2PlayerIds.map(playerName).join(" & ")}
             </p>
           </div>
         </div>
