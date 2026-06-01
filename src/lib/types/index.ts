@@ -249,6 +249,19 @@ export interface CommunitySummary extends Community {
   playerCount: number;
 }
 
+export interface CommunityAnnouncement {
+  id: string;
+  communityId: string;
+  authorUserId: string | null;
+  authorName: string | null;
+  title: string;
+  body: string;
+  imageUrl: string | null;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type CommunityTournamentFormat =
   | "americano"
   | "mexicano"

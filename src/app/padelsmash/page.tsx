@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { CommunityPlayer, CommunitySummary } from "@/lib/types";
 import AddPlayerModal from "@/components/community/AddPlayerModal";
+import AnnouncementsTab from "@/components/community/AnnouncementsTab";
 
 function ntrpVariant(ntrp: number | null): "blue" | "sky" | "green" | "yellow" | "orange" | "red" | "gray" {
   if (ntrp === null) return "gray";
@@ -69,7 +70,7 @@ export default function PadelSmashPage() {
   const tabs: { key: Tab; label: string; icon: typeof Users; comingSoon?: boolean; href?: string }[] = [
     { key: "members", label: t.community.tabs.members, icon: Users },
     { key: "events", label: t.community.tabs.events, icon: Trophy, href: "/padelsmash/tournaments" },
-    { key: "announcements", label: t.community.tabs.announcements, icon: MessageSquare, comingSoon: true },
+    { key: "announcements", label: t.community.tabs.announcements, icon: MessageSquare },
     { key: "stats", label: t.community.tabs.stats, icon: BarChart3 },
   ];
 
@@ -309,6 +310,8 @@ export default function PadelSmashPage() {
       )}
 
       {tab === "stats" && <LeaderboardTab />}
+
+      {tab === "announcements" && <AnnouncementsTab isAdmin={isAdmin} />}
 
       {addOpen && (
         <AddPlayerModal

@@ -353,6 +353,22 @@ create index if not exists idx_ct_matches_round on community_tournament_matches(
 create index if not exists idx_ct_matches_tournament on community_tournament_matches(tournament_id);
 create index if not exists idx_ct_matches_stage on community_tournament_matches(tournament_id, stage);
 
+-- Community announcements: admin-authored posts visible to everyone.
+create table if not exists community_announcements (
+  id text primary key,
+  community_id text references communities(id) on delete cascade,
+  author_user_id text references users(id),
+  title text not null,
+  body text not null,
+  image_url text,
+  pinned boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists idx_community_announcements_community
+  on community_announcements(community_id, pinned desc, created_at desc);
+
 -- Seed the PadelSmash community itself.
 insert into communities (id, slug, name, description, logo_url, cover_url) values
   ('padelsmash', 'padelsmash', 'PadelSmash',
