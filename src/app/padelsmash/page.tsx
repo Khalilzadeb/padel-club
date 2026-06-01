@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, Trophy, MessageSquare, BarChart3, Sparkles, Search, X, Phone, Mail, Plus, ImagePlus, Camera } from "lucide-react";
+import { Users, Trophy, MessageSquare, BarChart3, Sparkles, Search, X, Phone, Mail, Plus, ImagePlus, Camera, Move, Check } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useCoverDrag } from "@/lib/hooks/useCoverDrag";
 import type { CommunityPlayer, CommunitySummary } from "@/lib/types";
 import AddPlayerModal from "@/components/community/AddPlayerModal";
 import AnnouncementsTab from "@/components/community/AnnouncementsTab";
@@ -67,6 +68,18 @@ export default function PadelSmashPage() {
     load();
   };
 
+  // Persist the cover's vertical focal point, and reflect it locally right away.
+  const saveCoverPosition = async (position: number) => {
+    setCommunity((c) => (c ? { ...c, coverPosition: position } : c));
+    await fetch("/api/community/upload", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ position }),
+    });
+  };
+
+  const cover = useCoverDrag(community?.coverPosition ?? 50, saveCoverPosition);
+
   const tabs: { key: Tab; label: string; icon: typeof Users; comingSoon?: boolean; href?: string }[] = [
     { key: "members", label: t.community.tabs.members, icon: Users },
     { key: "events", label: t.community.tabs.events, icon: Trophy, href: "/padelsmash/tournaments" },
@@ -94,15 +107,21 @@ export default function PadelSmashPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero / banner — cover_url overrides the gradient, with a dark overlay for text contrast. */}
       <div
+        ref={cover.frameRef}
         className={`relative overflow-hidden rounded-2xl p-8 sm:p-12 mb-8 text-white shadow-lg ${
           community.coverUrl ? "" : "bg-gradient-to-br from-padel-green via-emerald-500 to-teal-600"
         }`}
-        style={
-          community.coverUrl
-            ? { backgroundImage: `url(${community.coverUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
-            : undefined
-        }
       >
+        {community.coverUrl && (
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${community.coverUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: `center ${cover.position}%`,
+            }}
+          />
+        )}
         {community.coverUrl && <div className="absolute inset-0 bg-black/45" />}
         {!community.coverUrl && (
           <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -110,21 +129,46 @@ export default function PadelSmashPage() {
           </div>
         )}
 
-        {/* Admin: edit cover */}
+        {/* Admin: drag overlay to reposition the cover vertically */}
+        {isAdmin && community.coverUrl && cover.repositioning && (
+          <div
+            {...cover.overlayProps}
+            className="absolute inset-0 z-20 cursor-move touch-none select-none"
+          >
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 pointer-events-none">
+              <Move className="w-3.5 h-3.5" />
+              {t.community.dragToReposition}
+            </div>
+          </div>
+        )}
+
+        {/* Admin: edit cover + reposition controls */}
         {isAdmin && (
-          <label className="absolute top-3 right-3 z-10 cursor-pointer bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 transition-colors" title={t.community.uploadCover}>
-            <Camera className="w-4 h-4" />
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) uploadImage("cover", f);
-                e.target.value = "";
-              }}
-            />
-          </label>
+          <div className="absolute top-3 right-3 z-30 flex gap-2">
+            {community.coverUrl && (
+              <button
+                type="button"
+                onClick={() => cover.setRepositioning((v) => !v)}
+                className="cursor-pointer bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 transition-colors"
+                title={cover.repositioning ? t.community.doneRepositioning : t.community.repositionCover}
+              >
+                {cover.repositioning ? <Check className="w-4 h-4" /> : <Move className="w-4 h-4" />}
+              </button>
+            )}
+            <label className="cursor-pointer bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 transition-colors" title={t.community.uploadCover}>
+              <Camera className="w-4 h-4" />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadImage("cover", f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
         )}
 
         <div className="relative flex items-start gap-4 sm:gap-6">

@@ -127,6 +127,7 @@ function TournamentCard({ tournament }: { tournament: CommunityTournament }) {
               src={tournament.coverUrl}
               alt={tournament.name}
               className="w-full h-full object-cover"
+              style={{ objectPosition: `center ${tournament.coverPosition}%` }}
             />
           </div>
         )}

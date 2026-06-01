@@ -222,8 +222,12 @@ create table if not exists communities (
   description text,
   logo_url text,
   cover_url text,
+  cover_position integer not null default 50, -- vertical focal point 0-100 (%), 50 = center
   created_at timestamptz default now()
 );
+
+-- Migration for communities created before cover_position existed:
+alter table communities add column if not exists cover_position integer not null default 50;
 
 -- Community players: each community keeps its own roster.
 -- A community player can OPTIONALLY be linked to a Padelon user
@@ -281,6 +285,7 @@ create table if not exists community_tournaments (
   end_date text,
   winner_player_ids text[], -- ids in community_players, ordered by place
   cover_url text,
+  cover_position integer not null default 50, -- vertical focal point 0-100 (%), 50 = center
   created_by text references users(id),
   created_at timestamptz default now()
 );
@@ -291,6 +296,7 @@ alter table community_tournaments add column if not exists prize_positions integ
 alter table community_tournaments add column if not exists group_sets_per_match integer not null default 1;
 alter table community_tournaments add column if not exists bracket_sets_per_match integer not null default 3;
 alter table community_tournaments add column if not exists court_names jsonb;
+alter table community_tournaments add column if not exists cover_position integer not null default 50;
 
 create index if not exists idx_community_tournaments_community on community_tournaments(community_id);
 create index if not exists idx_community_tournaments_status on community_tournaments(status);

@@ -9,6 +9,7 @@ function toCommunity(row: Record<string, unknown>): Community {
     description: row.description as string | null,
     logoUrl: row.logo_url as string | null,
     coverUrl: row.cover_url as string | null,
+    coverPosition: (row.cover_position as number) ?? 50,
     createdAt: row.created_at as string,
   }
 }

@@ -55,3 +55,30 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ url });
 }
+
+// PATCH /api/community/upload
+// body: { position: number }  — updates the cover image's vertical focal point (0-100).
+export async function PATCH(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const community = await getCommunityBySlug(COMMUNITY_SLUG);
+  if (!community) return NextResponse.json({ error: "Community not found" }, { status: 404 });
+  const admin = await isCommunityAdmin(community.id, session.userId);
+  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const body = await req.json().catch(() => null);
+  const position = Number(body?.position);
+  if (!Number.isFinite(position)) {
+    return NextResponse.json({ error: "position must be a number" }, { status: 400 });
+  }
+  const clamped = Math.min(100, Math.max(0, Math.round(position)));
+
+  const { error } = await supabase
+    .from("communities")
+    .update({ cover_position: clamped })
+    .eq("id", community.id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  return NextResponse.json({ position: clamped });
+}

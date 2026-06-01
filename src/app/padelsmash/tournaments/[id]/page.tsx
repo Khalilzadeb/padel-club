@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check, ImagePlus } from "lucide-react";
+import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check, ImagePlus, Move } from "lucide-react";
 import BracketView from "@/components/community/BracketView";
 import DrawPanel from "@/components/community/DrawPanel";
 import GroupStandingsView from "@/components/community/GroupStandingsView";
@@ -20,6 +20,7 @@ import type {
   CommunityTournamentRound,
   TournamentStandingRow,
 } from "@/lib/types";
+import { useCoverDrag } from "@/lib/hooks/useCoverDrag";
 
 interface TournamentData {
   tournament: CommunityTournament;
@@ -56,6 +57,20 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Persist the cover's vertical focal point, reflecting it locally right away.
+  const saveCoverPosition = async (position: number) => {
+    setData((d) =>
+      d ? { ...d, tournament: { ...d.tournament, coverPosition: position } } : d
+    );
+    await fetch(`/api/community/tournaments/${id}/cover`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ position }),
+    });
+  };
+
+  const cover = useCoverDrag(data?.tournament.coverPosition ?? 50, saveCoverPosition);
 
   if (loading) {
     return (
@@ -173,13 +188,36 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
 
       {/* Cover photo hero — completed tournaments with a winner photo. */}
       {tournament.coverUrl && (
-        <div className="rounded-2xl overflow-hidden mb-6 max-h-[420px] bg-gray-100 dark:bg-gray-800">
+        <div ref={cover.frameRef} className="relative rounded-2xl overflow-hidden mb-6 max-h-[420px] bg-gray-100 dark:bg-gray-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={tournament.coverUrl}
             alt={tournament.name}
             className="w-full h-full object-cover"
+            style={{ objectPosition: `center ${cover.position}%` }}
           />
+          {/* Admin: drag overlay to reposition the cover vertically */}
+          {isAdmin && cover.repositioning && (
+            <div
+              {...cover.overlayProps}
+              className="absolute inset-0 z-20 cursor-move touch-none select-none"
+            >
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 pointer-events-none">
+                <Move className="w-3.5 h-3.5" />
+                {t.communityTournaments.dragToReposition}
+              </div>
+            </div>
+          )}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => cover.setRepositioning((v) => !v)}
+              className="absolute top-3 right-3 z-30 cursor-pointer bg-black/40 hover:bg-black/60 backdrop-blur rounded-full p-2 text-white transition-colors"
+              title={cover.repositioning ? t.communityTournaments.doneRepositioning : t.communityTournaments.repositionCover}
+            >
+              {cover.repositioning ? <Check className="w-4 h-4" /> : <Move className="w-4 h-4" />}
+            </button>
+          )}
         </div>
       )}
 

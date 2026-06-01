@@ -32,6 +32,7 @@ function toTournament(row: Record<string, unknown>): CommunityTournament {
     endDate: row.end_date as string | null,
     winnerPlayerIds: (row.winner_player_ids as string[] | null) ?? null,
     coverUrl: row.cover_url as string | null,
+    coverPosition: (row.cover_position as number) ?? 50,
     createdBy: row.created_by as string | null,
     createdAt: row.created_at as string,
   }

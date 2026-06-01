@@ -219,6 +219,7 @@ export interface Community {
   description: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  coverPosition: number; // vertical focal point 0-100 (%), 50 = center
   createdAt: string;
 }
 
@@ -289,6 +290,7 @@ export interface CommunityTournament {
   endDate: string | null;
   winnerPlayerIds: string[] | null;
   coverUrl: string | null;
+  coverPosition: number; // vertical focal point 0-100 (%), 50 = center
   createdBy: string | null;
   createdAt: string;
 }
