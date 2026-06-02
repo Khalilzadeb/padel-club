@@ -295,54 +295,62 @@ export default function PadelSmashPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filtered.map((p, idx) => (
-                <Card key={p.id} hover className="p-5">
-                  <div className="flex items-start gap-3">
+                <Card key={p.id} hover className="p-4">
+                  <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
                       <Avatar name={p.name} imageUrl={p.avatarUrl} size="lg" />
-                      <span className="absolute -top-1 -left-1 bg-gray-900 dark:bg-gray-700 text-white text-[10px] font-bold rounded-full w-6 h-6 flex items-center justify-center shadow">
+                      <span
+                        className={`absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold shadow-sm ring-2 ring-white dark:ring-gray-800 ${
+                          idx === 0
+                            ? "bg-amber-400 text-amber-950"
+                            : idx === 1
+                            ? "bg-gray-300 text-gray-700"
+                            : idx === 2
+                            ? "bg-orange-400 text-orange-950"
+                            : "bg-gray-900 dark:bg-gray-600 text-white"
+                        }`}
+                      >
                         {idx + 1}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">{p.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0">#{idx + 1}</span>
+                      <h3 className="font-semibold text-gray-900 dark:text-white truncate leading-tight">{p.name}</h3>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         {p.ntrp !== null && (
                           <Badge variant={ntrpVariant(p.ntrp)}>
                             NTRP {p.ntrp.toFixed(1)}
                           </Badge>
                         )}
-                      </div>
-                      <div className="mt-2 space-y-0.5">
                         {p.contactPhone && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                            <Phone className="w-3 h-3" /> {p.contactPhone}
-                          </p>
-                        )}
-                        {p.linkedPlayerId && (
-                          <Link
-                            href={`/players/${p.linkedPlayerId}`}
-                            className="text-xs text-padel-green hover:underline inline-flex items-center gap-1"
-                          >
-                            {t.community.viewPadelonProfile} →
-                          </Link>
+                          <span className="text-xs text-gray-400 dark:text-gray-500 inline-flex items-center gap-1 truncate">
+                            <Phone className="w-3 h-3 shrink-0" /> {p.contactPhone}
+                          </span>
                         )}
                       </div>
+                      {p.linkedPlayerId && (
+                        <Link
+                          href={`/players/${p.linkedPlayerId}`}
+                          className="text-xs text-padel-green hover:underline inline-flex items-center gap-1 mt-1"
+                        >
+                          {t.community.viewPadelonProfile} →
+                        </Link>
+                      )}
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">{p.matchesPlayed}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.community.matches}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">{p.matchesWon}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.community.wins}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">{p.tournamentsWon}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.community.trophies}</p>
-                    </div>
+                  <div className="grid grid-cols-3 gap-2 mt-4">
+                    {[
+                      { value: p.matchesPlayed, label: t.community.matches },
+                      { value: p.matchesWon, label: t.community.wins },
+                      { value: p.tournamentsWon, label: t.community.trophies },
+                    ].map((s, i) => (
+                      <div
+                        key={i}
+                        className="rounded-xl bg-gray-50 dark:bg-gray-700/40 py-2.5 text-center"
+                      >
+                        <p className="text-lg font-bold text-gray-900 dark:text-white leading-none">{s.value}</p>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{s.label}</p>
+                      </div>
+                    ))}
                   </div>
                 </Card>
               ))}

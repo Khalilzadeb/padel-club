@@ -218,12 +218,12 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
 
       {/* Cover photo hero — completed tournaments with a winner photo. */}
       {tournament.coverUrl && (
-        <div ref={cover.frameRef} className="relative rounded-2xl overflow-hidden mb-6 max-h-[420px] bg-gray-100 dark:bg-gray-800">
+        <div ref={cover.frameRef} className="relative rounded-2xl overflow-hidden mb-6 h-[240px] sm:h-[360px] bg-gray-100 dark:bg-gray-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={tournament.coverUrl}
             alt={tournament.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
             style={{ objectPosition: `center ${cover.position}%` }}
           />
           {/* Admin: drag overlay to reposition the cover vertically */}
