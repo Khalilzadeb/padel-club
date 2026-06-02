@@ -296,7 +296,7 @@ export default function PadelSmashPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filtered.map((p, idx) => (
                 <Card key={p.id} hover className="p-5">
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3">
                     <div className="relative shrink-0">
                       <Avatar name={p.name} imageUrl={p.avatarUrl} size="lg" />
                       <span className="absolute -top-1 -left-1 bg-gray-900 dark:bg-gray-700 text-white text-[10px] font-bold rounded-full w-6 h-6 flex items-center justify-center shadow">
@@ -304,17 +304,15 @@ export default function PadelSmashPage() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-gray-900 dark:text-white truncate">{p.name}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">{p.name}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0">#{idx + 1}</span>
                         {p.ntrp !== null && (
                           <Badge variant={ntrpVariant(p.ntrp)}>
                             NTRP {p.ntrp.toFixed(1)}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        #{idx + 1}
-                      </p>
                       <div className="mt-2 space-y-0.5">
                         {p.contactPhone && (
                           <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">

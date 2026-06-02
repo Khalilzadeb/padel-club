@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check, ImagePlus, Move } from "lucide-react";
+import { ArrowLeft, Trophy, Play, CheckCircle2, Crown, Trash2, Check, ImagePlus, Move, Pencil } from "lucide-react";
 import BracketView from "@/components/community/BracketView";
 import DrawPanel from "@/components/community/DrawPanel";
 import GroupStandingsView from "@/components/community/GroupStandingsView";
@@ -11,6 +11,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Avatar from "@/components/ui/Avatar";
+import Modal from "@/components/ui/Modal";
 import { useLocale } from "@/contexts/LocaleContext";
 import type {
   CommunityPlayer,
@@ -40,6 +41,9 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
   const [communityPlayers, setCommunityPlayers] = useState<Record<string, CommunityPlayer>>({});
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
 
   const load = () =>
     Promise.all([
@@ -159,6 +163,32 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
       return;
     }
     router.push("/padelsmash/tournaments");
+  };
+
+  const openEdit = () => {
+    if (!data) return;
+    setEditName(data.tournament.name);
+    setEditDesc(data.tournament.description ?? "");
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    const name = editName.trim();
+    if (!name) return;
+    setWorking(true);
+    const res = await fetch(`/api/community/tournaments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, description: editDesc.trim() || null }),
+    });
+    setWorking(false);
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      alert(e.error ?? "Failed");
+      return;
+    }
+    setEditOpen(false);
+    load();
   };
 
   const playerName = (id: string) => communityPlayers[id]?.name ?? id;
@@ -298,6 +328,10 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                 {t.communityTournaments.finishTournament}
               </Button>
             )}
+            <Button variant="secondary" onClick={openEdit} disabled={working}>
+              <Pencil className="w-4 h-4 mr-1" />
+              {t.communityTournaments.editTournament}
+            </Button>
             <label className="inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 px-3 py-1.5 text-sm gap-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
               <ImagePlus className="w-4 h-4" />
               {tournament.coverUrl ? t.communityTournaments.changeCover : t.communityTournaments.uploadCover}
@@ -465,6 +499,42 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
+
+      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title={t.communityTournaments.editTournamentTitle}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t.communityTournaments.nameLabel}
+            </label>
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder={t.communityTournaments.namePlaceholder}
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t.communityTournaments.descLabel}
+            </label>
+            <textarea
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-padel-green bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400 resize-none"
+            />
+          </div>
+          <div className="flex gap-2 justify-end pt-2">
+            <Button variant="secondary" onClick={() => setEditOpen(false)} disabled={working}>
+              {t.communityTournaments.cancel}
+            </Button>
+            <Button onClick={saveEdit} disabled={working || !editName.trim()}>
+              {working ? t.communityTournaments.saving : t.communityTournaments.save}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -104,6 +104,18 @@ export async function getTournament(id: string): Promise<CommunityTournament | n
   return toTournament(data)
 }
 
+export async function updateTournament(
+  id: string,
+  updates: { name?: string; description?: string | null }
+): Promise<void> {
+  const dbUpdates: Record<string, unknown> = {}
+  if (updates.name !== undefined) dbUpdates.name = updates.name
+  if (updates.description !== undefined) dbUpdates.description = updates.description
+  if (Object.keys(dbUpdates).length === 0) return
+  const { error } = await supabase.from('community_tournaments').update(dbUpdates).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export interface CreateTournamentInput {
   communityId: string
   name: string
