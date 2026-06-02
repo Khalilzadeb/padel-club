@@ -873,7 +873,19 @@ function ChampionshipMatchRow({
       if (!Number.isFinite(n)) return;
       cleaned = String(Math.max(0, Math.min(7, Math.floor(n))));
     }
-    const next = sets.map((s, i) => (i === idx ? { ...s, [field]: cleaned } : s));
+    const next = sets.map((s, i) => {
+      if (i !== idx) return s;
+      const updated = { ...s, [field]: cleaned };
+      // Auto-complete the opponent when the entered value is unambiguously the
+      // loser's score and the other box is still empty: 0-4 → winner 6, 5 → 7.
+      const other = field === "t1" ? "t2" : "t1";
+      if (cleaned !== "" && updated[other] === "") {
+        const n = Number(cleaned);
+        const winner = n <= 4 ? "6" : n === 5 ? "7" : "";
+        if (winner) updated[other] = winner;
+      }
+      return updated;
+    });
     setSets(next);
     scheduleSave(next);
   };
@@ -903,44 +915,51 @@ function ChampionshipMatchRow({
               {match.team1PlayerIds.map(playerName).join(" & ")}
             </p>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-center gap-3">
             {sets.map((s, i) => (
-              <div key={i} className="flex flex-col items-center gap-0.5">
-                {isAdmin ? (
-                  <>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      max="7"
-                      value={s.t1}
-                      onChange={(e) => updateSet(i, "t1", e.target.value)}
-                      className={`w-10 px-1 py-0.5 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
-                        setIsInvalid(s) ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
-                      }`}
-                    />
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      max="7"
-                      value={s.t2}
-                      onChange={(e) => updateSet(i, "t2", e.target.value)}
-                      className={`w-10 px-1 py-0.5 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
-                        setIsInvalid(s) ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
-                      }`}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <span className="w-10 text-center text-sm font-bold text-gray-900 dark:text-white">
-                      {s.t1 || "–"}
-                    </span>
-                    <span className="w-10 text-center text-sm font-bold text-gray-900 dark:text-white">
-                      {s.t2 || "–"}
-                    </span>
-                  </>
+              <div key={i} className="flex flex-col items-center gap-1">
+                {setsPerMatch > 1 && (
+                  <span className="text-[9px] font-semibold text-gray-400">{i + 1}</span>
                 )}
+                <div className="flex items-center gap-1.5">
+                  {isAdmin ? (
+                    <>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        max="7"
+                        value={s.t1}
+                        onChange={(e) => updateSet(i, "t1", e.target.value)}
+                        className={`w-10 px-1 py-1 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
+                          setIsInvalid(s) ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
+                        }`}
+                      />
+                      <span className="text-gray-400 text-xs font-bold">–</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        max="7"
+                        value={s.t2}
+                        onChange={(e) => updateSet(i, "t2", e.target.value)}
+                        className={`w-10 px-1 py-1 text-center border rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-padel-green ${
+                          setIsInvalid(s) ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"
+                        }`}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-6 text-center text-sm font-bold text-gray-900 dark:text-white">
+                        {s.t1 || "–"}
+                      </span>
+                      <span className="text-gray-400 text-xs">–</span>
+                      <span className="w-6 text-center text-sm font-bold text-gray-900 dark:text-white">
+                        {s.t2 || "–"}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             ))}
           </div>
