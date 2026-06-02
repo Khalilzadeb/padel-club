@@ -466,3 +466,40 @@ insert into community_players (id, community_id, name, ntrp, elo_rating) values
   ('ps79', 'padelsmash', 'JAMIL',     2.0, 1298),
   ('ps80', 'padelsmash', 'KAMIL',     2.5, 1289)
 on conflict (id) do nothing;
+
+-- ─── Super Games ────────────────────────────────────────────────────────────
+-- Daily prediction games: admin posts a A+B vs C+D matchup (best of N sets) with
+-- a prize; members submit a set-by-set score prediction. When the admin enters
+-- the real result, predictions that match it exactly are flagged as winners.
+
+create table if not exists super_games (
+  id text primary key,
+  community_id text references communities(id) on delete cascade,
+  title text,
+  game_date text,                              -- e.g. '2026-06-05'
+  team_a_player1 text,                         -- community_player id
+  team_a_player2 text,
+  team_b_player1 text,
+  team_b_player2 text,
+  max_sets integer not null default 3,
+  prize text,
+  status text not null default 'open',         -- 'open' | 'finished'
+  actual_sets jsonb,                           -- [{"a":6,"b":4}, ...] once finished
+  created_by text references users(id),
+  created_at timestamptz default now()
+);
+
+create table if not exists super_game_predictions (
+  id text primary key,
+  super_game_id text references super_games(id) on delete cascade,
+  user_id text references users(id),
+  user_name text,
+  sets jsonb not null,                         -- [{"a":6,"b":4}, ...]
+  is_winner boolean not null default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique (super_game_id, user_id)
+);
+
+create index if not exists idx_super_games_community on super_games(community_id);
+create index if not exists idx_super_game_predictions_game on super_game_predictions(super_game_id);

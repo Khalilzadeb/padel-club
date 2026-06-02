@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Pin, Plus, Trash2, ImagePlus, X } from "lucide-react";
+import { Pin, Plus, Trash2, ImagePlus, X, MessageSquare } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
@@ -12,6 +12,7 @@ export default function AnnouncementsTab({ isAdmin }: { isAdmin: boolean }) {
   const [items, setItems] = useState<CommunityAnnouncement[]>([]);
   const [loading, setLoading] = useState(true);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [selected, setSelected] = useState<CommunityAnnouncement | null>(null);
 
   const load = () => {
     return fetch("/api/community/announcements")
@@ -72,49 +73,83 @@ export default function AnnouncementsTab({ isAdmin }: { isAdmin: boolean }) {
           <p className="text-gray-400">{t.community.noAnnouncements}</p>
         </Card>
       ) : (
-        items.map((a) => (
-          <Card key={a.id} className="overflow-hidden">
-            {a.imageUrl && (
-              <div className="bg-gray-100 dark:bg-gray-800 max-h-[400px] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={a.imageUrl} alt={a.title} className="w-full object-cover" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {items.map((a) => (
+            <button
+              key={a.id}
+              onClick={() => setSelected(a)}
+              className="group relative aspect-square rounded-xl overflow-hidden text-left bg-gray-100 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-padel-green transition-all"
+            >
+              {a.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={a.imageUrl} alt={a.title} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-padel-green via-emerald-500 to-teal-600 flex items-center justify-center">
+                  <MessageSquare className="w-8 h-8 text-white/60" />
+                </div>
+              )}
+              {/* Gradient + title */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+              {a.pinned && (
+                <span className="absolute top-2 left-2 bg-padel-green text-white rounded-full p-1 shadow">
+                  <Pin className="w-3 h-3 fill-white" />
+                </span>
+              )}
+              <div className="absolute bottom-0 inset-x-0 p-3">
+                <h3 className="text-sm font-bold text-white line-clamp-2 leading-snug">{a.title}</h3>
+                <p className="text-[10px] text-white/70 mt-0.5">
+                  {new Date(a.createdAt).toLocaleDateString()}
+                </p>
               </div>
+              {isAdmin && (
+                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePin(a);
+                    }}
+                    className={`p-1.5 rounded-lg bg-black/40 hover:bg-black/60 backdrop-blur ${
+                      a.pinned ? "text-padel-green" : "text-white"
+                    }`}
+                    title={a.pinned ? t.community.unpin : t.community.pin}
+                  >
+                    <Pin className="w-3.5 h-3.5" />
+                  </span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      remove(a.id);
+                    }}
+                    className="p-1.5 rounded-lg bg-black/40 hover:bg-red-500/80 backdrop-blur text-white"
+                    title={t.community.delete}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {selected && (
+        <Modal isOpen onClose={() => setSelected(null)} title={selected.title} size="lg">
+          <div className="space-y-3">
+            {selected.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={selected.imageUrl} alt={selected.title} className="w-full rounded-lg object-cover max-h-[400px]" />
             )}
-            <div className="p-5">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-1">
-                  {a.pinned && <Pin className="w-4 h-4 text-padel-green fill-padel-green" />}
-                  {a.title}
-                </h3>
-                {isAdmin && (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => togglePin(a)}
-                      className={`p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                        a.pinned ? "text-padel-green" : "text-gray-400"
-                      }`}
-                      title={a.pinned ? t.community.unpin : t.community.pin}
-                    >
-                      <Pin className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => remove(a.id)}
-                      className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
-                      title={t.community.delete}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-              <p className="text-xs text-gray-400 mb-3">
-                {a.authorName ? `${a.authorName} · ` : ""}
-                {new Date(a.createdAt).toLocaleString()}
-              </p>
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{a.body}</p>
-            </div>
-          </Card>
-        ))
+            <p className="text-xs text-gray-400">
+              {selected.authorName ? `${selected.authorName} · ` : ""}
+              {new Date(selected.createdAt).toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selected.body}</p>
+          </div>
+        </Modal>
       )}
 
       {composerOpen && (

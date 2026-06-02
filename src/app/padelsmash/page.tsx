@@ -11,6 +11,7 @@ import { useCoverDrag } from "@/lib/hooks/useCoverDrag";
 import type { CommunityPlayer, CommunitySummary } from "@/lib/types";
 import AddPlayerModal from "@/components/community/AddPlayerModal";
 import AnnouncementsTab from "@/components/community/AnnouncementsTab";
+import SuperGamesTab from "@/components/community/SuperGamesTab";
 
 function ntrpVariant(ntrp: number | null): "blue" | "sky" | "green" | "yellow" | "orange" | "red" | "gray" {
   if (ntrp === null) return "gray";
@@ -22,7 +23,7 @@ function ntrpVariant(ntrp: number | null): "blue" | "sky" | "green" | "yellow" |
   return "blue";
 }
 
-type Tab = "members" | "events" | "announcements" | "stats";
+type Tab = "members" | "superGames" | "events" | "announcements" | "stats";
 
 export default function PadelSmashPage() {
   const { t } = useLocale();
@@ -83,6 +84,7 @@ export default function PadelSmashPage() {
   const tabs: { key: Tab; label: string; icon: typeof Users; comingSoon?: boolean; href?: string }[] = [
     { key: "members", label: t.community.tabs.members, icon: Users },
     { key: "events", label: t.community.tabs.events, icon: Trophy, href: "/padelsmash/tournaments" },
+    { key: "superGames", label: t.superGames.title, icon: Sparkles },
     { key: "announcements", label: t.community.tabs.announcements, icon: MessageSquare },
     { key: "stats", label: t.community.tabs.stats, icon: BarChart3 },
   ];
@@ -293,10 +295,10 @@ export default function PadelSmashPage() {
               )}
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="space-y-2.5">
               {filtered.map((p, idx) => (
-                <Card key={p.id} hover className="p-4">
-                  <div className="flex items-center gap-3">
+                <Card key={p.id} hover className="p-3 sm:p-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     <div className="relative shrink-0">
                       <Avatar name={p.name} imageUrl={p.avatarUrl} size="lg" />
                       <span
@@ -315,7 +317,7 @@ export default function PadelSmashPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 dark:text-white truncate leading-tight">{p.name}</h3>
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {p.ntrp !== null && (
                           <Badge variant={ntrpVariant(p.ntrp)}>
                             NTRP {p.ntrp.toFixed(1)}
@@ -326,31 +328,28 @@ export default function PadelSmashPage() {
                             <Phone className="w-3 h-3 shrink-0" /> {p.contactPhone}
                           </span>
                         )}
+                        {p.linkedPlayerId && (
+                          <Link
+                            href={`/players/${p.linkedPlayerId}`}
+                            className="text-xs text-padel-green hover:underline inline-flex items-center gap-1"
+                          >
+                            {t.community.viewPadelonProfile} →
+                          </Link>
+                        )}
                       </div>
-                      {p.linkedPlayerId && (
-                        <Link
-                          href={`/players/${p.linkedPlayerId}`}
-                          className="text-xs text-padel-green hover:underline inline-flex items-center gap-1 mt-1"
-                        >
-                          {t.community.viewPadelonProfile} →
-                        </Link>
-                      )}
                     </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 mt-4">
-                    {[
-                      { value: p.matchesPlayed, label: t.community.matches },
-                      { value: p.matchesWon, label: t.community.wins },
-                      { value: p.tournamentsWon, label: t.community.trophies },
-                    ].map((s, i) => (
-                      <div
-                        key={i}
-                        className="rounded-xl bg-gray-50 dark:bg-gray-700/40 py-2.5 text-center"
-                      >
-                        <p className="text-lg font-bold text-gray-900 dark:text-white leading-none">{s.value}</p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{s.label}</p>
-                      </div>
-                    ))}
+                    <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+                      {[
+                        { value: p.matchesPlayed, label: t.community.matches },
+                        { value: p.matchesWon, label: t.community.wins },
+                        { value: p.tournamentsWon, label: t.community.trophies },
+                      ].map((s, i) => (
+                        <div key={i} className="text-center w-9 sm:w-11">
+                          <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white leading-none">{s.value}</p>
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 truncate">{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -358,6 +357,8 @@ export default function PadelSmashPage() {
           )}
         </>
       )}
+
+      {tab === "superGames" && <SuperGamesTab isAdmin={isAdmin} />}
 
       {tab === "stats" && <LeaderboardTab />}
 

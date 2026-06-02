@@ -355,6 +355,58 @@ export interface TournamentStandingRow {
   rank: number;
 }
 
+// ─── Super Games (daily score-prediction games) ─────────────────────────────
+
+export interface SuperGameSet {
+  a: number; // team A games in this set
+  b: number; // team B games in this set
+}
+
+export type SuperGameStatus = "open" | "finished";
+
+export interface SuperGame {
+  id: string;
+  communityId: string;
+  title: string | null;
+  gameDate: string | null;
+  teamAPlayer1: string | null; // community_player id
+  teamAPlayer2: string | null;
+  teamBPlayer1: string | null;
+  teamBPlayer2: string | null;
+  maxSets: number;
+  prize: string | null;
+  status: SuperGameStatus;
+  actualSets: SuperGameSet[] | null;
+  createdBy: string | null;
+  createdAt: string;
+}
+
+export interface SuperGamePrediction {
+  id: string;
+  superGameId: string;
+  userId: string;
+  userName: string | null;
+  sets: SuperGameSet[];
+  isWinner: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// A community player slot resolved for display in a matchup.
+export interface SuperGamePlayerRef {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+// Enriched view returned to the client.
+export interface SuperGameView extends SuperGame {
+  teamA: SuperGamePlayerRef[];
+  teamB: SuperGamePlayerRef[];
+  predictions: SuperGamePrediction[];
+  myPrediction: SuperGamePrediction | null;
+}
+
 export interface Tournament {
   id: string;
   name: string;
