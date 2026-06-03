@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, Trophy, MessageSquare, BarChart3, Sparkles, Search, X, Phone, Mail, Plus, ImagePlus, Camera, Move, Check } from "lucide-react";
+import { Users, Trophy, MessageSquare, BarChart3, Sparkles, Search, X, Phone, Mail, Plus, ImagePlus, Camera, Move, Check, Shield } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
@@ -12,6 +12,7 @@ import type { CommunityPlayer, CommunitySummary } from "@/lib/types";
 import AddPlayerModal from "@/components/community/AddPlayerModal";
 import AnnouncementsTab from "@/components/community/AnnouncementsTab";
 import SuperGamesTab from "@/components/community/SuperGamesTab";
+import ManageAdminsModal from "@/components/community/ManageAdminsModal";
 
 function ntrpVariant(ntrp: number | null): "blue" | "sky" | "green" | "yellow" | "orange" | "red" | "gray" {
   if (ntrp === null) return "gray";
@@ -34,6 +35,7 @@ export default function PadelSmashPage() {
   const [tab, setTab] = useState<Tab>("members");
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [adminsOpen, setAdminsOpen] = useState(false);
 
   const load = () => {
     return Promise.all([
@@ -276,10 +278,16 @@ export default function PadelSmashPage() {
               )}
             </div>
             {isAdmin && (
-              <Button onClick={() => setAddOpen(true)} size="sm">
-                <Plus className="w-4 h-4 mr-1" />
-                {t.community.addPlayer}
-              </Button>
+              <>
+                <Button variant="secondary" onClick={() => setAdminsOpen(true)} size="sm">
+                  <Shield className="w-4 h-4 mr-1" />
+                  {t.community.manageAdmins}
+                </Button>
+                <Button onClick={() => setAddOpen(true)} size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  {t.community.addPlayer}
+                </Button>
+              </>
             )}
           </div>
 
@@ -373,6 +381,8 @@ export default function PadelSmashPage() {
           }}
         />
       )}
+
+      {adminsOpen && <ManageAdminsModal onClose={() => setAdminsOpen(false)} />}
     </div>
   );
 }
